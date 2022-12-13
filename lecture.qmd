@@ -1,0 +1,23 @@
+---
+jupyter: python3
+toc: true
+toc-depth: 1
+---
+
+{{< include Overview.md >}}
+
+{{< include lectures/01-Introduction.qmd >}}
+
+{{< include lectures/02-Direct-Sampling-Methods.qmd >}}
+
+{{< include lectures/03-Rejection-and-Importance-Sampling.qmd >}}
+
+{{< include lectures/04-Markov-Chain-Monte-Carlo.qmd >}}
+
+{{< include lectures/05-Metropolis-Hastings.qmd >}}
+
+{{< include lectures/06-Gibbs-Sampling.qmd >}}
+
+{{< include lectures/07-Hamiltonian-Monte-Carlo.qmd >}}
+
+{{< include lectures/08-HMC-Practical-Issues.qmd >}}

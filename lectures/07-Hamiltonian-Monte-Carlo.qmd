@@ -1,0 +1,483 @@
+# Lecture 7: Hamiltonian Monte Carlo
+
+Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
+
+## Outline
+
+* Recap: MCMC + Gibbs Sampling
+* More on auxiliary variable methods
+* Hamiltonian Monte Carlo
+
+# Recap
+
+* __Metropolis-Hastings algorithm:__ Take (almost) any Markov chain $Q$ (proposal chain) and map it to a new Markov chain $M[Q]$ with a desired proposal distribution $p$:
+$$
+M[Q](y, x) = Q(y, x) \, \min\left\{1, \frac{Q(x, y)}{Q(y, x)} \frac{p(y)}{p(x)} \right\},\,\,\, y\not= x
+$$
+
+* __Metropolis-within-Gibbs:__ Multiple proposal kernels $P_i$ that have the same stationary distribution $p$ can be combined to produce a new kernel $P=\prod_i P_i$ with the same stationary distribution. A special case is to use proposal chains $Q_i$ that only update a group of variables $x_i$ and leave the other variables $x_{\setminus i}$ untouched:
+$$
+Q_i(y, x) = \delta(y_{\setminus i} - x_{\setminus i})\, q_i(y_i, x_i; x_{\setminus i})
+$$
+The Metropolis map of $Q_i$ simulates a Markov chain in the subspace $\mathcal X_i$ with proposal kernel $q_i$.
+
+* __Gibbs sampling:__ A special case is $q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i|x_{\setminus i})$ (the proposal is the conditional distribution $p_i$ of the $i$-th group of variables), which results in proposals that are always accepted. 
+
+# Auxiliary variable methods
+
+The idea of auxiliary variable methods is to introduce helper variables $y\in\mathcal Y$ that facilitate sampling. The joint distribution $p(x, y)$ over the extended sample space $\mathcal X \times{} \mathcal Y$ has to be designed such that
+
+$$
+p(x) = \int_{\mathcal{Y}} p(x, y)\, dy\, .
+$$
+
+Samples $\bigl(x^{(s)}, y^{(s)}\bigr) \sim p(x, y)$ can then be used to estimate expectations with respect to $p(x)$:
+
+$$
+\mathbb{E}_p[f] = \int_{\mathcal X} f(x)\, p(x)\, dx = \int_{\mathcal X \times \mathcal Y} f(x)\, p(x, y)\, dx dy \approx \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr)\, .
+$$
+
+Why is this helpful? We can use Gibbs sampling to generate samples from $p(x, y)$:
+
+\begin{align}\label{eq:gibbs-auxiliary2}
+\begin{split}
+x^{(s+1)} &\sim p\bigl(x | y^{(s)}\bigr) \\
+y^{(s+1)} &\sim p\bigl(y | x^{(s+1)}\bigr) \\
+\end{split}
+\end{align}
+
+where the marginal distributions might be easier to simulate than $p(x)$.
+
+### Example: Swendsen-Wang algorithm
+
+An example of an auxiliary variable method is the [Swendsen-Wang algorithm](https://en.wikipedia.org/wiki/Swendsen%E2%80%93Wang_algorithm) for sampling Ising models. The Ising model (see lecture 1) is defined on a two-dimensional square lattice of length $L$. The sample space is $\mathcal X = \{-1, +1\}^{L \times L}$. The probability is
+
+$$
+p(x) \propto \exp\left\{\beta \sum_{i\sim j} x_i x_j \right\}
+$$
+
+where $i\sim j$ indicates if two nodes $i$ and $j$ are nearest neighbors on the square lattice (assuming periodic boundary conditions). In the first lecture, we saw that it is challenging to simulate the Ising model for $\beta \simeq 0.44$, because of a phase transition: For $\beta$ larger than the critical value, spin variables become highly correlated which makes the sampling quite challenging.
+
+The sampling strategy used in lecture 1 can be interpreted as "Metropolis-within-Gibbs": The entire 2D lattice is scanned (a loop over all lattice sites is called a *sweep*). At each lattice site, we try to flip the spin: If $x_i$ is the current value of spin $i$, then the flipped value is $x_i'=-x_i$; all other spin variables are unchanged. That is, the proposal kernel $Q_i$ only affects a single site and is symmetric and deterministic. A spin flip is accepted with probability:
+
+$$
+\frac{p(x')}{p(x)} = \exp\left\{\beta\sum_{i\sim j} (x_i'x_j' - x_i x_j) \right\} = \exp\left\{-2\beta x_i S_i \right\}
+$$
+
+where $S_i = \sum_{j\sim i} x_j$ is the total spin of the nearest neighbors, which can be evaluated very efficiently. 
+
+```{python}
+#| scrolled: false
+%load_ext Cython
+```
+
+```{python}
+%%cython
+
+cimport cython
+
+import numpy as np
+cimport numpy as np
+
+from libc.math cimport exp
+from libc.stdlib cimport rand
+cdef extern from "limits.h":
+    int RAND_MAX
+
+    
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def ising_energy(np.int64_t[:, :] x):
+    cdef int N = x.shape[0]
+    cdef int M = x.shape[1]
+    cdef int E = 0
+    cdef int i, j
+    for i in range(N):
+        for j in range(M):
+            E -= x[i,j] * (x[i,(j+1)%M] + x[(i+1)%N, j])
+    return E
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def ising_sweep(np.int64_t[:, :] x, float beta=0.4):
+    cdef int N = x.shape[0]
+    cdef int M = x.shape[1]
+    cdef int start_i, start_j, i, j
+    for start_i in range(2):
+        for start_j in range(2):
+            for i in range(start_i, N, 2):
+                for j in range(start_j, M, 2):
+                    ising_flip(x, i, j, beta)
+    return np.array(x)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef ising_flip(np.int64_t[:, :] x, int i, int j, float beta):
+    cdef int N = x.shape[0]
+    cdef int M = x.shape[1]
+    cdef int S = x[(i-1)%N,j] + x[(i+1)%N,j] + x[i,(j-1)%M] + x[i,(j+1)%M]
+    if exp(-2 * beta * x[i, j] * S) * RAND_MAX > rand():
+        x[i, j] *= -1
+```
+
+To improve the sampling of spin configuration, we introduce auxiliary variables $b_{ij} \in \{0, 1\}$, also called *bond variables*, for each pair of spins $i$ and $j$ that are neighbors on the square lattice: $i\sim j$. The bond variables indicate if two neighboring spins $x_i$, $x_j$ are aligned (i.e. have the same spin or color):
+
+$$
+b_{ij} = \left\{\begin{array}{c c} 1 & \text{if } x_i = x_j \\ 0 & \text{else} \\
+\end{array}\right.
+$$
+
+The bond variables can be seen as Bernoulli coins that are tossed independently of each other. For spins that are aligned, the probability for forming a bond between sites $i$ and $j$, $b_{ij}=1$, is $p=1-e^{-2\beta}$. So there is a bias for $b_{ij}$ to form that increases with increasing inverse temperature $\beta$. For spins that are not aligned, the associated bond is *not* formed with probability one. The overall probability is
+
+$$
+p(x, b) \propto \prod_{i\sim j} [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
+$$
+
+where $\delta(x_i, x_j)=1$ if $x_i=x_j$ and $\delta(x_i,x_j)=0$ otherwise. For the Ising model with $x_i=\pm 1$, we can write 
+
+$$
+\delta(x_i, x_j) = \frac{x_ix_j + 1}{2}\, .
+$$
+
+To verify that the marginal distribution over $x$ is correct, let us compute it by summing over $b_{ij}$:
+
+\begin{align*}
+\sum_{b} p(x, b) &\propto \sum_{b} \prod_{i\sim j} [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}\\
+&= \prod_{i\sim j} [p\delta(x_i, x_j) + 1 - p] \\
+&= \prod_{i\sim j} [1-p]^{1-\delta(x_i, x_j)} \\
+&= \prod_{i\sim j} \exp\left\{-2\beta(1-\delta(x_i, x_j))\right\} \\
+&= \prod_{i\sim j} \exp\left\{-\beta(1-x_ix_j)\right\} \\
+&\propto \prod_{i\sim j} \exp\left\{\beta x_ix_j\right\} \\
+\end{align*}
+
+The conditional distribution of a single bond variable $b_{ij}$ is
+
+$$
+p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
+$$
+
+These can be updated by simply generating Bernoulli variables for aligned spins, the other bond variables are set to zero. 
+
+The conditional distribution of the spins is sampled by assigning all spin variables that belong to the same [connected component](https://en.wikipedia.org/wiki/Component_(graph_theory)) of the bond network to a single, randomly selected value $\pm 1$. 
+
+```{python}
+# pure Python implementation of Swendsen-Wang
+import numpy as np
+import matplotlib.pylab as plt
+import scipy.sparse as sparse
+
+class SwendsenWang:
+    
+    def __init__(self, L):
+        self.L = int(L)
+        
+        # create edges
+        iy, ix = np.meshgrid(np.arange(L), np.arange(L))
+
+        i = np.arange(L**2)
+        i = np.concatenate([i, i])
+        j = [(L*ix + (iy+1)%L).flatten(), (L*((ix+1)%L) + iy).flatten()]
+        j = np.concatenate(j)
+
+        self.edges = np.sort([i, j], 0)
+
+    def adjacency_matrix(self, bonds=None):
+        i, j = self.edges
+        if bonds is not None:
+            i, j = i[bonds], j[bonds]               
+        return sparse.csr_matrix(
+            (np.ones_like(i), (i, j)), shape=(self.L**2, self.L**2))
+
+    def sample_bonds(self, x, beta=1.):
+        x = x.reshape(-1,)
+        i, j = self.edges
+        aligned = (x[i] == x[j])
+        prob = aligned * (1-np.exp(-2*beta)) 
+        return np.random.random(len(prob)) < prob
+
+    def sample_spins(self, x, beta=0.):
+        x = x.copy().flatten()    
+        bonds = self.sample_bonds(x, beta)
+        adjacency = self.adjacency_matrix(bonds)
+    
+        n_comp, labels = sparse.csgraph.connected_components(
+            adjacency, directed=False, return_labels=True)
+
+        for label in range(n_comp):
+            x[labels==label] = np.random.choice([-1, 1])
+            
+        return x.reshape(self.L, -1)
+```
+
+```{python}
+# For comparison: mean energy per spin in infinite lattice from Onsager theory
+# https://en.wikipedia.org/wiki/Square_lattice_Ising_model#Exact_solution
+
+from scipy import integrate
+
+def energy_per_spin(beta):
+    """Average energy per lattice site according to Onsager.
+    """
+    if np.iterable(beta):
+        return np.array(list(map(energy_per_spin, beta)))
+    
+    # scalar beta
+    def f(theta):
+        k = 1 / np.sinh(2*beta)**2
+        return 1 / np.sqrt(1 - 4*k/(1+k)**2 * np.sin(theta)**2)
+
+    I = integrate.quad(f, 0., 0.5*np.pi)[0]
+    I *= 2 * (2*np.tanh(2*beta)**2 - 1) / np.pi
+    return - (1 + I) / np.tanh(2*beta)
+```
+
+```{python}
+L = 2**7
+x = np.random.choice([-1, 1], (L, L))
+
+# inverse temperature close to critical value
+beta = 0.5 * np.log(1 + 2**(1/2))
+n_iter = 30
+
+# starting from random configuration (beta=0.) using Metropolis
+# algorithm to approach distribution at critical beta
+x_MH = x.copy()
+E_MH = [ising_energy(x_MH)/L**2]
+for _ in range(n_iter):
+    x_MH = ising_sweep(x_MH)
+    E_MH.append(ising_energy(x_MH)/L**2)
+E_MH = np.array(E_MH)
+
+# starting from random configuration (beta=0.) using Swendsen-
+# Wang to approach distribution at critical beta
+sampler = SwendsenWang(L)
+x_SW = x.copy()
+E_SW = [ising_energy(x_SW)/L**2]
+for _ in range(n_iter):
+    x_SW = sampler.sample_spins(x_SW, beta)
+    E_SW.append(ising_energy(x_SW)/L**2)
+E_SW = np.array(E_SW)
+```
+
+```{python}
+betas = [np.linspace(1e-3, 1., 101), 
+         np.linspace(0.2, 0.8, 101)][0]
+U = energy_per_spin(betas)
+
+plt.rc('font', size=16)
+fig, ax = plt.subplots(1, 2, figsize=(10, 5), sharey='all')
+ax = list(ax.flat)
+ax[0].plot(E_MH, lw=3, label='Metropolis')
+ax[0].plot(E_SW, lw=3, label='Swendsen-Wang')
+ax[0].set_xlabel(r'iteration $s$')
+ax[0].set_ylabel(r'energy per spin $E/L^2$')
+ax[0].legend()
+ax[1].scatter(beta, E_MH[-1], s=200, label='Metropolis')
+ax[1].scatter(beta, E_SW[-1], s=200, label='Swendsen-Wang')
+ax[1].plot(betas, U, color='r', ls='--', lw=3, label='Onsager')
+ax[1].set_xlabel(r'inverse temperature $\beta$')
+ax[1].legend()
+fig.tight_layout()
+```
+
+```{python}
+plt.rc('image', interpolation=None, cmap='gray')
+kw = dict(xticks=[], yticks=[])
+fig, ax = plt.subplots(1, 2, figsize=(10, 5), subplot_kw=kw)
+ax[0].set_title('Metropolis')
+ax[0].imshow(x_MH.reshape(L, L))
+ax[1].set_title('Swendsen-Wang')
+ax[1].imshow(x_SW.reshape(L, L))
+fig.tight_layout()
+```
+
+# Hamiltonian Monte Carlo
+
+Another auxiliary variable method is [Hamiltonian Monte Carlo (HMC)](https://en.wikipedia.org/wiki/Hamiltonian_Monte_Carlo) also known as [*Hybrid Monte Carlo*](https://doi.org/10.1016%2F0370-2693%2887%2991197-X). HMC is among the most widely used methods for sampling probabilistic models over continuous sample spaces. Radford Neal, one of the inventors of HMC, has written a nice introduction that can be found [here](http://www.mcmchandbook.net/HandbookChapter5.pdf).
+
+The idea of HMC is to exploit the following physical analogy: we interpret 
+
+\begin{equation}\label{eq:energy-hmc}
+E(x) = - \log p(x)
+\end{equation}
+
+as a potential energy function of a physical system with degrees of freedom $x$. Typically, $x\in\mathbb{R}^D$.
+
+We introduce auxiliary variables $v\in\mathbb{R}^D$ that follow a $D$-dimensional standard Gaussian distribution:
+
+$$
+p(v) = (2\pi)^{-D/2} \exp\left\{-\|v\|^2 / 2 \right\}
+$$
+
+and construct the joint distribution:
+
+\begin{equation}\label{eq:hmc-joint}
+p(x, v) = p(x)\, p(v) \propto \exp\left\{- E(x) - \|v\|^2 / 2 \right\}\, .
+\end{equation}
+
+It seems that we didn't gain anything by introducing $v$ other than artificially blowing up the problem and writing the joint distribution in some fancy, pseudo-physical way. However, the major insight comes from the fact that if we stretch the physical analogy further, the joint distribution can be viewed as the [canonical ensemble](https://en.wikipedia.org/wiki/Canonical_ensemble) defined over [*phase space*](https://en.wikipedia.org/wiki/Phase_space):
+
+\begin{equation}\label{eq:hmc-hamiltonian}
+p(x, v) \propto \exp\left\{- H(x, v)\right\}\,\,\,\text{where}\,\,\,  H(x, v) := \underbrace{\tfrac{1}{2} \|v\|^2}_{\text{kinetic energy}} + \underbrace{E(x)}_{\text{potential energy}}\, .
+\end{equation}
+
+Phase space is the joint space of positions $x$ and momenta (velocities) $v$ in our physical analogy, and the total energy is given by the sum of the kinetic and potential energy is called the [*Hamiltonian*](https://en.wikipedia.org/wiki/Hamiltonian_mechanics) of the system. 
+
+## Hamiltonian dynamics
+
+Classical systems with $D$ degrees of freedom evolve in time by the action of the Hamiltonian $H(x, v)$. Trajectories in phase space are given by the time evolution of velocities and positions, $v(t)$ and $x(t)$. The dynamics of the system is described by Hamilton's equations of motion (an elegant generalization of Newton dynamics):
+
+\begin{align}\label{eq:hmc-dynamics}
+\begin{split}
+\dot{v} &= \frac{d}{dt} v = - \nabla_x H(x, v) \\
+\dot{x} &= \frac{d}{dt} x = + \nabla_v H(x, v) \\
+\end{split}
+\end{align}
+
+where $d/dt$ is the derivative with respect to time $t$ and abbreviated by a dot (as in $\dot{x}$), and $\nabla_x, \nabla_v$ are the gradients with respect to positions $x$ and momenta $v$. 
+
+The hallmark of Hamiltonian dynamics (Eq. \ref{eq:hmc-dynamics}) of an isolated classical system is that it conserves the total energy. This is clear from
+
+$$
+\frac{d}{dt} H = (\nabla_x H(x, v))^T\dot{x} + (\nabla_v H(x, v))^T\dot{v} = (\nabla_x H)^T\!(\nabla_v H) - (\nabla_v H)^T\!(\nabla_x H) = 0
+$$
+
+where we used the [chain rule](https://en.wikipedia.org/wiki/Chain_rule) to compute the [total derivative](https://en.wikipedia.org/wiki/Total_derivative) of the Hamiltonian with respect to time (note that there is no explicit time dependence of $H$, i.e. $\partial_t H=0$). 
+
+The trick of HMC is to sample the momenta $v$ from the collapsed distribution
+
+$$
+v^{(s)} \sim \mathcal N(0, I_D)
+$$
+
+and evolve the system to a proposal state starting from the previous positions $x^{(s)}$ and the newly sampled momenta $v^{(s)}$. If the time evolution is based on Hamiltonian dynamics, we know that the Hamiltonian $H(x, v)$ is conserved. So if $H(x^{(s)}, v^{(s)})$ is the total energy of the current state, then the Hamiltonian of the proposal state $\bigl(x(T), v(T)\bigr)$ where $T$ is the integration time will be the same:
+
+$$
+H\bigl(x(T), v(T)\bigr) = H\bigl(x^{(s)}, v^{(s)}\bigr)\,\,\,\text{where}\,\,\,  \bigl(x^{(s)}, v^{(s)}\bigr) \xrightarrow[\text{dynamics}]{\text{Hamiltonian}} \bigl(x(T), v(T)\bigr) \,.
+$$
+
+The probability for accepting $\bigl(x(T), v(T)\bigr)$ as new state $\bigl(x^{(s+1)}, v^{(s+1)}\bigr)$ is given by the ratio
+
+$$
+\frac{p\bigl(x(T),v(T)\bigr)}{p\bigl(x^{(s)}, y^{(s)}\bigr)} = \exp\left\{-\Delta H \right\}\,\,\, \text{with}\,\,\, \Delta H = H\bigl(x(T), v(T) \bigr) -  H\bigl(x^{(s)}, v^{(s)} \bigr)\, .
+$$
+
+This ratio doesn't depend on the proposal probabilities, because Hamiltonian dynamics is [symplectic](https://en.wikipedia.org/wiki/Liouville%27s_theorem_(Hamiltonian)), i.e. the chance for going from one point in phase space to another point in phase space is the same for the reverse dynamics (volumes in phase space don't change under Hamiltonian dynamics, the dynamics of the system is incompressible). So the proposal chain is symmetric and proposal probabilities cancel out in the acceptance step. 
+
+Since the total energy of the start and proposal state are the same, we have $\Delta H = 0$ and the proposed state will be accepted with probability one.
+
+### Example: Harmonic oscillator
+
+Let us consider a concrete example whose dynamics can be solved exactly: the [harmonic oscillator](https://en.wikipedia.org/wiki/Harmonic_oscillator) which corresponds to a Gaussian model:
+
+$$
+H(x, v) = v^2 / 2 + k x^2 / 2
+$$
+
+with the following dynamics:
+
+\begin{align}
+\begin{split}
+\dot{x} &= +\frac{\partial H}{\partial v} = v \\
+\dot{v} &= -\frac{\partial H}{\partial x} = -k x\\
+\end{split}
+\end{align}
+
+In matrix-vector form we have
+
+\begin{equation}\label{eq:oscillator}
+\frac{d}{dt} \begin{pmatrix} v\\ x\end{pmatrix} = \begin{pmatrix} 0 & -k \\ 1 & 0 \\ \end{pmatrix} \begin{pmatrix} v\\ x\end{pmatrix} = A \begin{pmatrix} v\\ x\end{pmatrix}\,\,\,\Rightarrow\,\,\, \begin{pmatrix} v(t)\\ x(t)\end{pmatrix} = \exp\{tA\} \begin{pmatrix} v_0\\ x_0\end{pmatrix}
+\end{equation}
+
+where $\exp\{tA\}$ is a matrix exponential $\exp\{tA\} = \sum_n \frac{t^n}{n!} A^n$. The matrix powers have a simple structure: 
+
+$$
+A^{2n} = (-k)^n I, \,\,\, A^{2n+1} = (-k)^n A
+$$
+
+So the solution of the Hamilton equations is (with $\omega = \sqrt{k}$):
+
+\begin{eqnarray*}\label{eq:oscillator2}
+\begin{pmatrix} v(t)\\ x(t)\end{pmatrix} &=& I \sum_{n} \frac{(-)^n}{(2n)!} (\omega t)^{2n} \begin{pmatrix} v_0\\ x_0\end{pmatrix} + \omega^{-1}A \sum_{n} \frac{(-)^n}{(2n+1)!} (\omega t)^{2n+1} \begin{pmatrix} v_0\\ x_0\end{pmatrix} \\
+&=& \biggl(I \cos(\omega t) + \omega^{-1}A \sin(\omega t)\biggr) \begin{pmatrix} v_0\\ x_0\end{pmatrix} \\
+&=& \begin{pmatrix} \cos(\omega t) & -\omega\sin(\omega t)\\ \sin(\omega t)/\omega  & \cos(\omega t) \\ \end{pmatrix} \begin{pmatrix} v_0\\ x_0\end{pmatrix} 
+\end{eqnarray*}
+
+The Hamiltonian $H(x, v)$ is indeed conserved (*Exercise*). 
+
+We can now sample a Gaussian model by exploiting the physical analogy to the harmonic oscillator. We pretend that we can only sample the momenta from a standard normal distribution, and then use the dynamics of the harmonic oscillator to generate a proposal state that is accepted with probability one:
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+plt.rc('image', cmap='viridis')
+
+
+class Oscillator:
+
+    def __init__(self, k=1., T=1.):
+
+        self.k = float(k)
+        self.T = float(T)
+        self.A = np.array([[0, 1], [-self.k, 0]])
+        self.w = np.sqrt(k)
+        
+    def propagate(self, x, v, T=None):
+
+        T = self.T if T is None else float(T)
+        
+        U = np.array([[np.cos(self.w*T), np.sin(self.w*T)/self.w],
+                      [-np.sin(self.w*T)*self.w, np.cos(self.w*T)]])
+
+        return U.dot([x, v])
+
+    def calc_hamiltonian(self, x, v):
+        return 0.5 * v**2 + 0.5 * self.k * x**2
+
+    def gradient(self, x):
+        return self.k * x
+    
+k = (10., 0.1)[1]
+T = 1000.
+x0 = 10.
+
+osci = Oscillator(k, T)
+samples = [(x0, np.random.standard_normal())]
+
+while len(samples) < 1e4:
+    x, v = osci.propagate(*samples[-1])
+    v = np.random.standard_normal()
+    samples.append((x, v))
+
+samples = np.array(samples)
+
+sigma = 1 / osci.k**0.5
+
+x = np.linspace(-1, 1., 1000) * 4 * sigma
+p_x = np.exp(-0.5 * x**2 / sigma**2 - 0.5 * np.log(2*np.pi*sigma**2))
+
+v = np.linspace(-1, 1., 1000) * 4 
+p_v = np.exp(-0.5 * v**2 - 0.5 * np.log(2*np.pi))
+
+burnin = 200
+
+kw_hist = dict(bins=20, color='k', density=True, alpha=0.2)
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+#
+ax[0].plot(*samples[:burnin].T, color='k', alpha=0.2)
+ax[0].scatter(*samples[:burnin].T, c=np.linspace(0., 1., len(samples[:burnin])), alpha=1.)
+ax[0].set_xlabel(r'$x^{(s)}$')
+ax[0].set_ylabel(r'$v^{(s)}$')
+#
+ax[1].hist(samples[burnin:,0], **kw_hist)
+ax[1].plot(x, p_x, color='r')
+ax[1].set_xlabel(r'$x^{(s)}$')
+#
+ax[2].hist(samples[burnin:,1], **kw_hist)
+ax[2].plot(v, p_v, color='r')
+ax[2].set_xlabel(r'$v^{(s)}$')
+#
+fig.tight_layout()
+```

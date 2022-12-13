@@ -1,0 +1,633 @@
+# Lecture 4: Markov chain Monte Carlo
+
+## Outline
+
+* Markov chains
+
+# Where do we stand?
+
+* Monte Carlo approximation: use stochastic simulations to estimate deterministic quantities. Only stochastic and asymptotic guarantees. 
+
+* We can design special purpose solutions using variable transformation methods, but these are not broadly applicable. Examples: inversion of cdf, Cartesian to polar coordinates (Box-Muller), affine transformation for general multivariate Gaussians
+
+* We tried to overcome special purpose approaches by using a *helper* or *proposal* distribution (rejection and importance sampling)
+
+* Although these approaches are more versatile, we encountered several challenges: Finding a good proposal distribution in the first place. Depending on the method, guarantee that all requirements are met. For example, rejection sampling needs an upper bound on the ratio of target and proposal distribution.
+
+* Major challenges in high dimensions for both rejection and importance sampling
+
+# Markov chains
+
+Up to this point, we have only considered sampling approaches based on identically and independently distributed samples: all $x^{(s)}$ are generated from the same distribution independent of each other, either by drawing from 
+
+$$
+x^{(s)}\sim p(x)
+$$ 
+
+where $p(x)$ is the target distribution, or by drawing from 
+
+$$
+x^{(s)}\sim q(x)
+$$
+
+where $q(x)$ is a proposal or helper distribution. 
+
+The idea of [__Markov chain Monte Carlo (MCMC)__](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) methods is to give up the *independence* of successive samples and generate sequences of states where $x^{(s)}$ depends on the previous sample $x^{(s-1)}$. Our hope is that also when introducing these correlations, the Monte Carlo approximation
+
+\begin{equation}\label{eq:MCapproximation}
+\frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr) \approx \mathbb E_p[f]
+\end{equation}
+
+is still valid. This is justified by our intuition that as long as we run the simulation long enough correlations between two states $x^{(s')}$ and $x^{(s)}$ will vanish with large $|s'-s|$, and the samples $x^{(s)}$ will approximately follow $p(x)$ for large $s$
+
+In the following, we will restrict ourselves to *discrete* sample spaces $\mathcal X$ (finite or countably infinite). Markov chains defined on continuous sample spaces can be treated in a similar, yet mathematically much more involved fashion (measure theory, etc.). 
+
+## Definition of Markov chains
+
+Markov chains are models for dynamical systems with possibly uncertain transitions between various system states. In our context, the state space of the stochastic dynamics is the sample space $\mathcal X$. 
+
+A (first order) [*Markov chain*](https://en.wikipedia.org/wiki/Markov_chain) is a *memoryless* stochastic process $\left(x^{(s)}\right)_{s\ge 0}$ that has the following [property](https://en.wikipedia.org/wiki/Markov_property)
+
+\begin{equation}\label{eq:MarkovChain}
+\Pr\bigl(x^{(s+1)} \mid x^{(s)}, \ldots, x^{(1)}\bigr) = \Pr\bigl(x^{(s+1)} \mid x^{(s)}\bigr)
+\end{equation}
+
+with $x^{(s)} \in \mathcal X$. That is, the probability of finding the system in state $x^{(s+1)}$ only depends on the *last* state $x^{(s)}$, not on the previous states before the last state. In this sense, Markov chains have no memory. A Markov chain is uniquely characterized by 
+
+1. the *distribution of the initial state* $x^{(0)} \sim p^{(0)}$ and 
+
+2. the *transition probabilities* $\Pr(y\mid x)$ for all $x, y \in \mathcal X$. 
+
+Note that we are dealing with *time-homogeneous* Markov chains whose transition probabilities do not depend on $s$. 
+
+*Remark:* I am here sticking to our convention of using the superscript $(\cdot)^{(s)}$ to denote samples, because we will later use Markov chains to generate samples from a probabilistic model. However, at this point we should think of $s$ as a discrete time. 
+
+## Graph representation
+
+Due to its simple structure, Markov chains can be represented as directed graphs where the nodes of the graph represent the different states in $\mathcal X$ and the edges transition probabilities between nodes $y$ and $x$ that are greater than zero, i.e. if $\Pr(x\mid y) > 0$, then we introduce an arrow between $y$ and $x$. These graphs are called *transition graphs*. 
+
+For example the two-state Markov chain with transition probabilities $\Pr(x_2\mid x_1) = \alpha$ and $\Pr(x_1\mid x_2)=\beta$ can be represented by the transition graph:
+
+![Two-state model](images/twostate.png "Two-state Markov model")
+
+## Transition matrix
+
+Since the transition probability depends only on the last state, we can summarize all probabilities in a *transition matrix*
+
+\begin{equation}\label{eq:transition-matrix}
+    P(x, y) = \Pr(x \mid y)
+\end{equation}
+
+For continuous sample spaces, the transition matrix becomes a transition operator or [Markov kernel](https://en.wikipedia.org/wiki/Markov_kernel). For the above two-state system we have
+
+\begin{equation}\label{eq:twostate}
+P(x, y) = \begin{pmatrix}
+1 - \alpha & \beta \\
+\alpha & 1 - \beta \\
+\end{pmatrix}
+\end{equation}
+
+where $\alpha, \beta \in [0, 1]$.
+
+In discrete sample spaces, $P(x, y)$ is the probability that we jump from state $y\in\mathcal X$ to state $x\in\mathcal X$. Because we are dealing with conditional probabilities, we have
+
+\begin{equation}\label{eq:transition-matrix2}
+\sum_{x\in\mathcal X} P(x, y) = 1, \,\,\, P(x, y) \ge 0\, .
+\end{equation}
+
+The first condition can be written in matrix-vector notation
+
+\begin{equation}\label{eq:leftstochastic}
+\mathbb 1^T\!P = \mathbb 1^T
+\end{equation}
+
+where 
+
+\begin{equation}\label{eq:one}
+\mathbb 1 = \begin{pmatrix}
+1 \\
+\vdots\\
+1\\
+\end{pmatrix}
+\end{equation}
+
+is a column vector whose elements are all one, and $P$ is the transition matrix. Non-negative square matrices that satisfy condition (\ref{eq:leftstochastic}) are called [*(left) stochastic*](https://en.wikipedia.org/wiki/Stochastic_matrix) matrices. The qualifier "left" stems from the fact that the *columns* of $P(x, y)$ are probability vectors, so multiplication with $\mathbb 1^T$ from the left produces one for each column. 
+
+### Left versus right stochastic matrices
+
+* Beware that there are different conventions for how to define transition matrices. Mathematicians tend to use the convention $P(x, y) = \Pr(y\mid x)$, whereas Physicists tend to use $P(x, y) = \Pr(x\mid y)$. In the first case, the row sums are one, whereas in the second case the column sums are one. 
+
+* Note that, as a consequence of the previous comment, in the mathematics literature, and probably also the computer science literature, transition matrices of first-order Markov processes are *right stochastic*. Here, we follow the physics convention of using *left stochastic* transition matrices to represent the transition probabilities of Markov processes. One reason is that in the left stochastic convention the position of the arguments in $P(x, y)$ directly reflects the dependence in the conditional probability $\Pr(x\mid y)$. Another reason is that we will later see that some of the *right* eigenvectors of $P$ (in the left stochastic convention) play a crucial role (stationary distributions). Linear algebra packages typically compute right eigenvectors (so we don't have to remember to transpose the matrix when we compute eigenvectors...)
+
+## Eigenvalues of transition matrices
+
+A direct consequence of the stochasticity of the transition matrix of a Markov chain is that the absolute value ([modulus](https://en.wikipedia.org/wiki/Absolute_value)) of the (complex) eigenvalues $\lambda$ of $P$ are smaller than or equal to one. 
+
+This is straightforward to see: Let $u$ be a left eigenvector of $P$ with $u^T\!P = \lambda u^T$. Therefore, 
+
+$$
+\lambda u(x) = \sum_{y\in \mathcal X} P(y, x) u(y)\,\,\, \Rightarrow\,\,\, |\lambda|  = \left|\sum_{y\in \mathcal X} P(y, x) \frac{u(y)}{|u(x)|}\right|
+$$
+
+for all $x$ with $|u(x)|>0$. If we pick the element $x$ with the largest absolute value, then all ratios $|u(y)/u(x)|$ are smaller than or equal to one. Therefore, by applying the triangle inequality we get
+
+$$
+|\lambda| \le \sum_{y\in \mathcal X} |P(y, x)|\, |u(y)|/|u(x)| \le \sum_{y\in\mathcal X} P(y, x) = 1\, .
+$$
+
+We see that $\mathbb 1$ is a left eigenvector that attains the maximum (absolute) eigenvalue.
+
+Since left and right eigenvectors have the same eigenvalues, the above upper limit is also valid for right eigenvalues (the [characteristic polynomials](https://en.wikipedia.org/wiki/Characteristic_polynomial) of $P$ and $P^T$ are the identical). 
+
+## Simulation of Markov chains
+
+The algorithm for simulating a Markov chain is very simple:
+
+1. $x^{(0)} \sim p^{(0)}(x)$
+
+2. $x^{(s+1)} \sim P\bigl(x, x^{(s)}\bigr)$ 
+
+In the first step, $p^{(0)}$ is the initial distribution of states, for example a uniform distribution. In the second step, we simply pick the column vector corresponding to state $x^{(s)}$ and draw a random sample from it. This generates a random walk on the graph representing a Markov chain. We have previously discussed how to sample states according to a pmf by using uniformly distributed pseudo-random numbers:
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+plt.rc('font', size=20)
+
+def transition_matrix(alpha, beta):
+    return np.array([[1-alpha, beta], 
+                     [alpha, 1-beta]])
+    
+def sample_chain(S, alpha=0.5, beta=0.5, x0=0):
+    X = [x0]
+    P = transition_matrix(alpha, beta)
+    while len(X) < S:
+        p = P[:,X[-1]]
+        X.append(np.random.multinomial(1, p).argmax())
+    return np.array(X)
+
+S = 100
+kw = dict(yticks=[0, 1], ylim=[-0.1, 1.1], yticklabels=['$x_1$', '$x_2$'], xlabel='$s$')
+fig, ax = plt.subplots(3, 1, figsize=(10, 9), subplot_kw=kw)
+ax = list(ax.flat)
+for i, (alpha, beta) in enumerate([(0.5, 0.5), (0.1, 0.9), (1., 1.)]):
+    X = sample_chain(S, alpha, beta)
+    ax[i].set_title(r'$\alpha={0:.1f}$, $\beta={1:.1f}$'.format(alpha, beta))
+    ax[i].plot(X, color='k', alpha=0.7, marker='o');
+fig.tight_layout()
+```
+
+## Distribution propagation
+
+If the initial state $x^{(0)}$ follows $p^{(0)}$, the marginal distribution of the next state $x^{(1)}$ is
+
+$$
+p^{(1)}(x) = \sum_{y\in\mathcal X} P(x, y)\, p^{(0)}(y)\, .
+$$
+
+The marginal distribution of the $(s+1)$-th state in a Markov chain follows the distribution
+
+\begin{equation}\label{eq:marginalMC}
+p^{(s+1)}(x) = \sum_{y\in\mathcal X} P(x, y)\, p^{(s)}(y)\, . 
+\end{equation}
+
+Repeating the same argument for $p^{(s)}$, we have
+
+\begin{equation}\label{eq:marginalMC2}
+p^{(s+1)}(x) = \sum_{y, z\in\mathcal X} P(x, y)\, P(y, z) \, p^{(s-1)}(z) = 
+\sum_{z\in\mathcal X} \left(\sum_{y\in\mathcal X} P(x, y)\, P(y, z) \right) \, p^{(s-1)}(z)\, . 
+\end{equation}
+
+The expression in brackets, $\sum_{y\in\mathcal X} P(x, y)\, P(y, z)$, is the transition matrix for making two successive transitions. By generalizing the argument, we obtain the [Chapman-Kolmogorov equation](https://en.wikipedia.org/wiki/Chapman%E2%80%93Kolmogorov_equation).
+
+In matrix-vector notation, we have
+
+$$
+p^{(s+1)} = Pp^{(s)}
+$$
+
+where $p^{(s)}$ are now vectors in the [probability simplex](https://en.wikipedia.org/wiki/Simplex#Probability) and $P$ is the transition matrix (always assuming the *left stochastic* convention in the context of this notebook!). 
+
+By applying the argument successively, we obtain a representation of the marginal distribution of the $s$-th state in terms of [matrix powers](https://mathworld.wolfram.com/MatrixPower.html) of the transition matrix:
+
+$$
+x^{(s)}\sim P^s p^{(0)}
+$$
+
+The matrix power $P^s$ is the matrix analog of the power of scalar quantities: 
+
+\begin{equation}\label{eq:matrix_power}
+P^s = \underbrace{P \cdot P\cdots P}_{s\text{ terms}} 
+\end{equation}
+
+where the dot "$\cdot$" indicates matrix multiplication. It is straightforward to see that if $P$ is stochastic, then $P^s$ for $s\ge 1$ is also stochastic. The matrix power $P^s$ *propagates* the distribution of states by $s$ time steps.  
+
+Multiplication of the transition matrix $P$ from the right advances a distribution $p^{(s)} \to p^{(s+1)}$, whereas multiplication from the left corresponds to computing the expectation of some function defined on sample space $\mathcal X$:
+
+$$
+\mathbb E_{p^{(s)}}[f] = \sum_{x\in\mathcal X} f(x) p^{(s)}(x) = \sum_{x\in\mathcal X} f(x) \bigl(P p^{(s-1)}\bigr)(x) = \sum_{x,y\in\mathcal X} f(x) P(x, y) p^{(s-1)}(y) = f^T\!Pp^{(s-1)}
+$$
+
+## Asymptotic behavior
+
+What happens if we generate a very long Markov chain? To think about this question, let us represent $P$ using its [eigendecomposition](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix):
+
+$$
+P = U \Lambda U^{-1}
+$$
+
+where $\Lambda$ is a diagonal matrix with eigenvalues of $P$ on the diagonal, and $U$ is a square matrix whose columns are the right eigenvectors of $P$: $PU = U\Lambda$. 
+
+The marginal distribution of the $S$-th state is then characterized by
+
+$$
+P^S = (U\Lambda U^{-1}) (U\Lambda U^{-1}) \cdots (U\Lambda U^{-1}) = U\Lambda^S U^{-1}\, .
+$$
+
+We know that the magnitude of the eigenvalues is smaller than or equal to one, $|\lambda| \le 1$. Let us write $\lambda = |\lambda| \exp(i\varphi)$ with modulus $|\lambda|$ and phase $\varphi$, then all eigenvalues whose magnitude is *strictly* smaller than one, will die out in the long run
+
+$$
+\lambda^S\overset{S\to\infty}{\,\,\,\,\,\,\longrightarrow\,\,\, 0}\,\,\, \text{if }  \,\,|\lambda| < 1
+$$
+
+If we keep on taking powers of $P$, the resulting matrix will converge to a low-rank matrix. 
+
+## Stationary distribution
+
+The states with $|\lambda |=1$ play a crucial role in the long term behavior of the Markov chain. The left stochasticity of $P$ is the requirement that $\mathbb 1$ is a left eigenvector with eigenvalue 1. Since left and right eigenvalues coincide, there is at least one *right* eigenvector $\pi$ with eigenvalue one:
+
+\begin{equation}\label{eq:stationary}
+P\pi = \pi
+\end{equation}
+
+If $\pi$ is normalized such that $\mathbb 1^T\!\pi=1$, then $\pi$ is a __stationary__ or __invariant__ distribution of $P$. 
+
+Thanks to the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) the elements in $\pi$ all have the same sign. We choose the sign to be positive to obtain a valid probability distribution. Moreover, we normalize $\pi$ to one (remember that the standard normalization for eigenvectors is $u^T\!u=1$).
+
+The stationary distribution is a *fixed point* of the propagation dynamics generated by $P$. If $\pi$ is unique, then it is also called the *equilibrium distribution* in a physical context. 
+
+In the simplest case, we have $P=\pi\mathbb 1^T$. Simulation of this Markov chain boils down to standard Monte Carlo simulation of $\pi$ (i.e. directly drawing samples from $\pi$):
+
+$$
+x^{(s+1)} \sim \Pr\bigl(x \mid x^{(s)}\bigr) = \pi(x)
+$$
+
+However, a Markov chain can have more than one stationary distribution. For example, if $P=I$ where $I$ is the identity matrix, then any probability distribution over $\mathcal X$ is stationary. A finite Markov chain always has at least one stationary distribution. 
+
+We know that at least one stationary distribution exists. What are the requirements that it is unique? 
+
+## Irreducible Markov chains
+
+There are multiple equivalent definitions of the *irreducibility* of a matrix. A matrix is irreducible, if no subspaces exist that are mapped to themselves under the action of the matrix. An intuitive definition for Markov chains is that the graph representing a Markov chain is fully connected. There are no disconnected components in which the Markov chain cycles without ever exiting into another subspace. If a transition matrix $P$ is reducible, then we can find a [permutation matrix](https://en.wikipedia.org/wiki/Permutation_matrix) $\Pi$ that transforms the transition matrix into block lower triangular form:
+
+$$
+\Pi\, P\, \Pi^T \not= \begin{pmatrix}
+    E & 0 \\ F & G \\
+\end{pmatrix}
+$$
+where matrices $E$ and $G$ square matrices. A simple example of a reducible two-state transition matrix is ($\alpha=1/2, \beta=0$):
+
+$$
+P = \begin{pmatrix}
+\tfrac{1}{2} & 0 \\
+\tfrac{1}{2} & 1 \\
+\end{pmatrix}
+$$
+
+We have $\Pr(x=x_2|y=x_2) = 1$, so the subspace $\{x_2\}$ is mapped to itself. 
+
+![Reducible two-state model](images/twostate_reducible.png "Reducible two-state Markov model")
+
+This is also an example of an [*absorbing Markov chain*](https://en.wikipedia.org/wiki/Absorbing_Markov_chain), since even if we start in $x=x_1$, as soon as we enter the second state, we can never escape from that state again. 
+
+An alternative definition of an irreducible Markov chain goes as follows: For all pairs $x, y \in \mathcal X$ there exists $s(x,y)\in \mathbb N$ such that
+
+\begin{equation}\label{eq:irreducible}
+\Pr\bigl(x^{(s)}=x\mid x^{(0)} = y\bigr) = (P^s)(x, y) > 0
+\end{equation}
+
+note that $s(x,y)$ is in general different for every pair of states $x, y \in\mathcal X$. The intuition behind this notion of irreducibility is that "all states can be reached from all other states". [Häggström](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.24.9739&rep=rep1&type=pdf) uses the following terminology: If two states satisfy the irreducibility condition (\ref{eq:irreducible}), then $x$ is said to *communicate* with $y$, i.e. $y$ can be reached from $x$ in a finite time, which is symbolized by $x\to y$. Two states $x$ and $y$ *intercommunicate*, if $x\to y$ and $y\to x$, which is denoted by $x\leftrightarrow y$ (so there exists a path from $x$ to $y$ with non-vanishing probability, and likewise a path from $y$ back to $x$). Using this terminology, a Markov chain is irreducible, if $x \leftrightarrow y$ for all $x, y \in \mathcal X$. This gives us also a hint for verifying irreducibility by checking if the *transition graph* of a Markov chain is [strongly connected](https://en.wikipedia.org/wiki/Strongly_connected_component).
+
+On the other hand, if a Markov chain is reducible, then the analysis of its long-term behavior can be reduced to the analysis of the long-term behavior of one or more Markov chains with smaller state space.
+
+To illustrate the concept of irreducibility let us come back to the linear congruential generators that we discussed in the context of pseudo random number generation.
+
+### Example: LCG with bad magic numbers
+
+In lecture 2, we studied linear congruential generators based on the recurrence relation
+
+\begin{equation}\label{eq:LCG}
+x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m 
+\end{equation}
+
+with  
+
+* __modulus__ $m > 0$
+
+* __multiplier__ $a$ where $0 < a < m$
+
+* __increment__ $c$ where $0 \le c < m$
+
+* __seed__ $x^{(0)}$ where $0 \le x^{(0)} < m$
+
+```{python}
+"""
+Pseudo random number generator
+"""
+import numpy as np
+import matplotlib.pylab as plt
+
+
+class PRNG:
+    """PRNG
+
+    Pseudo-random number generator implemented as iterator.  Using a linear 
+    congruential generator (LCG) to generate random numbers. Default settings
+    for modulus, multiplier and period are taken from Numerical Recipes. 
+    
+    Example
+    -------
+    >>> prng = PRNG(maximum=1e4)
+    x = list(prng)
+    >>> len(x)
+    10000
+
+    Details:
+    * https://en.wikipedia.org/wiki/Linear_congruential_generator
+    """
+    def __init__(self, m=2**32, a=1664525, c=1013904223, seed=10, maximum=1e6):
+        """
+        Parameters
+        ----------
+        m : int > 0
+          modulus or period
+
+        a : int > 0
+          multiplier (should be smaller than modulus)
+
+        c : int >= 0
+          increment (should be smaller than modulus)
+
+        seed : int >= 0
+          initial state (should be smaller than modulus)
+
+        maximum : float or int
+          maximum number of random numbers to be generated by PRNG
+        """
+        def check_int(i, lower=0, upper=None):
+            valid = type(i) is int and i >= lower
+            if upper is not None:
+                valid &= i < upper
+            return valid
+        
+        msg = '"{0}" must be int >= {1}'
+        assert check_int(m, 1), msg.format('m', 1)
+        assert check_int(a, 1, m), msg.format('a', 1)
+        assert check_int(c, 0, m), msg.format('c', 0)
+        assert check_int(seed, 0, m), msg.format('seed', 0)
+        
+        self.a, self.c, self.m, self.seed = a, c, m, seed
+        self._max = int(maximum)
+        
+        self._reset()
+        
+    def _reset(self):        
+        self.x = self.seed
+        self._counter = 0
+        
+    def __next__(self):
+        """
+        Using recurrence relation 
+
+            X_{n+1} = (a X_n + c) mod m
+
+        to generate new random number
+        """
+        if self._counter >= self._max:
+            raise StopIteration
+        
+        self.x = (self.a * self.x + self.c) % self.m
+        self._counter += 1
+
+        return self.x
+        
+    def __iter__(self):
+        self._reset()
+        return self
+
+
+class Uniform(PRNG):
+
+    def __next__(self):
+        return super().__next__() / float(self.m)
+```
+
+For the choice $a=40, c=0, m=181$ (studied in lecture 2) we obtained a flawed LCG:
+
+```{python}
+prng = PRNG(m=181, a=40, c=0, maximum=1000)
+x = np.array(list(prng))
+X = np.fft.fft(x)
+
+kw = dict(s=40, color='k', alpha=0.7)
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+ax[0].scatter(np.arange(100), x[:100], **kw)
+ax[0].plot(x[:100], color='k', lw=2, alpha=0.5)
+ax[0].set_xlabel(r'iteration $s$')
+ax[0].set_ylabel(r'pseudo random number $x^{(s)}$')
+ax[1].scatter(x[:100], x[1:101], **kw)
+ax[1].set_xlabel(r'$x^{(s)}$')
+ax[1].set_ylabel(r'$x^{(s+1)}$')
+ax[2].plot(np.abs(np.fft.fftshift(X))[1:len(x)//2], 
+                  lw=3, color='k', alpha=0.7)
+ax[2].set_xlabel('spatial frequency')
+ax[2].set_ylabel(r'spectrum $|FT|$')
+fig.tight_layout()
+```
+
+We can now analyze this LCG by using Markov chain methods. The recurrence relation (\ref{eq:LCG}) defines a Markov chain with deterministic transitions:
+
+$$
+P(x, y) = \left\{\begin{array}{c l}
+1 \,\,;&x = (a y + c) \, \text{mod}\, m\\
+0 \,\,;&\text{else}\\
+\end{array}\right. 
+$$
+
+By evaluation of this relation for all pairs of states $x, y \in \{0, 1, \ldots, m-1\}$ we obtain a permutation matrix as transition matrix. (Permutation matrices are special doubly stochastic matrices: they just shuffle states around in a deterministic fashion.) 
+
+```{python}
+prng._reset()
+
+# construct transition matrix
+P = np.zeros((prng.m, prng.m))
+for j in range(prng.m):
+    prng.x = j
+    P[next(prng), j] = 1
+
+# P is a permutation matrix, therefore 
+# (see https://en.wikipedia.org/wiki/Permutation_matrix#Properties)
+
+# 1. P has only entries in {0, 1}
+assert np.allclose(np.sort(np.unique(P)), [0., 1.])
+
+# 2. P is doubly stochastic
+assert np.allclose(P.sum(0), 1)
+assert np.allclose(P.sum(1), 1)
+
+# 3. P is orthogonal
+assert np.allclose(P.T @ P, np.eye(len(P)))
+assert np.allclose(P @ P.T, np.eye(len(P)))
+```
+
+```{python}
+# Since P is a permutation matrix, all eigenvalues of P 
+# are roots of one
+v, U = np.linalg.eig(P)
+assert np.all(np.isclose(np.abs(v), 1))
+```
+
+```{python}
+# There are four stationary distributions
+indices = np.where(np.isclose(v, 1.))[0]
+
+print('#eigenvalues close to one:', len(indices))
+
+U = U[:,indices].real
+U /= U.sum(0)
+U = U.T
+
+# There is one trivially periodic state (x^{(0)}=0 with entropy 0)
+# and there are three equally large subspaces
+print('entropy of stationary distribution:', 
+      np.round([- p @ np.log(p+1e-100) for p in U], 3))
+```
+
+```{python}
+np.sum(U[0]>0)
+```
+
+```{python}
+colors = [color['color'] for color in plt.rcParams['axes.prop_cycle']]
+
+orbits = []
+ticks = (0, 50, 100, 150)
+limits = (-5, prng.m+4)
+
+fig, ax = plt.subplots(1, 5, figsize=(15, 3.5), sharex=True, sharey=True)
+
+for i, u in enumerate(U):
+    prng.seed = u.argmax()
+    x = np.array(list(prng))
+    orbits.append(set(x.tolist()))
+    ax[0].scatter(x[:-1], x[1:], color=colors[i])
+    ax[i+1].plot(x[:-1], x[1:], marker='o', alpha=0.5, lw=2, 
+                 color=colors[i], ls='--')
+ax[0].set_xticks(ticks)
+ax[0].set_yticks(ticks)
+ax[0].set_xlim(limits)
+ax[0].set_ylim(limits)
+fig.tight_layout()
+```
+
+## Aperiodic Markov chains
+
+The period of a state $x\in\mathcal X$ is defined as
+
+\begin{equation}\label{eq:period}
+d(x) = \text{gcd}\left\{s \ge 1 : P^s(x, x) > 0\right\} 
+\end{equation}
+
+where $\text{gcd}\{a_1, a_2, \ldots\}$ is the [greatest common divisor](https://en.wikipedia.org/wiki/Greatest_common_divisor) of the natural numbers $a_1, a_2, \ldots \in \mathbb N$. The period of a state $x$ is the greatest common divisor of the times that the chain can return (i.e. has positive probability of returning) to $x$, given that we start in $x$. 
+
+A Markov chain is *aperiodic* if the periods of all states are one: $d(x) = 1$ for all $x\in\mathcal X$.  
+
+So if a state is periodic, then the return times to $x$ are multiples of a factor greater than one, its period $d(x)$.  
+
+Coming back to our two-state example, if we set $\alpha=\beta=1$ we have:
+
+$$
+P(x, y) = \begin{pmatrix}
+0 & 1 \\
+1 & 0\\
+\end{pmatrix}
+$$
+
+For this Markov chain both states, $x_1$ and $x_2$, have a period of two, since the state is visited again after an even number of steps.  
+
+![Periodic two-state model](images/twostate_periodic.png "Periodic two-state Markov model")
+
+*In summary:*
+
+* If a Markov chain is reducible, then it generates states only in a subspace of $\mathcal X$; which subspace is selected depends on the initial state. 
+
+* If a Markov chain is periodic, then it cycles between multiple stationary distributions. 
+
+### Illustration using the two-state system
+
+We have
+
+\begin{equation}\label{eq:twostate2}
+P(x, y) = \begin{pmatrix}
+1 - \alpha & \beta \\
+\alpha & 1 - \beta \\
+\end{pmatrix}
+\end{equation}
+
+with eigenvalues $1$ and $1-\alpha-\beta$ and corresponding (right) eigenvectors:
+
+\begin{equation}\label{eq:twostate-decomposition}
+\pi = \frac{1}{\alpha+\beta} \begin{pmatrix}
+\beta \\ \alpha
+\end{pmatrix}, \,\,\,
+\text{and}\,\,\,  \begin{pmatrix}
+1 \\ -1 \\
+\end{pmatrix}
+\end{equation}
+
+assuming $\alpha>0$ or $\beta>0$. 
+
+In case $\alpha=\beta=0$:
+
+\begin{equation}\label{eq:twostate3}
+P(x, y) = \begin{pmatrix}
+1  & 0 \\
+0 & 1  \\
+\end{pmatrix}
+\end{equation}
+
+all two state distributions are stationary with eigenvalue one. In particular, we have eigenvectors
+
+\begin{equation}\label{eq:decomposition2}
+\begin{pmatrix}
+1 \\ 0
+\end{pmatrix}, \,\,\,
+\begin{pmatrix}
+0 \\ 1 \\
+\end{pmatrix}
+\end{equation}
+
+corresponding to two recurrent classes, and $P$ is reducible.
+
+In case $\alpha=\beta=1$:
+
+\begin{equation}\label{eq:twostate4}
+P(x, y) = \begin{pmatrix}
+0  & 1 \\
+1 & 0  \\
+\end{pmatrix}
+\end{equation}
+
+the eigenvalues are $1$ and $-1$ with eigenvectors
+
+$$
+\begin{pmatrix}
+1 \\ 1
+\end{pmatrix}, \,\,\,
+\begin{pmatrix}
+1 \\ -1 \\
+\end{pmatrix}
+$$
+
+and the chain is periodic: $P^{2s} = I$, $P^{2s+1} = P$.

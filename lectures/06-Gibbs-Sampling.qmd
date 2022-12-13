@@ -1,0 +1,746 @@
+# Lecture 6: Gibbs sampling
+
+Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
+
+## Outline
+
+* Recap: Metropolis-Hastings algorithm
+* Combining Markov chains
+* Gibbs sampling
+* Auxiliary variable methods
+
+# Recap
+
+* Markov chain Monte Carlo (MCMC) algorithms simulate a Markov chain to generate samples from a target distribution $p$
+
+* The Metropolis-Hastings (MH) algorithm is a very general scheme to generate a *reversible* Markov chain whose stationary distribution is a desired target distribution
+
+## Metropolis-Hastings Algorithm
+
+The MH algorithm allows us to map (almost) any Markov chain $Q$ (the *proposal chain*) with whatever stationary distribution to a Markov chain $M[Q]$ (the *Metropolis map* of $Q$) that has the desired stationary distribution, our target distribution $p$. We have
+
+$$
+M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{for}\,\,\, y\not=x\, . 
+$$
+
+By construction, the Metropolis map is coordinate-wise decreasing, $M[Q](y, x) \le Q(y, x)$. Among all maps that implement a *propose-accept/reject* scheme, $M[Q]$ *maximizes* the probability of moving from a current state to a new state proposed by $Q$. The Metropolis map projects the proposal chain $Q$ onto the subspace $\mathcal{R}(p)$ of $p$-reversible Markov chains. The projection minimizes the distance $d(P,P') = \sum_{x\in\mathcal X} \sum_{y\not= x} p(x) |P(y, x) - P'(y, x)|$, and identifies $M[Q]\in\mathcal{R}(p)$ uniquely by demanding that the map is coordinate-wise decreasing.  
+
+```{python}
+# 2D visualization
+
+plt.rc('font', size=20)
+
+def make_plot(p0=0.4, limits=(-0.05, 1.05), ax=None):
+    
+    kw = dict(xticks=[0.,0.5, 1.0], yticks=[0.,0.5, 1.0])
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(5, 5), subplot_kw=kw)
+    else:
+        fig = None
+    alpha = beta = np.linspace(0., 1., 100)
+    ax.fill_between(alpha, beta*0., beta*0.+1, color='k', alpha=0.1)
+    ax.axvline(1., ls='--', color='k')
+    ax.axhline(1., ls='--', color='k')
+    ax.axvline(0., ls='--', color='k')
+    ax.axhline(0., ls='--', color='k')
+    ax.plot(alpha, alpha*p0/(1-p0), lw=3, color='r')
+    ax.annotate(r'$\mathcal{S}(\mathcal{X})$', (.2, .8), xycoords='axes fraction', fontsize=30)
+    ax.annotate(r'$\mathcal{R}(p)$', (.65, .36), color='r', xycoords='axes fraction', fontsize=30)
+    ax.set_xlim(*limits)
+    ax.set_ylim(*limits)
+    ax.set_xlabel(r'$\alpha$')
+    ax.set_ylabel(r'$\beta$')
+    if fig:
+        fig.tight_layout()
+
+    return fig, ax
+
+
+def M(p0, alpha, beta):
+    alpha_new = min(alpha, (1-p0) * beta / p0) 
+    beta_new = min(beta, p0 * alpha / (1-p0))
+    return alpha_new, beta_new
+
+p0 = 0.4
+fig, ax = make_plot(p0)
+for Q in [(0.1, 0.8), (0.8, 0.2), (0.9, 0.5), (0.9, 0.9), (0.5, 0.5)]:
+    P = M(p0, *Q)
+    ax.plot([Q[0],P[0]],[Q[1],P[1]], ls='--', marker='o', markersize=10,
+            markeredgecolor='k')
+ax.scatter(1-p0, p0, s=120, color='k', zorder=5)
+ax.annotate(r'$p\mathbb{1}^T$', (1-p0-0.05, p0+0.05))
+fig.tight_layout()
+```
+
+## Algorithmic parameters
+
+Algorithmic parameters such as the step size used in the proposal chain can have a strong effect on the performance of MH sampling. We will later discuss *adaptive* MCMC algorithms that can tune some of these parameters in a sound fashion. 
+
+```{python}
+# sampling a standard Gaussian with a uniform proposal
+
+class MetropolisHastings:
+    
+    def __init__(self, x, p, Q, S=1e4):
+        """
+        Parameters
+        ----------
+        x : initial state
+        p : target distribution
+        Q : simulator of a symmetric proposal chain
+        S : number of samples
+        """
+        self.p = p
+        self.Q = Q
+        self.S = S
+        self._initial = x
+        
+    def _reset(self):
+        self._counter = 0
+        self.n_accepted = 0
+        self.x = self._initial
+        
+    @property
+    def acceptance_rate(self):
+        return self.n_accepted / self._counter
+        
+    def __next__(self):
+        
+        if self._counter >= self.S:
+            raise StopIteration
+            
+        y = self.Q(self.x)
+        u = np.random.uniform()
+        
+        if u <= self.p(y) / self.p(self.x):
+            self.x = y
+            self.n_accepted += 1
+        self._counter += 1
+        
+        return self.x
+    
+    def __iter__(self):
+        self._reset()
+        return self
+    
+# target
+p = lambda x: np.exp(-x**2/2)
+t = np.linspace(-1, 1., 1000) * 5
+target = t, p(t) / np.sqrt(2*np.pi)
+
+# proposal
+Q = lambda x, eps=0.1: np.random.uniform(x-eps, x+eps)
+
+S = 1e4
+x = 10.
+
+fig, ax = plt.subplots(3, 3, figsize=(12, 9), sharex='col')
+
+for i, eps in enumerate([1e-1, 1e0, 1e1]):
+
+    # run MH simulation
+    mh = MetropolisHastings(x, p, lambda x: Q(x, eps), S)
+    samples = np.array(list(mh))
+    
+    print('acceptance rate: {0:.1%} (stepsize = {1:.2e})'.format(
+        mh.acceptance_rate, eps))
+    
+    # plot results
+    ax[i,0].plot(samples, color='k', lw=2, alpha=0.7)
+    ax[i,1].hist(samples, bins=50, density=True, alpha=0.2, color='k')
+    ax[i,2].hist(samples[1000:], bins=50, density=True, alpha=0.2, color='k')
+    for a in ax[i,1:]:
+        a.plot(*target, color='r')
+        a.set_ylim(0., 0.45)
+fig.tight_layout()
+```
+
+In the next example, we run the MH algorithm on a continuous pdf in two dimensions. 
+
+```{python}
+"""
+Metroplis sampling of a banana-shaped pdf
+"""
+import numpy as np
+import matplotlib.pylab as plt
+
+from scipy.special import logsumexp
+
+class Banana:
+
+    def __init__(self):
+
+        self.C = np.array([[1., 0.9],
+                           [0.9, 1.]])
+        
+        self.C_inv = np.array([[100., -90.],
+                               [-90, 100.]]) / 19.
+
+        self.a = 1
+        self.b = 1
+        
+    def __call__(self, x):
+
+        if x.ndim == 2:
+            x1, x2 = x.T
+        else:
+            x1, x2 = x
+
+        a, b = self.a, self.b
+            
+        y = np.transpose([x1 / a, a * x2 + a * b * (x1**2 + a)])
+
+        logp = -0.5 * np.sum(y.dot(self.C_inv.T) * y, -1)
+
+        return logp
+
+def compute_marginal(pdf2d, axis=0, vals=None):
+
+    marginal = logsumexp(pdf2d, axis=axis)
+    marginal -= logsumexp(marginal)
+
+    if vals is not None:
+        marginal -= np.log(vals[1]-vals[0])
+
+    return marginal
+
+
+Q = lambda x, eps=1.: x + np.random.standard_normal(2) * eps
+p = Banana()
+
+x = np.zeros(2)
+p_x = p(x)
+
+samples = [x]
+
+while len(samples) < 1e4:
+
+    y = Q(x)
+    p_y = p(y)
+    
+    accept = np.log(np.random.uniform()) < p_y - p_x
+    if accept:
+        x, p_x = y, p_y
+
+    samples.append(x)
+
+samples = np.array(samples)
+
+# plot results
+
+x = np.linspace(-3., 3., 200)
+y = np.linspace(-8., 1., len(x))
+grid = np.reshape(np.meshgrid(x, y), (2, -1)).T
+pdf = p(grid).reshape(len(x), len(y))
+
+pdf_x = compute_marginal(pdf, axis=0, vals=x)
+pdf_y = compute_marginal(pdf, axis=1, vals=y)
+
+kw_hist = dict(bins=30, color='k', alpha=0.2, density=True)
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+#
+ax[0].contour(x, y, np.exp(pdf))
+ax[0].scatter(*samples.T, color='k', alpha=0.2, s=10)
+ax[0].set_xlabel(r'$x_1$')
+ax[0].set_ylabel(r'$x_2$')
+#
+ax[1].hist(samples[:,0], **kw_hist)
+ax[1].plot(x, np.exp(pdf_x), color='r', alpha=0.7, lw=2)
+ax[1].set_xlabel(r'$x_1$')
+ax[1].set_ylabel(r'$p(x_1)$')
+#
+ax[2].hist(samples[:,1], **kw_hist)                       
+ax[2].plot(y, np.exp(pdf_y), color='r', alpha=0.7, lw=2)
+ax[2].set_xlabel(r'$x_2$')
+ax[2].set_ylabel(r'$p(x_2)$')
+#
+fig.tight_layout()
+```
+
+# Combining Markov Chains
+
+Let $P_i$ be $N$ Markov chains that share the same stationary distribution $\pi$:
+
+\begin{equation}\label{eq:multiple_chains}
+P_i \pi = \pi, \,\,\, \mathbb{1}^T\!P_i = \mathbb{1}^T
+\end{equation}
+
+The product of all chains, $P=\prod_i P_i$ (here $\prod_i$ symbolizes a *matrix product*), is also a Markov chain with the same stationary distribution:
+
+\begin{equation}\label{eq:product_chain}
+P\pi = \pi, \,\,\, \mathbb{1}^T\!P = \mathbb{1}^T
+\end{equation}
+
+Therefore, the following algorithm will simulate $P$ and therefore eventually $\pi$:
+
+\begin{align}\label{eq:markov-sequence}
+\begin{split}
+  \tilde{x}^{(1)} &\sim P_1\bigl(\,\cdot\,, x^{(s)}\bigr) \\
+  \tilde{x}^{(2)} &\sim P_2\bigl(\,\cdot\,, \tilde{x}^{(1)}\bigr) \\
+  & \vdots   \\
+  x^{(s+1)} &\sim P_N\bigl(\,\cdot\,, \tilde{x}^{(N-1)}\bigr) \\
+\end{split}
+\end{align}
+
+## Coordinate-wise sampling
+
+Let's look at a special but important case. Assume that the sample space decomposes into a product of $N$ sample spaces $\mathcal X = \mathcal X_1 \times \cdots \times \mathcal X_N$ with associated variables $x_i$ ($i=1, \ldots, N$)  where $x_i$ denotes a single variable or a group of variables that will be sampled jointly. The joint distribution of all variables is $p(x) = p(x_1, \ldots, x_N)$. 
+
+By $x_{\setminus i}$ we denote the variable vector obtained by omitting the $i$-th variable (or group of variables):
+
+\begin{equation}\label{eq:without-group}
+x_{\setminus i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
+\end{equation}
+
+Then $x_{\setminus i}$ follows the marginal distribution:
+
+\begin{equation}\label{eq:without-group-marginal}
+p_{\setminus i}(x_{\setminus i}) = \int p(x_1, \ldots, x_N)\, d x_i
+\end{equation}
+
+The marginal distribution of $x_i$ is:
+
+\begin{equation}\label{eq:group-marginal}
+p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\setminus i}
+\end{equation}
+
+The conditional distribution of $x_i$ also readily available:
+
+\begin{equation}\label{eq:group-conditional}
+p_{i}(x_{i}|x_{\setminus i}) = \frac{p(x)}{p_{\setminus i}(x_{\setminus i})}
+\end{equation}
+
+Let us consider a sequence of $N$ Markov chains $P_i$ where each chain only updates $x_i$ and does not change $x_{\setminus i}$:
+
+\begin{equation}\label{eq:chain-group}
+Q_i(y, x) = q_i(y_i, x_i; x_{\setminus i})\, \delta(y_{\setminus i} - x_{\setminus i})  
+\end{equation}
+
+where we introduced a product of delta distributions:
+
+$$
+\delta(x_{\setminus i}) := \prod_{j\not= i} \delta(x_j)
+$$
+
+and $q_i(y_i, x_i; x_{\setminus i})$ is a Markov kernel on $\mathcal X_i \times \mathcal X_i$ with $x_{\setminus i}$ being treated like a set of parameters. 
+
+The Metropolis map of $Q_i(y, x)$ is
+
+\begin{align}\label{eq:coordinatewise-map}
+\begin{split}
+M[Q_i](y, x) 
+&= \min\left\{Q_i(y, x), Q_i(x, y) \frac{p(y)}{p(x)} \right\} \\
+&= \delta(y_{\setminus i}-x_{\setminus i})\, \min\left\{q_i(y_i, x_i; x_{\setminus i}), q_i(x_i, y_i; x_{\setminus i}) \frac{p_i(y_i|y_{\setminus i})\,p_{\setminus i}(y_{\setminus i})}{p_i(x_i | x_{\setminus i}) p_{\setminus i}(x_{\setminus i})} \right\} \\
+&= \delta(y_{\setminus i}-x_{\setminus i})\, \min\left\{q_i(y_i, x_i; x_{\setminus i}), q_i(x_i, y_i; x_{\setminus i}) \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i | x_{\setminus i})} \right\}
+\end{split}
+\end{align}
+
+If we run the Metropolis-Hastings algorithm with $Q_i$, we simulate a Markov chain only on the conditional distribution of the $i$-th variable (or group of variables). This involves a Markov kernel $q_i$ on the corresponding subspace $\mathcal X_i$ that could, in principle, depend on all of the current variables. 
+
+This produces a Markov chain with the correct stationary distribution, but since $Q_i$ changes only the $i$-th variable, the resulting Markov chain is not ergodic. The trick is to update each parameter group successively using $Q_i$ in each subspace $\mathcal X_i$, and thereby produce a sequence of Metropolis maps, $M[Q_i]$, that share a common target distribution. Simulation of $M[Q_i]$ one after the other generates a simulation of the product chain, in a fashion analogous to equation (\ref{eq:markov-sequence}). This scheme is sometimes called *Metropolis-within-Gibbs*. 
+
+Let's apply the coordinate-wise sampling scheme to the banana-shaped distribution using uniform proposals in each direction:
+
+```{python}
+p = Banana()
+Q = []
+for i in range(2):
+    Q_i = lambda x, i=i, eps=2.: \
+    x + eps * np.random.uniform(-1.,1.,2) * np.eye(2)[i]
+    Q.append(Q_i)
+    
+x = np.zeros(2)
+p_x = p(x)
+
+samples = [x]
+
+while len(samples) < 1e5:
+
+    for Q_i in Q:
+        y = Q_i(x)
+        p_y = p(y)
+        accept = np.log(np.random.uniform()) < p_y - p_x
+        if accept:
+            x, p_x = y, p_y
+
+    samples.append(x)
+
+samples = np.array(samples)
+samples = samples[int(0.2*len(samples)):]
+
+# plot results
+
+x = np.linspace(-3., 3., 200)
+y = np.linspace(-8., 1., len(x))
+grid = np.reshape(np.meshgrid(x, y), (2, -1)).T
+pdf = p(grid).reshape(len(x), len(y))
+
+pdf_x = compute_marginal(pdf, axis=0, vals=x)
+pdf_y = compute_marginal(pdf, axis=1, vals=y)
+
+kw_hist = dict(bins=50, color='k', alpha=0.2, density=True)
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+#
+ax[0].contour(x, y, np.exp(pdf))
+ax[0].scatter(*samples.T, color='k', alpha=0.2, s=10)
+ax[0].set_xlabel(r'$x_1$')
+ax[0].set_ylabel(r'$x_2$')
+#
+ax[1].hist(samples[:,0], **kw_hist)
+ax[1].plot(x, np.exp(pdf_x), color='r', alpha=0.7, lw=2)
+ax[1].set_xlabel(r'$x_1$')
+ax[1].set_ylabel(r'$p(x_1)$')
+#
+ax[2].hist(samples[:,1], **kw_hist)                       
+ax[2].plot(y, np.exp(pdf_y), color='r', alpha=0.7, lw=2)
+ax[2].set_xlabel(r'$x_2$')
+ax[2].set_ylabel(r'$p(x_2)$')
+#
+fig.tight_layout()
+```
+
+# Gibbs sampling
+
+[__Gibbs sampling__](https://en.wikipedia.org/wiki/Gibbs_sampling) is a simple and powerful MCMC method that can be interpreted as a special variant of the component-wise MH algorithm outlined above. Gibbs sampling assumes that we can sample directly from the conditional distributions $p_i(x_i | x_{\setminus i})$, and uses these as component-wise Markov chains:
+
+$$
+q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i | x_{\setminus i})
+$$
+
+The acceptance ratio in the Metropolis map $M[Q_i]$ (Eq. \ref{eq:coordinatewise-map}) simplifies to 
+
+$$
+\frac{q_i(x_i, y_i; x_{\setminus i})}{q_i(y_i, x_i; x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} =
+\frac{p_i(x_i | x_{\setminus i})}{p_i(y_i | x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} = 1
+$$
+
+That is, all proposals are accepted - Gibbs sampling is rejection-free. 
+
+## Algorithm: Gibbs sampling
+
+Let $p(x_1, \ldots, x_N)$ be the joint distribution of $N$ random variables or groups of random variables $x_i\in\mathcal X_i$ with conditional distributions $p_i(x_i | x_{\setminus i})$, then the following iterative algorithm simulates a Markov chain whose stationary distribution is $p(x_1, \ldots, x_N)$:
+
+\begin{align}\label{eq:gibbs-sampling}
+\begin{split}
+  x^{(s+1)}_1 &\sim p_1\bigl(\,\cdot\, | x^{(s)}_{\setminus 1}\bigr) \\
+  x^{(s+1)}_2 &\sim p_2\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus 2}\bigr) \\
+  & \vdots   \\
+  x^{(s+1)}_N &\sim p_N\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus N}\bigr) \\
+\end{split}
+\end{align}
+
+where ${x}^{(s+1)}_i$ are the components of the next sample and 
+
+$${x}^{(s,s+1)}_{\setminus i} = \begin{pmatrix}{x}^{(s+1)}_1, \ldots, {x}^{(s+1)}_{i-1}, x^{(s)}_{i+1}, \ldots, x^{(s)}_{N}\end{pmatrix}$$
+
+so ${x}^{(s,s+1)}_{\setminus N} = x^{(s+1)}_{\setminus N}$.
+
+### Collapsed Gibbs Sampler
+
+A variant of the Gibbs sampler (Eq. \ref{eq:gibbs-sampling}) is the [*collapsed Gibbs sampler*](https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler) where some of the conditional distributions $p_i(x_i | x_{\setminus i})$ are replaced by a marginal distribution, e.g. $p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\setminus i}$. This scheme is equally valid and rejection-free. See also the original paper by [Jun S. Liu](https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829).
+
+#### Example: Sampling a bivariate Gaussian model
+
+In the following, let's use Gibbs sampling to draw from a two-dimensional Gaussian distribution with general covariance matrix:
+
+$$
+p(x_1, x_2) = \frac{1}{2\pi\sigma_1\sigma_2\sqrt{1-\rho^2}} \exp\left\{-\frac{1}{2} \begin{pmatrix} x_1 - \mu_1 \\ x_2 - \mu_2\end{pmatrix}^T \begin{pmatrix} \sigma_1^2 & \sigma_1\sigma_2\rho \\ \sigma_1\sigma_2\rho & \sigma_2^2 \end{pmatrix}^{-1} \begin{pmatrix} x_1 - \mu_1 \\ x_2 -\mu_2 \end{pmatrix}  \right\}
+$$
+
+The conditional distributions are given [by](https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Bivariate_case_2):
+
+\begin{align*}
+p(x_1 | x_2) &= \frac{1}{\sqrt{2\pi\sigma_1^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_1^2(1-\rho^2)} \bigl(x_1 - \mu_1 - \frac{\sigma_1}{\sigma_2}\rho (x_2 - \mu_2) \bigr)^2\right\} \\
+p(x_2 | x_1) &= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_2^2(1-\rho^2)} \bigl(x_2 - \mu_2 - \frac{\sigma_2}{\sigma_1}\rho (x_1 - \mu_1) \bigr)^2\right\}
+\end{align*}
+
+and the marginal distributions are $p_i(x_i) = \mathcal N(\mu_i, \sigma_i^2)$. We use the standard Gibbs sampler and the collapsed Gibbs samplers to generate samples from the joint bivariate Gaussian:
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+from scipy.special import logsumexp
+
+class Gaussian:
+    """Bivariate Gaussian
+    """
+    def __init__(self, mu = np.zeros(2), sigma1=1., sigma2=3., rho=0.95):
+
+        self.mu = mu
+        self.sigma = np.array([sigma1, sigma2])
+        self.rho = float(rho)
+
+    @property
+    def sigma1(self):
+        return self.sigma[0]
+
+    @property
+    def sigma2(self):
+        return self.sigma[1]
+        
+    @property
+    def Sigma(self):
+        """
+        Covariance matrix
+        """
+        Sigma = np.diag([self.sigma1, self.sigma2])
+        Sigma = Sigma @ np.array([[1, self.rho], [self.rho, 1]]) @ Sigma
+        return Sigma
+
+    @property
+    def Lambda(self):
+        """
+        Precision matrix
+        """
+        precision = np.diag([1/self.sigma1, 1/self.sigma2]) / np.sqrt(1 - self.rho**2)
+        precision = precision @ np.array([[1, -self.rho], [-self.rho, 1]])  @ precision
+        return precision
+
+    def log_prob(self, x):
+        logp = -.5 * np.sum(x * x.dot(self.Lambda), -1)
+        return logp
+
+    def sample_conditional(self, x, index=0):
+
+        ratio = self.rho * self.sigma[index] / self.sigma[1-index]
+        
+        mu = self.mu[index] + ratio * (x[1-index] - self.mu[1-index])
+        sigma = np.sqrt(1-self.rho**2) * self.sigma[index]
+
+        return np.random.standard_normal() * sigma + mu
+
+    def sample_marginal(self, index=0):
+
+        mu = self.mu[index]
+        sigma = self.sigma[index]
+
+        return np.random.standard_normal() * sigma + mu
+
+    
+def compute_marginal(prob, axis=0, x=None):
+    marginal = logsumexp(prob, axis=axis)
+    marginal -= logsumexp(marginal)
+    if x is not None:
+        marginal -= np.log(x[1]-x[0])
+    return marginal
+
+
+pdf = Gaussian(sigma1=1., sigma2=5., rho=0.95)
+x = np.linspace(-1., 1., 100) * 3 * pdf.sigma1
+y = np.linspace(-1., 1., 100) * 3 * pdf.sigma2
+
+X, Y = np.meshgrid(x, y)
+grid = np.transpose([X.flatten(), Y.flatten()])
+prob = pdf.log_prob(grid).reshape(len(x), -1)
+
+samples = [(20., 90.)]
+while len(samples) < 1e4:
+    newstate = list(samples[-1])
+    for index in [0, 1]:
+        newstate[index] = pdf.sample_conditional(newstate, index)
+    samples.append(tuple(newstate))
+samples = np.array(samples)
+
+logp = pdf.log_prob(samples)
+burnin = int(0.1*len(samples))
+
+kw_hist = dict(bins=30, color='k', density=True, alpha=0.2)
+fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+ax = list(ax.flat)
+#
+ax[0].scatter(*samples.T, color='k', alpha=0.3)
+ax[0].contour(x, y, np.exp(prob))
+ax[0].set_xlabel(r'$x_1$')
+ax[0].set_ylabel(r'$x_2$')
+#
+ax[1].plot(logp[:50], color='k', lw=3, alpha=0.7)
+ax[1].set_xlabel(r'iteration $s$')
+ax[1].set_ylabel(r'$\log p(x_1^{(s)}, x_2^{(s)})$')
+#
+ax[2].hist(samples[burnin:,0], **kw_hist)
+ax[2].plot(x, np.exp(compute_marginal(prob, 1, x)), color='r')
+ax[2].set_xlabel(r'$x_1$')
+ax[2].set_ylabel(r'$p_1(x_1)$')
+#
+ax[3].hist(samples[burnin:,1], **kw_hist)
+ax[3].plot(y, np.exp(compute_marginal(prob, 0, y)), color='r')
+ax[3].set_xlabel(r'$x_2$')
+ax[3].set_ylabel(r'$p_2(x_2)$')
+#
+fig.tight_layout()
+```
+
+This collapsed Gibbs sampler uses the marginal distribution to sample $x_1$ and the conditional distribution to sample $x_2$:
+
+```{python}
+# collapsed Gibbs 1
+
+samples = [(20., 90.)]
+while len(samples) < 1e4:
+    newstate = list(samples[-1])
+    newstate[0] = pdf.sample_marginal(0)
+    newstate[1] = pdf.sample_conditional(newstate, 1)
+    samples.append(tuple(newstate))
+samples = np.array(samples)
+
+logp = pdf.log_prob(samples)
+burnin = int(0.1*len(samples))
+
+fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+ax = list(ax.flat)
+#
+ax[0].scatter(*samples.T, color='k', alpha=0.3)
+ax[0].contour(x, y, np.exp(prob))
+ax[0].set_xlabel(r'$x_1$')
+ax[0].set_ylabel(r'$x_2$')
+#
+ax[1].plot(logp[:50], color='k', lw=3, alpha=0.7)
+ax[1].set_xlabel(r'iteration $s$')
+ax[1].set_ylabel(r'$\log p(x_1^{(s)}, x_2^{(s)})$')
+#
+ax[2].hist(samples[burnin:,0], **kw_hist)
+ax[2].plot(x, np.exp(compute_marginal(prob, 1, x)), color='r')
+ax[2].set_xlabel(r'$x_1$')
+ax[2].set_ylabel(r'$p_1(x_1)$')
+#
+ax[3].hist(samples[burnin:,1], **kw_hist)
+ax[3].plot(y, np.exp(compute_marginal(prob, 0, y)), color='r')
+ax[3].set_xlabel(r'$x_2$')
+ax[3].set_ylabel(r'$p_2(x_2)$')
+#
+fig.tight_layout()
+```
+
+This collapsed Gibbs sampler uses the marginal distribution to sample $x_2$ and the conditional distribution to sample $x_1$:
+
+```{python}
+# collapsed Gibbs 2
+
+samples = [(20., 90.)]
+while len(samples) < 1e4:
+    newstate = list(samples[-1])
+    newstate[1] = pdf.sample_marginal(1)
+    newstate[0] = pdf.sample_conditional(newstate, 0)
+    samples.append(tuple(newstate))
+samples = np.array(samples)
+
+logp = pdf.log_prob(samples)
+burnin = int(0.1*len(samples))
+
+fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+ax = list(ax.flat)
+#
+ax[0].scatter(*samples.T, color='k', alpha=0.3)
+ax[0].contour(x, y, np.exp(prob))
+ax[0].set_xlabel(r'$x_1$')
+ax[0].set_ylabel(r'$x_2$')
+#
+ax[1].plot(logp[:50], color='k', lw=3, alpha=0.7)
+ax[1].set_xlabel(r'iteration $s$')
+ax[1].set_ylabel(r'$\log p(x_1^{(s)}, x_2^{(s)})$')
+#
+ax[2].hist(samples[burnin:,0], **kw_hist)
+ax[2].plot(x, np.exp(compute_marginal(prob, 1, x)), color='r')
+ax[2].set_xlabel(r'$x_1$')
+ax[2].set_ylabel(r'$p_1(x_1)$')
+#
+ax[3].hist(samples[burnin:,1], **kw_hist)
+ax[3].plot(y, np.exp(compute_marginal(prob, 0, y)), color='r')
+ax[3].set_xlabel(r'$x_2$')
+ax[3].set_ylabel(r'$p_2(x_2)$')
+#
+fig.tight_layout()
+```
+
+# Auxiliary Variables
+
+The idea of sampling methods that use *auxiliary variables* is to *introduce* new variables rather than marginalizing them out. The target distribution is $p(x)$ defined over sample space $\mathcal X$. But it might be beneficial to introduce helper variables $y$ and consider $p(x, y)$ defined over the extended sample space $\mathcal X \times{} \mathcal Y$ where
+
+$$
+p(x) = \int_{\mathcal{Y}} p(x, y)\, dy
+$$
+
+If we can generate samples $\bigl(x^{(s)}, y^{(s)}\bigr) \sim p(x, y)$, then a valid estimator for expectations of $p(x)$ is
+
+$$
+\mathbb{E}_p[f] \approx \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr)\, .
+$$
+
+Why is this helpful? We can use Gibbs sampling to generate samples from $p(x, y)$:
+
+\begin{align}\label{eq:gibbs-auxiliary}
+\begin{split}
+x^{(s+1)} &\sim p\bigl(x | y^{(s)}\bigr) \\
+y^{(s+1)} &\sim p\bigl(y | x^{(s+1)}\bigr) \\
+\end{split}
+\end{align}
+
+where the marginal distributions might be easier to simulate than $p(x)$.
+
+#### Example: Student-t distribution
+
+The [Student-t distribution](https://en.wikipedia.org/wiki/Student%27s_t-distribution) is defined as
+
+$$
+p(x | \nu) = \frac{1}{Z(\nu)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}
+$$
+
+with a normalization constant $Z(\nu)$ that depends on the degrees of freedom $\nu > 0$. 
+
+This integral can be written as a [scale-mixture of normals](https://www.jstor.org/stable/2984774?seq=1#metadata_info_tab_contents):
+
+\begin{eqnarray*}
+f(x ; \alpha, \beta) &=& \int \underbrace{\sqrt{\frac{s}{2\pi}}\, e^{-\frac{s}{2} x^2 }}_{\text{Gaussian}}\,\,\, \underbrace{\frac{\beta^\alpha}{\Gamma(\alpha)} s^{\alpha -1} e^{-\beta s}}_{\text{Gamma distribution}} ds \\
+&=& \frac{\beta^\alpha}{\Gamma(\alpha)\,\sqrt{2\pi}} \int s^{\frac{2\alpha + 1}{2} - 1}\,\, \exp\left\{-s(\beta + x^2/2)\right\} ds \\
+&=& \frac{\beta^\alpha}{\Gamma(\alpha)\,\sqrt{2\pi}} \frac{\Gamma(\alpha+1/2)}{\left(\beta + x^2/2\right)^{\frac{2\alpha+1}{2}}} \\
+&=& \frac{1}{\sqrt{2\pi\beta}} \frac{\Gamma(\alpha+1/2)}{\Gamma(\alpha)} \left(1 + x^2/2\beta\right)^{-(\frac{2\alpha+1}{2})} \\
+\end{eqnarray*}
+
+So $f(x; \alpha, \beta)$ is identical to $p(x|\nu)$ for $\alpha=\nu/2$ and $\beta=\nu/2$.
+
+The joint distribution is
+
+$$
+p(x, s) = p(x | s) p(s) = \mathcal{N}(x; 0, s^{-1/2})\, \mathcal{G}(s; \nu/2, \nu/2)
+$$
+
+The conditional distributions are $\mathcal{N}(x; 0, s^{-1/2})$ and $\mathcal{G}(s; (\nu+1)/2, (\nu+x^2)/2)$.
+
+```{python}
+# sample student t with auxiliary variable
+
+nu = 2.
+alpha = nu / 2
+beta = nu / 2
+
+log_target = lambda x : - 0.5 * (nu+1.) * np.log(1 + x**2/nu)
+
+# standard Gibbs sampler
+x = 0.
+samples = []
+while len(samples) < 1e5:
+    s = np.random.gamma(alpha+0.5, 1/(beta + 0.5*x**2))
+    x = np.random.standard_normal() / np.sqrt(s)
+    samples.append(x)
+    
+# collapsed Gibbs sampler
+s = np.random.gamma(alpha, 1/beta, size=len(samples))
+samples2 = np.random.standard_normal(len(s)) / np.sqrt(s)
+    
+burnin = int(0.1*len(samples))
+    
+t = np.linspace(-1., 1., 1000) * 10
+p = log_target(t)
+p -= logsumexp(p) + np.log(t[1]-t[0])
+p = np.exp(p)
+
+kw = dict(xlim=(-10., 10.))
+kw_hist = dict(bins=1000, density=True, color='k', alpha=0.2)
+fig, ax = plt.subplots(1, 2, figsize=(8, 4), sharey='all', subplot_kw=kw)
+ax[0].hist(samples[burnin:], **kw_hist)
+ax[1].hist(samples2[burnin:], **kw_hist)
+for a in ax:
+    a.plot(t, p, color='r')
+fig.tight_layout();
+```

@@ -1,0 +1,439 @@
+# Lecture 1: Introduction
+
+## Outline
+
+* Motivation
+* Monte Carlo approximation
+* An inefficient way of computing $\pi$
+
+## Why do we need sampling methods?
+
+### Solving inference problems
+
+A major motivation is to use sampling methods for doing Bayesian inference and more generally for solving inference in probabilistic models. But sampling methods are also very important in many other domains such as Physics, Chemistry etc. Monte Carlo techniques are also essential in machine learning.
+
+Being good Bayesians we are interested in the following computational tasks
+
+1. __Marginalization__: Integrating or summing out uninteresting parameters in a probabilistic model
+
+2. __Conditioning__: Fixing some variables and evaluating probabilities conditioned on the fixed variables. For example, conditioning on the observed data in order to compute the posterior probability
+
+3. __Expectation__: Computing the mean value of some function (e.g. computation of the *model evidence*)
+
+### Bayesian inference
+
+At its most fundamental level, [Bayesian inference](https://en.wikipedia.org/wiki/Bayesian_inference) involves applying the sum and product rule of probability theory  to learn a model from some information: 
+
+\begin{equation}\label{eq:bayes}
+    \underbrace{\Pr(\theta|D, M)}_{Posterior}\,\, \underbrace{\Pr(D|M)}_{Evidence} = \underbrace{\Pr(D |\theta, M)}_{Likelihood}\,\, \underbrace{\Pr(\theta | M)}_{Prior}
+\end{equation}
+
+where $D$ are the data, $M$ is a model with parameters $\theta$. 
+
+There are two main tasks in Bayesian inference: 
+
+1. estimation of the model parameters $\theta$, 
+
+2. comparison of model $M$ to alternative model $M'$. 
+
+First task requires computations with the (unnormalized) posterior $\Pr(\theta|D,M)$ or $\Pr(D|\theta,M)\,\Pr(\theta|M)$. The second task involves computation of the model evidence:
+
+\begin{equation}\label{eq:evidence}
+    \Pr(D|M) = \int \Pr(D|\theta, M)\, \Pr(\theta|M)\, d\theta 
+\end{equation}
+
+Other important integrals that need to be computed in Bayesian analysis are:
+
+* Marginal posterior:
+$$ 
+\Pr(\theta_1|D,M) = \int \Pr(\theta_1, \theta_2|D, M)\, d{\theta_2}
+$$
+
+* Getting rid of nuisance parameters:
+$$
+\Pr(D|\theta_1, M) = \int \Pr(D, \theta_2 | \theta_1, M) \, d{\theta_2}
+$$
+
+* Getting rid of hyperparameters:
+$$
+\Pr(\theta|D, M) \propto \int \Pr(D|\theta, M)\, \Pr(\theta|\alpha, M)\, \Pr(\alpha|M)\, d{\alpha}
+$$
+
+* Evaluation of predictive distributions:
+$$
+\Pr(y|D,M) = \int \Pr(y|\theta, M)\, \Pr(\theta | D, M)\, d{\theta}
+$$
+
+### Use of Monte Carlo methods in machine learning
+
+Monte Carlo methods are also crucial in machine learning. A straightforward application is relevant to supervised learning with large datasets. Assume that the risk functional, which we minimize to train a model $f(x)$, is 
+
+$$
+R(f) = \sum_{n=1}^N \ell(y_n, f(x_n))
+$$
+
+where $\ell(\cdot, \cdot)$ is a loss function that assesses the discrepancy between the observation $y_n$ and the prediction $f(x_n)$ based on a (non-parametric) model $f(x)$. For large $N$, evaluation of $R(f)$ can be very costly. A simple strategy to overcome this problem, is to train a surrogate of the risk obtained by *randomly* selecting a small subset from the data, a *mini-batch* $B$, and use 
+
+$$
+\hat R_B(f) = \frac{N}{|B|} \sum_{n\in B} \ell(y_n, f(x_n))
+$$
+
+as a cost function for training $f(x)$. [Stochastic gradient descent](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) follows the gradient of the surrogate rather than the full empirical risk, for example, when training deep neural nets
+
+Another application is learning of *intractable models* in representation learning (unsupervised learning). Many important models such as [Boltzmann machines](https://en.wikipedia.org/wiki/Boltzmann_machine) or [restrictive Boltzmann machines](https://en.wikipedia.org/wiki/Restricted_Boltzmann_machine) are members of the exponential family involving a vector of features $f(y)$: 
+
+$$
+\Pr(y|\theta) = \frac{1}{Z(\theta)} \exp\bigl\{\theta^T\!\!f(y)\bigr\}\,\,\,\text{with}\,\,\, Z(\theta) = \int \exp\bigl\{\theta^T\!\!f(y)\bigr\} dy. 
+$$
+
+The normalizing constant $Z(\theta)$ is called the *partition function* (by borrowing the terminology from [Statistical Physics](https://en.wikipedia.org/wiki/Partition_function_(statistical_mechanics))). $Z(\theta)$ is often *intractable*, meaning that we don't have a closed form expression for evaluating $Z(\theta)$. Computation of $Z(\theta)$ is formally analogous to computing the model evidence in Bayesian inference.  
+
+The log likelihood of observing $y$ is 
+
+$$
+\log \Pr(y|\theta) = \theta^T\!\!f(y) - \log Z(\theta)
+$$
+
+and maximized by following its gradient
+
+$$
+\nabla_\theta \log \Pr(y|\theta) = f(y) - \mathbb E_{\Pr(y|\theta)}[f]\,\,\,\text{where}\,\,\,\mathbb E_{\Pr(y|\theta)}[f] = \int f(y) \Pr(y|\theta)\, dy = \sum_{y \in \mathcal X} f(y)\, \Pr(y | \theta)
+$$
+
+If computation of $Z(\theta)$ is challenging, then also the expectation of the features $\mathbb E[f]$ is oftentimes not available in analytically closed form. In this case, one often resorts to a Monte Carlo approximation of $\mathbb E[f]$, for example, in the [*contrastive divergence*](http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf) approach by Geoffrey Hinton. 
+
+## Generating representative states
+
+In addition to the motivation coming from (Bayesian) learning, we also need sampling methods to answer queries over probabilistic models approximately. A sum over the entire sample space is approximated by a (weighted) sum over representative samples. Another motivation for developing sampling methods is to generate representative configurations for visualization. 
+
+### Example: Sampling protein structures
+
+As an example for a high-dimensional continuous sample space, we consider the three-dimensional structure of large biomolecules such as proteins. Here, the parameters $x$ are the angles parameterizing a protein configuration (these are the so-called [dihedral angles](https://en.wikipedia.org/wiki/Dihedral_angle#Proteins), rotational degrees of freedom about chemical bonds). Proteins are linear polymers, i.e. chain molecules with a backbone from which side-chain branch off. [Here](https://www.rcsb.org/3d-view/6YQ5) is an example of a protein structure that was computed with Monte Carlo methods by sampling a posterior distribution over the dihedral angles. 
+
+### Example: Sampling of Ising models
+
+Ising models are very simple graphical models. Each node can have two colors only, $\{-1, +1\}$. The graph is a regular square lattice with nearest neighbor edges but no connections otherwise (except for the periodic boundary conditions). The [Ising model](https://en.wikipedia.org/wiki/Ising_model) originates in Statistical Physics and was introduced in 1925 by Ernst Ising as a model for spontaneous magnetization observed in ferromagnetic materials. 
+
+The probability of a state $x\in\{-1, +1\}^{L\times L}$ is 
+
+$$
+p(x) = \frac{1}{Z(\beta)} \exp\biggl\{\beta \sum_{i\sim j} x_i x_j \biggr\}
+= \frac{1}{Z(\beta)} \exp\bigl\{-\beta\, E(x) \bigr\}
+$$
+
+where the sum runs over all nearest neighbors $i\sim j$ on the [square lattice](https://en.wikipedia.org/wiki/Square_lattice_Ising_model) of edge length $L$, i.e. each spin has four neighbors with whom it interacts. The energy (negative log probability)
+
+$$
+E(x) = -\sum_{i\sim j} x_i x_j
+$$
+
+favors configurations in which neighboring spins are aligned. The partition function is
+
+$$
+Z(\beta) = \sum_{i\sim j} \exp\bigl\{-\beta\, E(x) \bigr\}
+$$
+
+The parameters $\beta > 0$ is the inverse temperature (from a physical perspective). For $\beta=0$, we have a uniform distribution over the hypercube. For increasing $\beta$, the configurations become more and more fragmented forming patches of spins with the same orientation. For large $\beta$ (such as 1), practically only the configurations with all spins up $x_i=+1$ or down $x_i=-1$ have a non-vanishing probability.
+
+```{python}
+#| scrolled: false
+%load_ext Cython
+```
+
+```{python}
+%%cython
+
+cimport cython
+
+import numpy as np
+cimport numpy as np
+
+from libc.math cimport exp
+from libc.stdlib cimport rand
+cdef extern from "limits.h":
+    int RAND_MAX
+
+    
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def ising_energy(np.int64_t[:, :] x):
+    cdef int N = x.shape[0]
+    cdef int M = x.shape[1]
+    cdef int E = 0
+    cdef int i, j
+    for i in range(N):
+        for j in range(M):
+            E += x[i,j] * (x[i,(j+1)%M] + x[(i+1)%N, j])
+    return -E
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def ising_sweep(np.int64_t[:, :] x, float beta=0.4):
+    cdef int N = x.shape[0]
+    cdef int M = x.shape[1]
+    cdef int n_offset, m_offset, n, m
+    for n_offset in range(2):
+        for m_offset in range(2):
+            for n in range(n_offset, N, 2):
+                for m in range(m_offset, M, 2):
+                    ising_flip(x, n, m, beta)
+    return np.array(x)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef ising_flip(np.int64_t[:, :] x, int i, int j, float beta):
+    cdef int total = 0
+    cdef int N = x.shape[0]
+    cdef int M = x.shape[1]    
+    cdef float dE = 2 * x[i, j] * (x[(i-1)%N,j] + x[(i+1)%N,j] + \
+                                   x[i,(j-1)%M] + x[i,(j+1)%M])
+    if dE <= 0:
+        x[i, j] *= -1
+    elif exp(-dE * beta) * RAND_MAX > rand():
+        x[i, j] *= -1
+```
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+L = 2**8
+x = np.random.choice([-1,1],size=(L,L))
+betas = [0., 0.3, 0.4, 0.44, 0.45, 0.8]
+
+X = [x.copy()]
+
+for beta in betas[1:]:
+    X.append(x.copy())
+    for _ in range(100):
+        ising_sweep(X[-1], beta)
+    
+fig, ax = plt.subplots(2, len(betas)//2, figsize=(12, 6))
+ax = list(ax.flat)
+for a, beta, x in zip(ax, betas, X):
+    a.set_title(r'$\beta={0:.2f}$'.format(beta))
+    a.matshow(x, cmap=plt.cm.gray_r)
+    a.xaxis.set_visible(False)
+    a.yaxis.set_visible(False)
+fig.tight_layout()
+```
+
+## Notation and conventions
+
+* Most of the time I will consider a _probability density function_ (pdf) or _probability mass function_ (pmf) $p(x)$ where $x$ could be a parameter vector of a probabilistic model (e.g. in case we want to do computations with the posterior) or the observations from which we want to learn a model. For continuous sample spaces $\mathcal X$, we are dealing with a __pdf__. In case of a discrete sample space $\mathcal X$ (finite or countably infinite), $p(x)$ is a __pmf__. 
+
+* It is generally hard to compute normalized probabilities, but also not really necessary for many sampling algorithms. Therefore, often $p(x)$ is just a nonnegative function, and we assume that the integral $\int_{\mathcal X} p(x)dx < \infty$ or sum $\sum_{x\in\mathcal X} p(x) < \infty$ is finite
+
+* Often, the computation that we need to carry out can be expressed as the __expectation__ of some quantity under a probability. We will denote expectations by
+
+$$
+\mathbb{E}_{p}[f] = \int_{\mathcal X} f(x)\, p(x)\,  dx
+$$
+e.g. the model evidence used in Bayesian model comparison is $\Pr(D|M) = \mathbb E_{\Pr(\theta|M)}[\Pr(D|\theta,M)]$. 
+
+* The notation
+\begin{equation}\label{eq:sample_from}
+x \sim p(x)
+\end{equation}
+means that $x$ follows the distribution $p$
+
+At $\beta = \frac{\log(1 + \sqrt 2)}{2} \approx 0.44$, something peculiar happens. The "attractive forces" that tend to align neighboring spins become so dominant that large regions form. Across these regions, all spins have a similar orientation. This is a *phase transition*. Similar phenomena occur also in learning large probabilistic models where the prior and the likelihood often favor distinct regions in parameter space. 
+
+In graphical models such as the Ising model all computations are finite but have an exponential complexity. For a square lattice of length $L$ there are $2^{L^2}$ possible states. Visiting all states is not an option even for small to moderate lattice sizes such as $L=32$. In this case, we have $2^{1024}$ states. Compare this to the number of atoms in the universe which is estimated to be approx. $2^{266}$. As an aside, according to [Eddington](https://en.wikipedia.org/wiki/Eddington_number) the number of electrons in the universe is in fact
+
+$15747724136275002577605653961181555468044717914527116709366231425076185631031296 \approx 2^{263}$ 
+
+Anyways, if each atom were a computing device and running since the Bing Bang, i.e. for $13.5 \text{ billion years} \approx 2^{59} s$, at a rate of $3.3 \text{Gz} =2^{32}$ Hz, then we could have visited $2^{357}$ states. This is only a vanishingly small fraction of the entire state space of the $32\times 32$ Ising model. We would have to wait for $2^{667} \simeq 10^{201}$ universe life times until we had visited all possible states.   
+
+For a thorough discussion read the Chap. 29 in David MacKay's book [Information Theory, Inference, and Learning Algorithms](http://www.inference.org.uk/itprnn/book.pdf).
+
+## Monte Carlo methods
+
+The basic idea of __Monte Carlo methods__ is to use a random process to compute a (deterministic) quantity. That is, we give up deterministic guarantees and satisfy ourselves with statistical guarantees: we resort to gambling (therefore the name "Monte Carlo"). For a historical background on the beginning of modern Monte Carlo methods have a look at the recollections of pioneers Nick Metropolis ([The Beginning of the Monte Carlo Method](https://fas.org/sgp/othergov/doe/lanl/pubs/00326866.pdf)) and Roger Eckhard ([Stan Ulam, John von Neumann,
+and the Monte Carlo Method](https://fas.org/sgp/othergov/doe/lanl/pubs/00326867.pdf)). Using a random experiment to compute a quantity is at least as old as [Buffon's needle problem]( https://en.wikipedia.org/wiki/Buffon%27s_needle_problem):
+
+![Buffon's needle](images/McCracken_TheMonteCarloMethod_Fig1.png "Buffon's needle")
+
+Figure from [McCracken: The Monte Carlo Method](https://www.jstor.org/stable/24944647?seq=1#metadata_info_tab_contents). 
+
+The idea of the Monte Carlo method for probabilistic inference is simple: Instead of computing the integral/sum by systematically visiting all possible states in $\mathcal X$, we (randomly) pick those states that are likely to contribute strongly to the sum/integral:
+
+\begin{equation}\label{eq:sampling}
+\mathbb{E}_{p}[f] = \int_{\mathcal X} f(x)\, p(x)\,  dx \approx \hat f_S := \frac{1}{S} \sum_{s=1}^S f(x^{(s)})\,\,\,\text{with}\,\,\,  x^{(s)} \sim p(x)
+\end{equation}
+where $x^{(s)}$ are $S\in\mathbb N$ samples from $p(x)$ (the index $s$ enumerates all samples) and $\hat f_S$ is a *Monte Carlo estimate* or *Monte Carlo approximation* of $\mathbb E_p[f]$. Our hope is that with $S\to\infty$, the approximation becomes better and better. This is indeed the case, as we will see in a second. 
+
+### Monte Carlo as density estimation
+
+The Monte Carlo approximation can also be viewed as a *density estimation* approach since the estimate $\hat f_S$ can be interpreted as the expectation under the approximate probability
+\begin{equation}\label{eq:approximate_pdf}
+\hat p_S(x) = \frac{1}{S} \sum_{s=1}^S \delta(x - x^{(s)})
+\end{equation}
+where $\delta(\cdot)$ is the [delta distribution](https://en.wikipedia.org/wiki/Dirac_delta_function): 
+\begin{equation}\label{eq:sampling2}
+\hat f_S := \frac{1}{S} \sum_{s=1}^S f(x^{(s)}) = \mathbb E_{\hat p_S}[f]
+\end{equation}
+We approximate the true probability $p(x)$ with a Monte Carlo estimate $\hat p_S(x)$ obtained at $S$ samples $x^{(s)}$ where 
+
+$$
+|\hat p_S - p| \to 0\,\,\, \text{for}\,\,\, S\to \infty 
+$$
+
+in some appropriate norm $|\cdot|$.
+
+### Why does it work?
+
+#### Unbiasedness
+
+The joint distribution of all Monte Carlo samples is simply a product density, because all samples are generated *independently* of each other:
+$$
+p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
+$$
+
+The Monte Carlo estimate $\hat f_S$ is a random quantity, because with each realization of $x^{(1)}, \ldots, x^{(S)}$ we obtain a different result. We can compute the first two moments of $\hat f_S$:
+
+\begin{equation}\label{eq:MCbias}
+\mathbb E_{p_S}[\hat f_S] = \frac{1}{S} \sum_{s=1}^S \mathbb{E}_p[f(x^{(s)})] = \mathbb{E}_p[f] =: \mu
+\end{equation}
+That is, the Monte Carlo estimate of $\mathbb E_p[f]$ is __unbiased__.
+
+How accurate is the estimate on average (i.e. how close do we get to the true value if we run many replications of the sampling procedure)? To answer this question, we compute the variance
+
+\begin{eqnarray}\label{eq:MCvariance}
+\nonumber \text{var}[\hat f_S] 
+&=& \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
+\nonumber &=& \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+&=& \frac{1}{S} \text{var}[f] 
+\end{eqnarray}
+That is, Monte Carlo error bars shrink like $1/\sqrt{S}$:
+\begin{equation}\label{eq:MCerror}
+\sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
+\end{equation}
+
+where the proportionality constant $\sigma(f)=\sqrt{\text{var}[f]}$ depends on the specific estimation problem. In practice, $\sigma(f)$ is not available (after all we are doing Monte Carlo because we cannot do the sum/integrals that are necessary to compute means and variances...). However, we can use Monte Carlo to estimate $\sigma(f)$.
+
+#### Asymptotic guarantees
+
+So far, we studied the behavior of the Monte Carlo estimator for fixed number of samples $S$ and many repetitions. Let us now look at the limit $S\to\infty$. We have (almost surely)
+
+\begin{equation}\label{eq:slln}
+\hat f_S \overset{S\to\infty}{\longrightarrow} \mu = \mathbb E_p[f]
+\end{equation}
+
+This result is known as the [*strong law of large numbers*](https://en.wikipedia.org/wiki/Law_of_large_numbers).
+
+If $\text{var}[f] < \infty$, then the [__Central limit theorem__ (CLT)](https://en.wikipedia.org/wiki/Central_limit_theorem), a fundamental theorem in Statistics, guarantees that Monte Carlo works:
+
+\begin{equation}\label{eq:CLT}
+\hat f_S \overset{S\to\infty}{\longrightarrow} \mathcal N\left(\mathbb E_p[f], \sigma(f)^2/S\right) 
+\end{equation}
+
+where $\mathcal N(\mu, \sigma^2)$ is the [Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution) with mean $\mu$ and variance $\sigma$. 
+
+But these are only statistical, asymptotic guarantees for the convergence of Monte Carlo methods. 
+
+### Application: A slightly silly way to estimate $\pi$
+
+Let us use a simple Monte Carlo approach to estimate $\pi$. We have
+
+\begin{equation}\label{eq:pi}
+\pi = \int_{[-1,1]^2} \mathbb 1(x^2 + y^2 < 1)\, \, dx dy = \int_{\mathcal X} f(x, y)\, p(x, y)\, dxdy
+\end{equation}
+
+where $\mathbb 1(\cdot)$ is the indicator function. In this example, the distribution $p(x,y)=1/4$ is the uniform distribution over the square $\mathcal X = [-1, 1]^2$ and $f(x, y) = 4\cdot\mathbb 1(x^2 + y^2 < 1)$. We have:
+
+$$
+\mathbb E[f] = \pi\,\,\,\text{and}\,\,\,\text{var}[f] = (4-\pi)\, \pi 
+$$
+
+This integral can be approximated by:
+
+\begin{equation}\label{eq:pi_MC}
+\pi \approx \frac{1}{S} \sum_{s=1}^S f(x^{(s)}, y^{(s)})
+\end{equation}
+
+where $(x^{(s)}, y^{(s)})$ are picked randomly from the unit square. The approximate value of $\pi$ is just four times the fraction of sampling points that land in the unit disk.  
+
+Let's code it in Python:
+
+```{python}
+# graphical illustration
+import numpy as np
+import matplotlib.pylab as plt
+from matplotlib.patches import Circle
+
+S = 1000
+x = np.random.uniform(-1, +1, size=(2, S))
+r = np.sum(x**2, axis=0)
+circle = Circle((0.,0.), radius=1., facecolor='b', alpha=0.1, edgecolor='k', lw=2)
+fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+ax.scatter(*x[:,r<=1], color='b', s=20)
+ax.scatter(*x[:,r>1], color='r', s=20)
+ax.add_patch(circle)
+fig.tight_layout()
+```
+
+```{python}
+import numpy as np
+
+def estimate_pi(S):
+    """
+    Monte Carlo estimate of pi.
+    
+    Parameters
+    ----------
+    S : number of samples
+    """
+    # pick S points from unit square
+    x = np.random.uniform(-1, 1, size=(2, int(S)))
+    
+    # compute squared distance from center
+    r = np.sum(x**2, axis=0)
+    
+    # fraction of points in unit circle
+    return 4 * np.mean(r < 1)
+```
+
+How well does this simple Monte Carlo procedure work, if we increase the number of sampling points? 
+
+```{python}
+S = np.logspace(3, 6, 10)
+estimates = list(map(estimate_pi, S))
+
+kw = dict(xlabel=r'number of samples $S$')
+fig, ax = plt.subplots(1, 2, figsize=(10, 5), subplot_kw=kw)
+
+ax[0].plot(S, estimates, color='k', lw=3)
+ax[0].axhline(np.pi, ls='--', color='r', lw=3)
+ax[0].set_ylabel(r'estimated $\pi$')
+
+ax[1].plot(S, np.fabs(np.array(estimates)-np.pi), color='k', lw=3)
+ax[1].set_ylabel(r'error')
+fig.tight_layout()
+np.round(np.transpose([S, estimates]), 3)
+```
+
+To quantify the statistical error, we run multiple replications of the procedure:
+
+```{python}
+n_rep = 200
+estimates = np.array([list(map(estimate_pi, S)) for _ in range(n_rep)])
+```
+
+```{python}
+mean_pi = estimates.mean(0)
+std_pi = estimates.std(0)
+var = np.pi*(4.-np.pi)
+
+fig, ax = plt.subplots(1, 1, figsize=(8, 5), subplot_kw=kw)
+ax.fill_between(S, mean_pi - np.pi + std_pi, mean_pi - np.pi - std_pi,
+                color='k', alpha=0.1)
+ax.plot(S, mean_pi - np.pi, lw=3, color='k')
+ax.plot(S, -(var/S)**0.5, color='r', ls='--')
+ax.plot(S, +(var/S)**0.5, color='r', ls='--')
+ax.set_ylabel(r'Monte Carlo error')
+ax.semilogx()
+fig.tight_layout()
+```
