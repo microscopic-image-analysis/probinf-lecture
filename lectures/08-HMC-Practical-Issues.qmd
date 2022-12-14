@@ -614,13 +614,13 @@ Another issue of practical importance is the question how to choose the algorith
 
 A special case of HMC is [Langevin dynamics](https://en.wikipedia.org/wiki/Stochastic_gradient_Langevin_dynamics) which omits the acceptance/rejection step altogether and has gained some popularity in Bayesian deep learning when combined with stochastic gradient methods. 
 
-# Practical Issues
+## Practical Issues
 
 ![Challenges in MCMC](images/Murray_Thesis_Fig2-1.png "Challenges")
 
 Figure from [Iain Murray: Advances in Markov chain Monte Carlo methods](http://homepages.inf.ed.ac.uk/imurray2/pub/07thesis/murray_thesis_2007.pdf)
 
-## Challenges
+### Challenges
 
 * __Local exploration__: MCMC samplers typically employ a proposal kernel that changes the current state only locally. The magnitude of changes in the variables is controlled by the *step size* or a similar algorithmic parameter. The step size is limited by the need to maintain a reasonable acceptance rate. The time it takes for a diffusive random walk to explore a distance scales with
 $$
@@ -728,9 +728,9 @@ ax.legend()
 fig.tight_layout()
 ```
 
-## Convergence
+### Convergence
 
-### Convergence rates for Markov chains
+#### Convergence rates for Markov chains
 
 The speed of convergence of a Markov chain $P$ with stationary distribution $\pi$ depends on how quickly contributions to the distance
 

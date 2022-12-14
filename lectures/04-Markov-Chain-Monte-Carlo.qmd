@@ -4,7 +4,7 @@
 
 * Markov chains
 
-# Where do we stand?
+## Where do we stand?
 
 * Monte Carlo approximation: use stochastic simulations to estimate deterministic quantities. Only stochastic and asymptotic guarantees. 
 
@@ -16,7 +16,7 @@
 
 * Major challenges in high dimensions for both rejection and importance sampling
 
-# Markov chains
+## Markov chains
 
 Up to this point, we have only considered sampling approaches based on identically and independently distributed samples: all $x^{(s)}$ are generated from the same distribution independent of each other, either by drawing from 
 
@@ -42,7 +42,7 @@ is still valid. This is justified by our intuition that as long as we run the si
 
 In the following, we will restrict ourselves to *discrete* sample spaces $\mathcal X$ (finite or countably infinite). Markov chains defined on continuous sample spaces can be treated in a similar, yet mathematically much more involved fashion (measure theory, etc.). 
 
-## Definition of Markov chains
+### Definition of Markov chains
 
 Markov chains are models for dynamical systems with possibly uncertain transitions between various system states. In our context, the state space of the stochastic dynamics is the sample space $\mathcal X$. 
 
@@ -62,7 +62,7 @@ Note that we are dealing with *time-homogeneous* Markov chains whose transition 
 
 *Remark:* I am here sticking to our convention of using the superscript $(\cdot)^{(s)}$ to denote samples, because we will later use Markov chains to generate samples from a probabilistic model. However, at this point we should think of $s$ as a discrete time. 
 
-## Graph representation
+### Graph representation
 
 Due to its simple structure, Markov chains can be represented as directed graphs where the nodes of the graph represent the different states in $\mathcal X$ and the edges transition probabilities between nodes $y$ and $x$ that are greater than zero, i.e. if $\Pr(x\mid y) > 0$, then we introduce an arrow between $y$ and $x$. These graphs are called *transition graphs*. 
 
@@ -70,7 +70,7 @@ For example the two-state Markov chain with transition probabilities $\Pr(x_2\mi
 
 ![Two-state model](images/twostate.png "Two-state Markov model")
 
-## Transition matrix
+### Transition matrix
 
 Since the transition probability depends only on the last state, we can summarize all probabilities in a *transition matrix*
 
@@ -113,13 +113,13 @@ where
 
 is a column vector whose elements are all one, and $P$ is the transition matrix. Non-negative square matrices that satisfy condition (\ref{eq:leftstochastic}) are called [*(left) stochastic*](https://en.wikipedia.org/wiki/Stochastic_matrix) matrices. The qualifier "left" stems from the fact that the *columns* of $P(x, y)$ are probability vectors, so multiplication with $\mathbb 1^T$ from the left produces one for each column. 
 
-### Left versus right stochastic matrices
+#### Left versus right stochastic matrices
 
 * Beware that there are different conventions for how to define transition matrices. Mathematicians tend to use the convention $P(x, y) = \Pr(y\mid x)$, whereas Physicists tend to use $P(x, y) = \Pr(x\mid y)$. In the first case, the row sums are one, whereas in the second case the column sums are one. 
 
 * Note that, as a consequence of the previous comment, in the mathematics literature, and probably also the computer science literature, transition matrices of first-order Markov processes are *right stochastic*. Here, we follow the physics convention of using *left stochastic* transition matrices to represent the transition probabilities of Markov processes. One reason is that in the left stochastic convention the position of the arguments in $P(x, y)$ directly reflects the dependence in the conditional probability $\Pr(x\mid y)$. Another reason is that we will later see that some of the *right* eigenvectors of $P$ (in the left stochastic convention) play a crucial role (stationary distributions). Linear algebra packages typically compute right eigenvectors (so we don't have to remember to transpose the matrix when we compute eigenvectors...)
 
-## Eigenvalues of transition matrices
+### Eigenvalues of transition matrices
 
 A direct consequence of the stochasticity of the transition matrix of a Markov chain is that the absolute value ([modulus](https://en.wikipedia.org/wiki/Absolute_value)) of the (complex) eigenvalues $\lambda$ of $P$ are smaller than or equal to one. 
 
@@ -139,7 +139,7 @@ We see that $\mathbb 1$ is a left eigenvector that attains the maximum (absolute
 
 Since left and right eigenvectors have the same eigenvalues, the above upper limit is also valid for right eigenvalues (the [characteristic polynomials](https://en.wikipedia.org/wiki/Characteristic_polynomial) of $P$ and $P^T$ are the identical). 
 
-## Simulation of Markov chains
+### Simulation of Markov chains
 
 The algorithm for simulating a Markov chain is very simple:
 
@@ -178,7 +178,7 @@ for i, (alpha, beta) in enumerate([(0.5, 0.5), (0.1, 0.9), (1., 1.)]):
 fig.tight_layout()
 ```
 
-## Distribution propagation
+### Distribution propagation
 
 If the initial state $x^{(0)}$ follows $p^{(0)}$, the marginal distribution of the next state $x^{(1)}$ is
 
@@ -229,7 +229,7 @@ $$
 \mathbb E_{p^{(s)}}[f] = \sum_{x\in\mathcal X} f(x) p^{(s)}(x) = \sum_{x\in\mathcal X} f(x) \bigl(P p^{(s-1)}\bigr)(x) = \sum_{x,y\in\mathcal X} f(x) P(x, y) p^{(s-1)}(y) = f^T\!Pp^{(s-1)}
 $$
 
-## Asymptotic behavior
+### Asymptotic behavior
 
 What happens if we generate a very long Markov chain? To think about this question, let us represent $P$ using its [eigendecomposition](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix):
 
@@ -253,7 +253,7 @@ $$
 
 If we keep on taking powers of $P$, the resulting matrix will converge to a low-rank matrix. 
 
-## Stationary distribution
+### Stationary distribution
 
 The states with $|\lambda |=1$ play a crucial role in the long term behavior of the Markov chain. The left stochasticity of $P$ is the requirement that $\mathbb 1$ is a left eigenvector with eigenvalue 1. Since left and right eigenvalues coincide, there is at least one *right* eigenvector $\pi$ with eigenvalue one:
 
@@ -277,7 +277,7 @@ However, a Markov chain can have more than one stationary distribution. For exam
 
 We know that at least one stationary distribution exists. What are the requirements that it is unique? 
 
-## Irreducible Markov chains
+### Irreducible Markov chains
 
 There are multiple equivalent definitions of the *irreducibility* of a matrix. A matrix is irreducible, if no subspaces exist that are mapped to themselves under the action of the matrix. An intuitive definition for Markov chains is that the graph representing a Markov chain is fully connected. There are no disconnected components in which the Markov chain cycles without ever exiting into another subspace. If a transition matrix $P$ is reducible, then we can find a [permutation matrix](https://en.wikipedia.org/wiki/Permutation_matrix) $\Pi$ that transforms the transition matrix into block lower triangular form:
 
@@ -313,7 +313,7 @@ On the other hand, if a Markov chain is reducible, then the analysis of its long
 
 To illustrate the concept of irreducibility let us come back to the linear congruential generators that we discussed in the context of pseudo random number generation.
 
-### Example: LCG with bad magic numbers
+#### Example: LCG with bad magic numbers
 
 In lecture 2, we studied linear congruential generators based on the recurrence relation
 
@@ -531,7 +531,7 @@ ax[0].set_ylim(limits)
 fig.tight_layout()
 ```
 
-## Aperiodic Markov chains
+### Aperiodic Markov chains
 
 The period of a state $x\in\mathcal X$ is defined as
 
@@ -564,7 +564,7 @@ For this Markov chain both states, $x_1$ and $x_2$, have a period of two, since 
 
 * If a Markov chain is periodic, then it cycles between multiple stationary distributions. 
 
-### Illustration using the two-state system
+#### Illustration using the two-state system
 
 We have
 

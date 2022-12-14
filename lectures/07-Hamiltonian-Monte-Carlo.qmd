@@ -8,7 +8,7 @@ Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
 * More on auxiliary variable methods
 * Hamiltonian Monte Carlo
 
-# Recap
+## Recap
 
 * __Metropolis-Hastings algorithm:__ Take (almost) any Markov chain $Q$ (proposal chain) and map it to a new Markov chain $M[Q]$ with a desired proposal distribution $p$:
 $$
@@ -23,7 +23,7 @@ The Metropolis map of $Q_i$ simulates a Markov chain in the subspace $\mathcal X
 
 * __Gibbs sampling:__ A special case is $q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i|x_{\setminus i})$ (the proposal is the conditional distribution $p_i$ of the $i$-th group of variables), which results in proposals that are always accepted. 
 
-# Auxiliary variable methods
+## Auxiliary variable methods
 
 The idea of auxiliary variable methods is to introduce helper variables $y\in\mathcal Y$ that facilitate sampling. The joint distribution $p(x, y)$ over the extended sample space $\mathcal X \times{} \mathcal Y$ has to be designed such that
 
@@ -293,7 +293,7 @@ ax[1].imshow(x_SW.reshape(L, L))
 fig.tight_layout()
 ```
 
-# Hamiltonian Monte Carlo
+## Hamiltonian Monte Carlo
 
 Another auxiliary variable method is [Hamiltonian Monte Carlo (HMC)](https://en.wikipedia.org/wiki/Hamiltonian_Monte_Carlo) also known as [*Hybrid Monte Carlo*](https://doi.org/10.1016%2F0370-2693%2887%2991197-X). HMC is among the most widely used methods for sampling probabilistic models over continuous sample spaces. Radford Neal, one of the inventors of HMC, has written a nice introduction that can be found [here](http://www.mcmchandbook.net/HandbookChapter5.pdf).
 
@@ -325,7 +325,7 @@ p(x, v) \propto \exp\left\{- H(x, v)\right\}\,\,\,\text{where}\,\,\,  H(x, v) :=
 
 Phase space is the joint space of positions $x$ and momenta (velocities) $v$ in our physical analogy, and the total energy is given by the sum of the kinetic and potential energy is called the [*Hamiltonian*](https://en.wikipedia.org/wiki/Hamiltonian_mechanics) of the system. 
 
-## Hamiltonian dynamics
+### Hamiltonian dynamics
 
 Classical systems with $D$ degrees of freedom evolve in time by the action of the Hamiltonian $H(x, v)$. Trajectories in phase space are given by the time evolution of velocities and positions, $v(t)$ and $x(t)$. The dynamics of the system is described by Hamilton's equations of motion (an elegant generalization of Newton dynamics):
 

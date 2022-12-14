@@ -9,13 +9,13 @@ Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
 * Gibbs sampling
 * Auxiliary variable methods
 
-# Recap
+## Recap
 
 * Markov chain Monte Carlo (MCMC) algorithms simulate a Markov chain to generate samples from a target distribution $p$
 
 * The Metropolis-Hastings (MH) algorithm is a very general scheme to generate a *reversible* Markov chain whose stationary distribution is a desired target distribution
 
-## Metropolis-Hastings Algorithm
+### Metropolis-Hastings Algorithm
 
 The MH algorithm allows us to map (almost) any Markov chain $Q$ (the *proposal chain*) with whatever stationary distribution to a Markov chain $M[Q]$ (the *Metropolis map* of $Q$) that has the desired stationary distribution, our target distribution $p$. We have
 
@@ -257,7 +257,7 @@ ax[2].set_ylabel(r'$p(x_2)$')
 fig.tight_layout()
 ```
 
-# Combining Markov Chains
+## Combining Markov Chains
 
 Let $P_i$ be $N$ Markov chains that share the same stationary distribution $\pi$:
 
@@ -282,7 +282,7 @@ Therefore, the following algorithm will simulate $P$ and therefore eventually $\
 \end{split}
 \end{align}
 
-## Coordinate-wise sampling
+### Coordinate-wise sampling
 
 Let's look at a special but important case. Assume that the sample space decomposes into a product of $N$ sample spaces $\mathcal X = \mathcal X_1 \times \cdots \times \mathcal X_N$ with associated variables $x_i$ ($i=1, \ldots, N$)  where $x_i$ denotes a single variable or a group of variables that will be sampled jointly. The joint distribution of all variables is $p(x) = p(x_1, \ldots, x_N)$. 
 
@@ -399,7 +399,7 @@ ax[2].set_ylabel(r'$p(x_2)$')
 fig.tight_layout()
 ```
 
-# Gibbs sampling
+## Gibbs sampling
 
 [__Gibbs sampling__](https://en.wikipedia.org/wiki/Gibbs_sampling) is a simple and powerful MCMC method that can be interpreted as a special variant of the component-wise MH algorithm outlined above. Gibbs sampling assumes that we can sample directly from the conditional distributions $p_i(x_i | x_{\setminus i})$, and uses these as component-wise Markov chains:
 
@@ -416,7 +416,7 @@ $$
 
 That is, all proposals are accepted - Gibbs sampling is rejection-free. 
 
-## Algorithm: Gibbs sampling
+### Algorithm: Gibbs sampling
 
 Let $p(x_1, \ldots, x_N)$ be the joint distribution of $N$ random variables or groups of random variables $x_i\in\mathcal X_i$ with conditional distributions $p_i(x_i | x_{\setminus i})$, then the following iterative algorithm simulates a Markov chain whose stationary distribution is $p(x_1, \ldots, x_N)$:
 
@@ -435,7 +435,7 @@ $${x}^{(s,s+1)}_{\setminus i} = \begin{pmatrix}{x}^{(s+1)}_1, \ldots, {x}^{(s+1)
 
 so ${x}^{(s,s+1)}_{\setminus N} = x^{(s+1)}_{\setminus N}$.
 
-### Collapsed Gibbs Sampler
+#### Collapsed Gibbs Sampler
 
 A variant of the Gibbs sampler (Eq. \ref{eq:gibbs-sampling}) is the [*collapsed Gibbs sampler*](https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler) where some of the conditional distributions $p_i(x_i | x_{\setminus i})$ are replaced by a marginal distribution, e.g. $p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\setminus i}$. This scheme is equally valid and rejection-free. See also the original paper by [Jun S. Liu](https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829).
 
@@ -648,7 +648,7 @@ ax[3].set_ylabel(r'$p_2(x_2)$')
 fig.tight_layout()
 ```
 
-# Auxiliary Variables
+## Auxiliary Variables
 
 The idea of sampling methods that use *auxiliary variables* is to *introduce* new variables rather than marginalizing them out. The target distribution is $p(x)$ defined over sample space $\mathcal X$. But it might be beneficial to introduce helper variables $y$ and consider $p(x, y)$ defined over the extended sample space $\mathcal X \times{} \mathcal Y$ where
 
