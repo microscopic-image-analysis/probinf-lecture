@@ -12,16 +12,25 @@ Michael Habeck - Jena University Hospital - michael.habeck@uni-jena.de
 
 | Lecture   | Date         | Weekday | Time          | Topic                             | 
 |:---------:|:------------:|:-------:|---------------|:----------------------------------|
-| 1         | Nov 22, 2021 | Mon     | 10:15 - 11:45 | Introduction                      |
-| 2         | Nov 25, 2021 | Thu     | 12:15 - 13:45 | Direct Sampling Methods           |
-| 3         | Nov 29, 2021 | Mon     | 10:15 - 11:45 | Rejection & Importance Sampling   |
-| 4         | Dec 02, 2021 | Thu     | 12:15 - 13:45 | Markov chains, MCMC               |
-| 5         | Dec 06, 2021 | Mon     | 10:15 - 11:45 | The Metropolis-Hastings algorithm |
-| 6         | Dec 09, 2021 | Thu     | 12:15 - 13:45 | Gibbs sampling                    |
-| 7         | Dec 13, 2021 | Mon     | 10:15 - 11:45 | Hamiltonian Monte Carlo           |
-| 8         | Dec 15, 2021 | Thu     | 12:15 - 13:45 | Slice sampling                    |
-| 9         | Jan 03, 2022 | Mon     | 10:15 - 11:45 | Practical aspects, Diagnostics    |
-| 10        | Jan 06, 2022 | Thu     | 12:15 - 13:45 | Tempering, AIS, Nested sampling   |
+| 1         | Dec 16, 2022 | Fri     | 10:15 - 11:45 | Introduction                      |
+| 2         | Jan 02, 2023 | Mon     | 10:15 - 11:45 | Direct Sampling Methods           |
+| Ex 1      | Jan 04, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 1-2        |
+| 3         | Jan 06, 2023 | Fri     | 10:15 - 11:45 | Rejection & Importance Sampling   |
+| 4         | Jan 09, 2023 | Mon     | 10:15 - 11:45 | Markov chains, MCMC               |
+| Ex 2      | Jan 11, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 3-4        |
+| 5         | Jan 13, 2023 | Fri     | 10:15 - 11:45 | The Metropolis-Hastings algorithm |
+| 6         | Jan 16, 2023 | Mon     | 10:15 - 11:45 | Gibbs sampling                    |
+| Ex 3      | Jan 18, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 5-6        |
+| 7         | Jan 20, 2023 | Fri     | 10:15 - 11:45 | Hamiltonian Monte Carlo           |
+| 8         | Jan 23, 2023 | Mon     | 10:15 - 11:45 | Practical aspects of HMC          |
+| Ex 4      | Jan 25, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 7-8        |
+| 9         | Jan 27, 2023 | Fri     | 10:15 - 11:45 | Slice sampling                    |
+| 10        | Jan 30, 2023 | Mon     | 10:15 - 11:45 | Practical aspects, Diagnostics    |
+| Ex 5      | Feb 01, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 9-10       |
+| 11        | Feb 03, 2023 | Fri     | 10:15 - 11:45 | Tempering, AIS, Nested sampling   |
+| 12        | Feb 06, 2023 | Mon     | 10:15 - 11:45 | ? Sequential Monte Carlo ?        |
+| Ex 6      | Feb 08, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 11-12      |
+| 13        | Feb 10, 2023 | Mon     | 10:15 - 11:45 | ? ? ?                             |
 
 ## Topics
 
