@@ -79,6 +79,8 @@ cimport cython
 import numpy as np
 cimport numpy as np
 
+import matplotlib.pylab as plt
+
 from libc.math cimport exp
 from libc.stdlib cimport rand
 cdef extern from "limits.h":
@@ -164,8 +166,6 @@ The conditional distribution of the spins is sampled by assigning all spin varia
 
 ```{python}
 # pure Python implementation of Swendsen-Wang
-import numpy as np
-import matplotlib.pylab as plt
 import scipy.sparse as sparse
 
 class SwendsenWang:
@@ -410,8 +410,6 @@ The Hamiltonian $H(x, v)$ is indeed conserved (*Exercise*).
 We can now sample a Gaussian model by exploiting the physical analogy to the harmonic oscillator. We pretend that we can only sample the momenta from a standard normal distribution, and then use the dynamics of the harmonic oscillator to generate a proposal state that is accepted with probability one:
 
 ```{python}
-import numpy as np
-import matplotlib.pylab as plt
 plt.rc('image', cmap='viridis')
 
 

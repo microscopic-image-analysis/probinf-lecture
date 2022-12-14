@@ -87,8 +87,6 @@ The cdf of the radial component is $r^D$ and we obtain the following sampling ru
 
 ```{python}
 # sampling from the unit ball
-import numpy as np
-import matplotlib.pylab as plt
 
 def sample_ball(S, D=2):
     """
@@ -180,9 +178,6 @@ $$
 
 ```{python}
 # sampling from Erlang
-import numpy as np
-import matplotlib.pylab as plt
-
 from scipy.special import gammaln
 
 
@@ -285,9 +280,6 @@ $$
 with zeros $x=-1, 0, 1$. The second derivative $f''(x) = \sqrt{\frac{\pi}{2}}\, (x^4 - 4x^2 +1)\, e^{-x^2/2}$ is positive at $x=0$ and negative at $x=\pm 1$. Therefore, $x=\pm 1$ are the locations of the maxima of $f$, and the upper bound is $M := f(1) = \sqrt{2\pi/e} \approx 1.52$. 
 
 ```{python}
-import numpy as np
-import matplotlib.pylab as plt
-
 def sample_cauchy(S):
     u = np.random.random(int(S))
     return -np.tan(np.pi * u)
@@ -478,8 +470,6 @@ $$
 $(x,y)$ is accepted if $y < p(x)$ otherwise it is rejected. Therefore, the area under $Mq$ can be separated into an *acceptance region* and a *rejection region*. The value of $M$ determines the relative size of the rejection and acceptance regions. 
 
 ```{python}
-import numpy as np
-import matplotlib.pylab as plt
 from scipy.ndimage import gaussian_filter
 
 t = np.linspace(-1., 1., 1000) * 10
@@ -600,10 +590,6 @@ This is a generalization of the approximate density introduced earlier in Eq. (\
 Let us again use a Gaussian target and a Cauchy proposal to illustrate the sampling algorithm:
 
 ```{python}
-import numpy as np
-import matplotlib.pylab as plt
-
-
 def sample_cauchy(S, lower=-10, upper=10):
     u = np.random.random(2*int(S))
     x = -np.tan(np.pi * u)

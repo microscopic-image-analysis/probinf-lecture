@@ -11,6 +11,27 @@
 
 * Markov chains are defined by stochastic matrices; they have at least one stationary distribution
 
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+plt.rc('font', size=20)
+
+# transition matrix as defined in last lecture
+def transition_matrix(alpha, beta):
+    return np.array([[1-alpha, beta], 
+                     [alpha, 1-beta]])
+
+# sampling method as defined in last lecture
+def sample_chain(S, alpha=0.5, beta=0.5, x0=0):
+    X = [x0]
+    P = transition_matrix(alpha, beta)
+    while len(X) < S:
+        p = P[:,X[-1]]
+        X.append(np.random.multinomial(1, p).argmax())
+    return np.array(X)
+```
+
 * Reducible and periodic chains will not converge to a unique stationary distribution 
 
 So only if the Markov is both *irreducible* and *aperiodic*, then we have a unique stationary distribution. This is detailed in the following theorems.
@@ -44,6 +65,7 @@ Why does theorem (\ref{eq:fundamental}) have implications for sampling? As we sa
 But there is still something missing in order to use the simulation of a Markov chain for probabilistic inference. In our setting, we are given a probabilistic model $p$ (our target distribution) rather than a transition matrix $P$. So we are still facing the challenge of designing a suitable Markov chain that has the desired target as its stationary distribution. This problem has been solved in a very ingenious fashion by Metropolis et al., as we will see soon. 
 
 ```{python}
+
 # matrix power converges to rank-1 matrix
 def compute_pi(alpha, beta):
     return np.array([beta, alpha]) / (alpha + beta)
@@ -51,7 +73,6 @@ def compute_pi(alpha, beta):
 S = 50
 chains = [(0.1, 0.1), (0.1, 0.), (1e-2, 0.), (0.9, 0.9), (0.99, 0.99), (0.1, 0.7)]
 
-plt.rc('font', size=20)
 kw = dict(ylim=[-0.1, 2.1], ylabel=r'$|P^s-\pi\mathbb{1}^T|$', xlabel='$s$')
 fig, ax = plt.subplots(2, 3, figsize=(12, 6), sharex='all', sharey='all', subplot_kw=kw)
 ax = list(ax.flat)
@@ -309,8 +330,6 @@ The MH algorithm for this special case is very simple:
 
 ```{python}
 # Example 6.19 from Vihola's lecture notes
-import numpy as np
-import matplotlib.pylab as plt
 
 # size of sample space
 m = 30
@@ -422,8 +441,6 @@ The following figure shows $\mathcal{R}(p)$ for $p(x_1) = 0.4$, $p(x_2) = 1-p(x_
 
 ```{python}
 # 2D visualization
-
-plt.rc('font', size=20)
 
 def make_plot(p0=0.4, limits=(-0.05, 1.05), ax=None):
     

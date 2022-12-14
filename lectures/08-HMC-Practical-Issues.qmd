@@ -7,6 +7,45 @@ Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
 * Hamiltonian Monte Carlo continued
 * Practical Issues (convergence, diagnostic checks)
 
+## Recap
+
+In the last lecture we've looked at the [harmonic oscillator](https://en.wikipedia.org/wiki/Harmonic_oscillator):
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+class Oscillator:
+
+    def __init__(self, k=1., T=1.):
+
+        self.k = float(k)
+        self.T = float(T)
+        self.A = np.array([[0, 1], [-self.k, 0]])
+        self.w = np.sqrt(k)
+        
+    def propagate(self, x, v, T=None):
+
+        T = self.T if T is None else float(T)
+        
+        U = np.array([[np.cos(self.w*T), np.sin(self.w*T)/self.w],
+                      [-np.sin(self.w*T)*self.w, np.cos(self.w*T)]])
+
+        return U.dot([x, v])
+
+    def calc_hamiltonian(self, x, v):
+        return 0.5 * v**2 + 0.5 * self.k * x**2
+
+    def gradient(self, x):
+        return self.k * x
+    
+k = (10., 0.1)[1]
+T = 1000.
+x0 = 10.
+
+osci = Oscillator(k, T)
+```
+
 ## Leapfrog integrator
 
 It is only rarely possible to solve Hamilton's equations of motion in closed form. In practice, we often have to resort to numerical integration methods to solve this system of ordinary differential equations. 
@@ -123,8 +162,6 @@ In his review on HMC, Radford Neal compares the leapfrog integrator with other i
 """
 Implementation of examples from Neal's HMC review
 """
-import numpy as np
-import matplotlib.pylab as plt
 
 def integrate(transformation, n_steps, q0, p0):
     """Integrate Hamilton's equations of motion for the one-dimensional 
@@ -599,13 +636,10 @@ $$
 Let's illustrate some of these problems for a discrete toy system.
 
 ```{python}
+from scipy.special import logsumexp
 """
 Discretized bimodal target used to study convergence. 
 """
-import numpy as np
-import matplotlib.pylab as plt
-
-from scipy.special import logsumexp
 
 SEED = [
         # produces bimodal distribution biased towards first mode

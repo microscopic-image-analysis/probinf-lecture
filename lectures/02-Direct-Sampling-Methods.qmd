@@ -18,6 +18,9 @@ Why is this so? As we saw Monte Carlo methods have a statistical error that roug
 Our specific application of Monte Carlo (estimation of $\pi$) is a clear case where Sokal's warning applies. If we use numerical quadrature, we can achieve a high accuracy with much less effort: 
 
 ```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
 from scipy.integrate import quad
 
 val, err, info = quad(lambda x: (1-x**2)**(1/2), 0., 1., full_output=True)
@@ -78,9 +81,6 @@ $$
 $$
 
 ```{python}
-import numpy as np
-import matplotlib.pylab as plt
-
 from scipy.special import gammaln, lambertw
 
 
@@ -252,10 +252,6 @@ This is an iterative linear mapping combined with the modulo operation resulting
 """
 Pseudo random number generator
 """
-import numpy as np
-import matplotlib.pylab as plt
-
-
 class PRNG:
     """PRNG
 
@@ -408,8 +404,6 @@ Criterion (Eq. \ref{eq:discrete_sampling}) picks the interval with $u\in[c_{i-1}
 
 ```{python}
 # illustration discrete sampling
-import numpy as np
-import matplotlib.pylab as plt
 
 N = 10
 p = np.random.random(N)
@@ -445,9 +439,6 @@ $$
 ```{python}
 # Sampling from the Poisson distribution
 # - this is how it's *not* done in practice -
-
-import numpy as np
-import matplotlib.pylab as plt
 
 from scipy.special import gammaln
 
@@ -592,9 +583,6 @@ Some more examples:
 
 ```{python}
 # some examples
-import numpy as np
-import matplotlib.pylab as plt
-
 
 class PDF:
 
@@ -809,9 +797,6 @@ where we used the fact that $1-u \in\mathcal U(0,1)$ if $u\in \mathcal U(0,1)$.
 
 ```{python}
 # Box Muller method
-import numpy as np
-import matplotlib.pylab as plt
-
 
 def sample_gaussian(S):
     """
@@ -867,8 +852,6 @@ since $(L^{-1})^T L^{-1} = (L^T)^{-1} L^{-1} = (LL^T)^{-1} = \Sigma^{-1}$.
 
 ```{python}
 # 2d example
-import numpy as np
-import matplotlib.pylab as plt
 
 # parameters of a 2d Gaussian
 sigma1, sigma2, rho = 1., 3., 0.7

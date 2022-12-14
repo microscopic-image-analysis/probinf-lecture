@@ -27,6 +27,8 @@ By construction, the Metropolis map is coordinate-wise decreasing, $M[Q](y, x) \
 
 ```{python}
 # 2D visualization
+import numpy as np
+import matplotlib.pylab as plt
 
 plt.rc('font', size=20)
 
@@ -158,14 +160,12 @@ fig.tight_layout()
 In the next example, we run the MH algorithm on a continuous pdf in two dimensions. 
 
 ```{python}
+# logsumexp(x) is semantically equivalent to log(sum(exp(x)))
+from scipy.special import logsumexp
+
 """
 Metroplis sampling of a banana-shaped pdf
 """
-import numpy as np
-import matplotlib.pylab as plt
-
-from scipy.special import logsumexp
-
 class Banana:
 
     def __init__(self):
@@ -457,11 +457,6 @@ p(x_2 | x_1) &= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{1}{2
 and the marginal distributions are $p_i(x_i) = \mathcal N(\mu_i, \sigma_i^2)$. We use the standard Gibbs sampler and the collapsed Gibbs samplers to generate samples from the joint bivariate Gaussian:
 
 ```{python}
-import numpy as np
-import matplotlib.pylab as plt
-
-from scipy.special import logsumexp
-
 class Gaussian:
     """Bivariate Gaussian
     """
