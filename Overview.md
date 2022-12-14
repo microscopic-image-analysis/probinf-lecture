@@ -4,9 +4,9 @@ Michael Habeck - Jena University Hospital - michael.habeck@uni-jena.de
 
 ## Dates and course organization
 
-* Four weeks, two 2-hour lectures / exercises per week
+* Six weeks, two 2-hour lectures plus one 2-hour exercises session per week
 
-* Clash on Wednesday. How about moving second lecture to Thursday or Friday morning?
+* Lectures on Monday and Friday, exercises on Wednesday
 
 * Timetable
 
@@ -27,10 +27,10 @@ Michael Habeck - Jena University Hospital - michael.habeck@uni-jena.de
 | 9         | Jan 27, 2023 | Fri     | 10:15 - 11:45 | Slice sampling                    |
 | 10        | Jan 30, 2023 | Mon     | 10:15 - 11:45 | Practical aspects, Diagnostics    |
 | Ex 5      | Feb 01, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 9-10       |
-| 11        | Feb 03, 2023 | Fri     | 10:15 - 11:45 | Tempering, AIS, Nested sampling   |
-| 12        | Feb 06, 2023 | Mon     | 10:15 - 11:45 | ? Sequential Monte Carlo ?        |
+| 11        | Feb 03, 2023 | Fri     | 10:15 - 11:45 | TBA                               |
+| 12        | Feb 06, 2023 | Mon     | 10:15 - 11:45 | TBA                               |
 | Ex 6      | Feb 08, 2023 | Wed     | 10:15 - 11:45 | Exercises for lectures 11-12      |
-| 13        | Feb 10, 2023 | Mon     | 10:15 - 11:45 | ? ? ?                             |
+| 13        | Feb 10, 2023 | Fri     | 10:15 - 11:45 | TBA                               |
 
 ## Topics
 
@@ -80,9 +80,7 @@ Michael Habeck - Jena University Hospital - michael.habeck@uni-jena.de
 * Hamiltonian Monte Carlo continued
 * Practical Issues (convergence, diagnostic checks)
 
-### TBD
-
-#### Lecture 9: Slice sampling
+### Lecture 9: Slice sampling
 
 * General slice sampling
 * Neal's bracketing method
@@ -91,14 +89,14 @@ Michael Habeck - Jena University Hospital - michael.habeck@uni-jena.de
 
 * Convergence, diagnostic checks
 
-#### Lecture 11: Advanced Methods
+### Lectures 11-13: TBA
+
+#### Possible topics
 
 * Annealed Importance Sampling
 * Nested Sampling
 * Parallel Tempering / Replica-exchange Monte Carlo
-
-#### Other possible topics
-
+* Sequential Monte Carlo (SMC)
 * Graphical models
 * Ising model
 * Simulator models
