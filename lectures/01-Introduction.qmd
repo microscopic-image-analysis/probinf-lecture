@@ -49,12 +49,12 @@ $$
 \Pr(\theta_1|D,M) = \int \Pr(\theta_1, \theta_2|D, M)\, d{\theta_2}
 $$
 
-* Getting rid of nuisance parameters:
+* Getting rid of [nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter):
 $$
 \Pr(D|\theta_1, M) = \int \Pr(D, \theta_2 | \theta_1, M) \, d{\theta_2}
 $$
 
-* Getting rid of hyperparameters:
+* Getting rid of [hyperparameters](https://en.wikipedia.org/wiki/Hyperparameter):
 $$
 \Pr(\theta|D, M) \propto \int \Pr(D|\theta, M)\, \Pr(\theta|\alpha, M)\, \Pr(\alpha|M)\, d{\alpha}
 $$
