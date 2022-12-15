@@ -2,6 +2,8 @@
 
 Michael Habeck - Jena University Hospital - michael.habeck@uni-jena.de
 
+Wolfhart Feldmeier - Jena University Hospital - wolfhart.feldmeier@uni-jena.de
+
 ## Dates and course organization
 
 * Six weeks, two 2-hour lectures plus one 2-hour exercises session per week
