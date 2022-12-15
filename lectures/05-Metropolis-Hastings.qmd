@@ -1,0 +1,743 @@
+# Lecture 5: The Metropolis-Hastings algorithm
+
+## Outline
+
+* Fundamental theorem of Markov chains
+* Metropolis-Hastings algorithm
+
+## Recap
+
+* Idea: improve on direct sampling by allowing for dependence of successive samples (Markov property)
+
+* Markov chains are defined by stochastic matrices; they have at least one stationary distribution
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+plt.rc('font', size=20)
+
+# transition matrix as defined in last lecture
+def transition_matrix(alpha, beta):
+    return np.array([[1-alpha, beta], 
+                     [alpha, 1-beta]])
+
+# sampling method as defined in last lecture
+def sample_chain(S, alpha=0.5, beta=0.5, x0=0):
+    X = [x0]
+    P = transition_matrix(alpha, beta)
+    while len(X) < S:
+        p = P[:,X[-1]]
+        X.append(np.random.multinomial(1, p).argmax())
+    return np.array(X)
+```
+
+* Reducible and periodic chains will not converge to a unique stationary distribution 
+
+So only if the Markov is both *irreducible* and *aperiodic*, then we have a unique stationary distribution. This is detailed in the following theorems.
+
+## Fundamental Theorem of Markov Chains
+
+Irreducibility and aperiodicity implies that $\pi$ is unique (see, for example, [Diaconis: The Markov Chain Monte Carlo Revolution](https://www.ams.org/journals/bull/2009-46-02/S0273-0979-08-01238-X/)) and powers of $P$ converge to a rank one matrix
+
+\begin{equation}\label{eq:fundamental}
+P^S(x, y) \to \pi(x)
+\end{equation}
+
+for $S\to\infty$ and all $x, y \in\mathcal X$. Equation (\ref{eq:fundamental}) means that we can start from any initial state $y\in\mathcal X$ with $\pi(y) > 0$ and will eventually produce samples from the stationary distribution $\pi$. Another way to express this *convergence in distribution* is:
+
+$$
+|P^S p - \pi| \to 0
+$$ 
+
+for $S\to\infty$ for any $p$. That is, we can start from an arbitrary initial distribution and converge to the stationary distribution. In matrix-vector notation
+
+$$
+P^S \to \pi\mathbb 1^T\, .
+$$
+
+That is, if $P$ is irreducible and aperiodic, then matrix powers of $P$ converge to a rank-1 matrix. 
+
+The fundamental theorem for Markov chains follows from the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) for non-negative matrices and the irreducibility of $P$. 
+
+Why does theorem (\ref{eq:fundamental}) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from $x$ to $y$ according to $P(y, x)$. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution. 
+
+But there is still something missing in order to use the simulation of a Markov chain for probabilistic inference. In our setting, we are given a probabilistic model $p$ (our target distribution) rather than a transition matrix $P$. So we are still facing the challenge of designing a suitable Markov chain that has the desired target as its stationary distribution. This problem has been solved in a very ingenious fashion by Metropolis et al., as we will see soon. 
+
+```{python}
+
+# matrix power converges to rank-1 matrix
+def compute_pi(alpha, beta):
+    return np.array([beta, alpha]) / (alpha + beta)
+
+S = 50
+chains = [(0.1, 0.1), (0.1, 0.), (1e-2, 0.), (0.9, 0.9), (0.99, 0.99), (0.1, 0.7)]
+
+kw = dict(ylim=[-0.1, 2.1], ylabel=r'$|P^s-\pi\mathbb{1}^T|$', xlabel='$s$')
+fig, ax = plt.subplots(2, 3, figsize=(12, 6), sharex='all', sharey='all', subplot_kw=kw)
+ax = list(ax.flat)
+
+for i, (alpha, beta) in enumerate(chains):
+
+    P = transition_matrix(alpha, beta)
+    pi = np.array([beta, alpha]) / (alpha + beta)
+    P_inf = np.multiply.outer(pi, np.ones(2))
+    P_s = P.copy()
+
+    d = []
+    while len(d)  < S:
+        d.append(np.fabs(P_s - P_inf).sum())
+        P_s = P_s.dot(P)
+
+    ax[i].set_title(r'$\alpha={0:.3f}$, $\beta={1:.3f}$'.format(alpha, beta),
+                   fontsize=16)
+    ax[i].plot(d, lw=4, alpha=0.6, color='k')
+fig.tight_layout()
+```
+
+```{python}
+# convergence in distribution
+def estimate_pi0(X):
+    return 1-np.add.accumulate(X) / np.add.accumulate(np.ones(len(X)))
+
+S = 1000
+
+kw = dict(ylim=[-0.1, 1.1], ylabel=r'$p^{(s)}(x=x_1)$', xlabel='$s$')
+fig, ax = plt.subplots(2, 3, figsize=(12, 6), sharex='all', sharey='all', subplot_kw=kw)
+ax = list(ax.flat)
+
+for i, (alpha, beta) in enumerate(chains):
+    X = sample_chain(S, alpha, beta, x0=0)
+    pi = compute_pi(alpha, beta)
+    pi_est = estimate_pi0(X)
+    ax[i].set_title(r'$\alpha={0:.3f}$, $\beta={1:.3f}$'.format(alpha, beta),
+                   fontsize=16)
+    ax[i].plot(pi_est, lw=3, color='k', alpha=0.6)
+    ax[i].axhline(pi[0], ls='--', color='r', alpha=0.8)
+fig.tight_layout()
+```
+
+### Strong law of large numbers (LLN) for Markov chains
+
+Before we explain the Metropolis algorithm, let us briefly state the convergence result for irreducible and aperiodic Markov chains in a fashion that is closer to the *Monte Carlo approximation* introduced in the first lecture.  
+
+Irreducibility and aperiodicity of a stochastic transition matrix implies a strong law of large numbers for Markov chains: 
+
+\begin{equation}\label{eq:lln_markov}
+\frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr) \to \mathbb E_{\pi}[f]
+\end{equation}
+
+where $x^{(s)} \sim \Pr\bigl(x\mid x^{(s-1)}\bigr) = P\bigl(x, x^{(s-1)}\bigr)$ is an irreducible, aperiodic Markov chain with stationary distribution $\pi$. Therefore, simulating a Markov chain produces samples that can be used to approximate an expectation similar to the approximation in standard Monte Carlo or importance sampling. 
+
+Analogous to the standard Monte Carlo approximation, Markov chain Monte Carlo (MCMC) sampling produces estimates of expectations that coincide with the true expectation in the long run. Again, this is only a stochastic guarantee, and it will be generally difficult to know how close we are to the correct value. But nevertheless we have a guarantee that running a Markov chain longer should help. 
+
+### Reversible Markov chains
+
+A very important concept to verify stationarity of a Markov chain $P$ is *reversibility*. A Markov chain is *$\pi$-reversible* if the transition matrix satisfies the *detailed balance* equations
+
+\begin{equation}\label{eq:reversible}
+P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
+\end{equation}
+
+for all $x, y \in \mathcal X$ for some distribution $\pi$. From the point of view of probability flow across the transition graph, the detailed balance equations (\ref{eq:reversible}) state that "the amount of probability mass flowing from a source state $x$ to a sink $y$ via the directed edge with capacity $P(y, x)$ equals the probability mass flowing backwards." So the dynamics across the transition graph is in a steady state. As a consequence, reversibility implies that $\pi$ is an invariant distribution:
+
+\begin{equation}\label{eq:reversible_invariance}
+\sum_{y\in\mathcal X} P(x, y)\pi(y) = \sum_{y\in\mathcal X} P(y, x) \pi(x) = \pi(x)\, .
+\end{equation}
+
+Therefore, to verify that a distribution of interest (our target distribution) is the invariant distribution of a Markov chain, we can simply check if the transition matrix satisfies detailed balance with respect to the target distribution. 
+
+The contrary to (\ref{eq:reversible_invariance}) is __not__ true: The fact that $\pi$ is a stationary distribution of the transition matrix $P$ does not imply, that $P$ is $\pi$-reversible. 
+
+If we start a Markov chain in the stationary distribution, $p^{(0)} = \pi$, then
+\begin{eqnarray*}\label{eq:forward-backward}
+\Pr\bigl(x_S = x^{(S)}, \ldots x_0=x^{(0)}\bigr) &=& 
+\prod_{s=1}^S P\bigl(x^{(s)}, x^{(s-1)}\bigr)\,  \pi\bigl(x^{(0)}\bigr)\\
+&=&
+\prod_{s=1}^S P\bigl(x^{(s-1)}, x^{(s)}\bigr)\, \pi\bigl(x^{(S)}\bigr) \\
+&=& \Pr\bigl(x_S = x^{(0)}, \ldots x_0=x^{(S)}\bigr)
+\end{eqnarray*}
+
+The probability of generating a Markov chain when starting in the stationary distribution is the same in forward and backward direction. This is why the Markov chain is called *reversible*.
+
+If the transition matrix $P$ is symmetric, $P^T=P$, then the uniform distribution is the stationary distribution because the detailed balance equations are satisfied for $\pi(x) = 1/|\mathcal X|$. 
+
+## The  Metropolis-Hastings Algorithm
+
+We are now ready to discuss the [__Metropolis-Hastings algorithm__](https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm) which solves the following fundamental problem:
+
+### For a given target distribution $p(x)$, how can we construct an irreducible and aperiodic Markov chain such that $p(x)$ is its stationary distribution?###
+
+
+The Metropolis-Hastings algorithm solves this problem in a very elegant and simple fashion. Due to its simplicity, it is very widely applicable and ranks among the [top 10 algorithm of the 20th century](https://www.andrew.cmu.edu/course/15-355/misc/Top%20Ten%20Algorithms.html). 
+
+### Algorithm: Metropolis-Hastings
+
+Assume $\mathcal X$ is discrete and $p$ a pmf on $\mathcal X$. Moreover, $Q(y, x)$ is a proposal Markov chain on $\mathcal X$, that is $Q(\cdot, x)$ is a pmf on $\mathcal X$ that allows us to generate samples from a given state $x$. The trick of the Metropolis-Hastings algorithm is to modify the Markov chain $Q$, by auxiliary coin tossing, to a new transition kernel with stationary distribution $p$. 
+
+The Metropolis-Hastings (MH) algorithm proceeds as follows:
+
+Generate some initial $x^{(0)} \sim p^{(0)}$ and iterate for $s=1, 2, \ldots$:
+
+1. propose a new state by generating $y \sim Q\bigl(\,\cdot\,, x^{(s-1)}\bigr)$
+
+2. generate a uniform random number $u \sim \mathcal U(0, 1)$; if $u \le A\bigl(y, x^{(s-1)}\bigr)$ then *accept* and set $x^{(s)} = y$, else *reject* and set $x^{(s)} = x^{(s-1)}$. The acceptance probability is given by
+
+\begin{equation}\label{eq:MHaccept}
+A(y, x) = \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}
+\end{equation}
+
+
+The MH algorithm is the first and most important Markov chain Monte Carlo (MCMC) algorithm. Most other MCMC algorithms are specialized versions of MH sampling. 
+
+*Remarks*
+
+1. The distribution $p$ will turn out to be a stationary distribution of the Markov chain that is simulated with the MH algorithm; $p$ is called the __target distribution__ or simply the __target__
+
+2. The Metropolis-Hastings algorithm is also valid in continuous sample spaces $\mathcal X$
+
+3. It is crucial to reject, i.e. to really duplicate the current state and store it as a sample in case of a rejected proposal. Otherwise the statistics will be wrong!
+
+4. We don't need to build up and store the full transition matrix $Q$ of the proposal chain in memory. If $Q$ is symmetric, it suffices to be able to *simulate* $Q$ (this fact is used, for example, in Hamiltonian Monte Carlo where the proposal state is generated by solving a system of differential equations)
+
+5. We don't need to know the normalizing constants of the target distribution and the proposal chain, since the MH algorithm only involves *ratios* of the target distribution and the transition rates of the proposal chain. If the unnormalized target and proposal chain are denoted 
+    
+    \begin{equation}\label{eq:unnormalized}
+    p(x) = \frac{1}{Z_p} p^*(x), \,\,\, Q(x, y) = \frac{1}{Z_Q} Q^*(x, y)
+    \end{equation}
+
+where $p^*(x) \ge 0$ and $Z_p = \sum_x p^*(x)$ etc., then the *acceptance ratio* is
+
+$$
+\frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} = 
+\frac{Q^*(x, y)}{Q^*(y, x)}\frac{Z_Q}{Z_Q}\, \frac{p^*(y)}{p^*(x)}\frac{Z_p}{Z_p}\, . 
+$$
+
+This is __very__ convenient!
+
+### Special cases
+
+* Symmetric proposal distribution $Q^T=Q$ (i.e. the stationary distribution of $Q$ is uniform). This was assumed in the original publication by [Metropolis *et al.*](https://aip.scitation.org/doi/abs/10.1063/1.1699114). The acceptance ratio simplifies to
+
+$$
+\frac{Q(x,y)\, p(y)}{Q(y, x)\, p(x)} = \frac{p(y)}{p(x)}
+$$
+
+Physicists tend to work with energies, i.e. negative log probabilities, rather than probabilities. So the logarithm 
+
+$$
+\Delta E = \log\{ p(x) / p(y) \}
+$$
+
+is the *energy difference* when jumping from state $x$ to the proposed state $y$. The acceptance probability is then
+
+$$
+\min\left\{1, e^{-\Delta E} \right\}
+$$
+
+If the energy of the new state is lower than the energy of the current state, the proposal is always accepted. Otherwise the acceptance probability depends on the [*Boltzmann factor*](https://en.wikipedia.org/wiki/Boltzmann_distribution) $\exp(-\Delta E)$.
+
+* Independence sampler $Q(y, x) = q(y)$. The acceptance ratio simplifies to
+
+$$
+\frac{Q(x,y)\, p(y)}{Q(y, x)\, p(x)} = \frac{q(x)\, p(y)}{q(y)\, p(x)}
+$$
+
+If $q(x)$ is the target $q=p$, then we always accept and we are back to direct sampling $x\sim p$. 
+
+There is also a connection to importance and rejection sampling. The importance weight of some state $x$ is
+
+$$
+w(x) = \frac{p(x)}{q(x)}\, ,
+$$
+
+and the acceptance ratio of the independence sampler involves ratios of importance weights
+
+$$
+\frac{w(y)}{w(x)}
+$$
+
+If the proposal state $y$ has a higher importance weight than the current state $x$, then we always accept. Otherwise the acceptance probability is $\min\{1, w(y)/w(x)\}$. So Metropolis sampling with an independent proposal is a kind of hybrid of rejection and importance sampling. Still it has some advantages over rejection sampling, since we do not need to establish an upper bound $M$ such that $p(x) \le Mq(x)$. In contrast to importance sampling, it has some built-in pruning because states that have a very small importance weight (relative to the current state) have only a small chance of being accepted.
+
+### Why does the MH algorithm work?
+
+The MH algorithm works because of the validity of the following statements:
+
+#### Transition probabilities of the MH algorithm
+
+The MH algorithm generates a Markov chain on $\mathcal X$. The transition probabilities of the Markov chain are given by
+
+\begin{equation}\label{eq:MHtransitions}
+P(y, x) = Q(y, x)\, A(y, x) + \delta(y,x)\, r(x)
+\end{equation}
+
+where the acceptance probability $A(y, x)$ is defined above, and the rejection probability is
+
+\begin{equation}\label{eq:MHrejection}
+r(x) = 1 - \sum_{y\in \mathcal X} Q(y, x)\, A(y, x)
+\end{equation}
+
+The transition probability of $y\not= x$ is $A(y, x)\, Q(y, x)$ by construction of the algorithm. The term for $y=x$ is obtained by subtracting the sum $\sum_y A(y, x)\, Q(y, x)$ from one, which is just $r(x)$. In general, it holds that the diagonal entries of the transition matrix are fixed by column stochasticity: 
+
+$$
+1 = \sum_y P(y, x) \,\,\,\Rightarrow\,\,\, P(x, x) = 1 - \sum_{y\not= x} P(y, x)\, .
+$$
+
+So it is sufficient to know the off-diagonal elements. 
+
+#### Stationarity of the target distribution
+
+To show that the target distribution $p(x)$ is indeed the stationary distribution of the Markov chain generated by the MH algorithm, we check if the transition matrix (\ref{eq:MHtransitions}) is $p$-reversible. For $y\not= x$ we have:
+\begin{eqnarray*}\label{eq:MHreversible}
+P(y, x)\, p(x) 
+&=& Q(y, x)\, A(y, x)\, p(x) \\
+&=& Q(y, x)\, \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}\, p(x) \\
+&=&\min\left\{ Q(y, x)\, p(x), Q(x, y)\, p(y) \right\}\\
+&=& Q(x, y)\, \min\left\{1, \frac{Q(y, x)}{Q(x, y)}\frac{p(x)}{p(y)} \right\}\, p(y) \\
+&=& Q(x, y)\, A(x, y)\, p(y) \\
+&=& P(x, y)\, p(y)
+\end{eqnarray*}
+
+The MH chain satisfies the detailed balance equations with regard to our target distribution. Therefore, $p$ is a stationary distribution and will be sampled in the long run. 
+
+To ensure that the simulation converges to $p$, we have to ensure irreducibility by proper choice of the proposal chain $Q(y, x)$. The proposal chain needs to be irreducible: every point $y \in \mathcal X$ is reachable from any $x \in\mathcal X$ in a finite number of steps.
+
+### Example (Vihola, Example 6.19)
+
+Let's run the MH algorithm on a simple staircase distribution with uniform proposals. The target distribution is
+
+$$
+p(x) = \frac{x}{Z}, \,\,\, x\in\{1, \ldots, m\}=:\mathcal X, \,\,\, Z=\sum_{x=1}^m x = m(m+1)/2
+$$
+
+To design an MH algorithm for simulating $p$, we have to choose a suitable proposal distribution. A simple choice is to use a uniform distribution over $\mathcal X$. That is, $Q(y, x)$ is independent of $x$ and $y$: $Q(y, x) = 1/m$ for all $x, y \in\mathcal X$. 
+
+The resulting MH chain is irreducible:
+
+$$
+\Pr(x_1=y| x_0=x) = Q(y, x) \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\} = \frac{1}{m} \min\left\{1, \frac{y}{x}\right\} > 0
+$$
+
+for all $x, y\in\mathcal X$. We can get from from any $x\in \mathcal X$ to any $y$ within one step ($P(y,x) > 0$ for all $x, y$). 
+
+The MH algorithm for this special case is very simple:
+
+1. Pick $x^{(0)}$ uniformly in $\{1, \ldots, m\}$, e.g. $x^{(0)}=1$
+
+2. Generate proposal $y \sim \mathcal U(\{1, \ldots, m\})$
+
+3. Generate $u \sim \mathcal U(0, 1)$ and if $u \le \frac{y}{x^{(s-1)}}$, set $x^{(s)} = y$, otherwise $x^{(s)} = x^{(s-1)}$
+
+```{python}
+# Example 6.19 from Vihola's lecture notes
+
+# size of sample space
+m = 30
+
+# sample space
+X = np.arange(m)
+
+# target distribution
+p = X + 1.
+p *= 2 / m / (m+1)
+
+# uniform proposal
+Q = lambda x=None: np.random.choice(X)
+
+x = Q()
+samples = [x]
+
+while len(samples) < 1e5:
+
+    # proposal step
+    y = Q(x)
+    
+    # acceptance probability
+    A = p[y] / p[x]
+    
+    # accept / reject?
+    u = np.random.uniform()
+    x = y if (u <= A) else x
+    
+    samples.append(x)
+    
+bins, counts = np.unique(samples, return_counts=True)
+counts = counts / float(counts.sum())
+
+fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+ax[0].bar(bins, counts, color='k', alpha=0.2)
+ax[0].step(np.append(-1,X) + 0.5, np.append(0,p), color='r')
+ax[1].plot(samples[-500:], color='k', alpha=0.75)
+fig.tight_layout()
+```
+
+### Pros and cons of MCMC
+
+Pros:
+
+* Very versatile framework: the Metropolis-Hastings algorithm allows us to simulate a Markov chain with a desired stationary distribution in a highly flexible manner. The requirements are much easier to satisfy than the requirements for importance or rejection sampling
+
+* We introduce local correlations which allows the simulation to zoom into the relevant regions of sample space
+
+Cons:
+
+* We sample locally and pay the price of introducing correlations between successive samples. Local sampling might get stuck and ergodicity might be hard to achieve. 
+
+* We don't know how far away we are from the stationary distribution and are only given statistical guarantees for convergence in the long run
+
+### Geometric interpretation of the Metropolis-Hastings algorithm
+
+The MH algorithm takes a base chain $Q$, the proposal chain, that does not yet have the desired target distribution $p$ and tweaks it in such a way that the new chain has the correct distribution. This is achieved by constructing a new chain $P$ that is $p$-reversible:
+
+\begin{equation}\label{eq:p-reversible}
+    P(x, y)\, p(y) = P(y, x)\, p(x)
+\end{equation}
+
+The mapping from $Q$ to $P$ involves the acceptance ratio
+
+\begin{equation}\label{eq:acceptance-ratio}
+    R(y, x) = \frac{Q(x, y)\, p(y)}{Q(y, x)\, p(x)}
+\end{equation}
+
+and is defined as
+
+\begin{equation}\label{eq:metropolized}
+P(y, x) = \left\{
+\begin{array}{c c}
+Q(y, x)\, \min\{1, R(y, x)\} & \text{ if } y\not= x \\
+\sum_z Q(z, x) \bigl(1 - \min\{1, R(z, x)\}\bigr) & \text{ if } y=x\\ 
+\end{array}\right.
+\end{equation}
+
+If $Q$ is irreducible, then $P$ is also irreducible. 
+
+The acceptance ratio $R(y, x)$ (Eq. \ref{eq:acceptance-ratio}) assesses how unbalanced the proposal chain is, i.e. how strongly $Q$ deviates from $p$-reversibility. If $Q$ were already $p$-reversible, then the ratio $R$ would always be one, and the proposal would always be accepted. The larger $R(y, x)$ deviates from one, the more unbalanced is the proposal chain with regard to the target. Since $R(x, y) = 1 / R(y, x)$, a strong flux of probability in one direction, results in a reduced flux of probability in the backwards direction. 
+
+To better understand how the mapping from some irreducible proposal chain $Q$ to a $p$-reversible Metropolis chain $P$ works, let me try to explain a very nice paper by [Billera & Diaconis: A Geometric Interpretation of the Metropolis-Hastings Algorithm](https://projecteuclid.org/euclid.ss/1015346318). This paper sets out to provide a global view on why the MH algorithm in some sense provides the optimal way of turning some arbitrary Markov chain $Q$ into a Markov chain with the desired stationary distribution. 
+
+First let us think of the space of all possible Markov chains indexed by states from the finite sample space $\mathcal X$. This space is formed by left stochastic square matrices of size $|\mathcal X|$ and will be called $\mathcal S(\mathcal X)$. $\mathcal S(\mathcal X)$ is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of $\mathcal S(\mathcal X)$ is $|\mathcal X|(|\mathcal X| -1 )$: there are $|X|^2$ non-negative entries in total from which we need to subtract $|X|$ diagonal entries that are fixed by column stochasticity (Eq. \ref{eq:leftstochastic}).
+
+For a fixed target distribution $p$, the subset $\mathcal R(p)$ of all Markov matrices that are $p$-reversible 
+\begin{equation}\label{eq:p-reversible-chains}
+\mathcal R(p) = \left\{ P \in \mathcal S(\mathcal X): P(x, y)\, p(y) = P(y, x)\, p(x) \right\}
+\end{equation}
+has dimension $|\mathcal X|(|\mathcal X| - 1) / 2$, because $p$-reversibility (Eq. \ref{eq:p-reversible}) fixes a triangular portion of the transition matrix
+
+$$
+P(y, x) = P(x, y) \frac{p(y)}{p(x)}
+$$
+
+We can either choose $P(x, y)$ upon which $P(y, x)$ is fixed, or vice versa. $\mathcal R(p)$ is a convex subspace of $\mathcal S$: If $P, P' \in \mathcal R(p)$, then $\lambda P + (1-\lambda) P' \in \mathcal R(p)$ for $\lambda\in[0,1]$. 
+
+To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. \ref{eq:twostate}). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by $\alpha = \Pr(x_2|x_1)$ and $\beta=\Pr(x_1|x_2)$. The $p$-reversible chains form a one-dimensional subspace
+
+$$
+\mathcal R(p) = \left\{(\alpha, \beta) \in [0,1]^2 : \beta = \frac{p(x_1)}{p(x_2)}\,\alpha  \right\}
+$$
+
+a straight line segment through the origin with slope $p(x_1)/p(x_2)$. 
+
+The following figure shows $\mathcal{R}(p)$ for $p(x_1) = 0.4$, $p(x_2) = 1-p(x_1) = 0.6$.
+
+```{python}
+# 2D visualization
+
+def make_plot(p0=0.4, limits=(-0.05, 1.05), ax=None):
+    
+    kw = dict(xticks=[0.,0.5, 1.0], yticks=[0.,0.5, 1.0])
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(5, 5), subplot_kw=kw)
+    else:
+        fig = None
+    alpha = beta = np.linspace(0., 1., 100)
+    ax.fill_between(alpha, beta*0., beta*0.+1, color='k', alpha=0.1)
+    ax.axvline(1., ls='--', color='k')
+    ax.axhline(1., ls='--', color='k')
+    ax.axvline(0., ls='--', color='k')
+    ax.axhline(0., ls='--', color='k')
+    ax.plot(alpha, alpha*p0/(1-p0), lw=3, color='r')
+    ax.annotate(r'$\mathcal{S}(\mathcal{X})$', (.2, .8), xycoords='axes fraction', fontsize=30)
+    ax.annotate(r'$\mathcal{R}(p)$', (.65, .36), color='r', xycoords='axes fraction', fontsize=30)
+    ax.set_xlim(*limits)
+    ax.set_ylim(*limits)
+    ax.set_xlabel(r'$\alpha$')
+    ax.set_ylabel(r'$\beta$')
+    if fig:
+        fig.tight_layout()
+
+    return fig, ax
+
+
+p0 = 0.4
+fig, ax = make_plot(p0)
+fig.tight_layout()
+```
+
+The Metropolis-Hastings algorithm maps an irreducible proposal chain $Q$ to $\mathcal R(p)$
+
+\begin{equation}\label{eq:Metropolis-map}
+M[Q](y, x) = \min\left\{Q(y, x), \frac{p(y)}{p(x)}\,Q(x, y) \right\}
+\end{equation}
+
+for $y\not= x$ (the diagonal entries are fixed by column stochasticity (Eq. \ref{eq:leftstochastic})). The function $M: \mathcal S(\mathcal X) \to \mathcal R(p)$ is called *Metropolis map*. For a two-state system, the map is simply
+
+$$
+\begin{pmatrix}
+\alpha \\ \beta 
+\end{pmatrix} \to
+\min\bigl\{\alpha\, p(x_1), \beta\, (1-p(x_2)) \bigr\}
+\begin{pmatrix}
+1 / p(x_1) \\ 1 / p(x_2)
+\end{pmatrix}
+$$
+
+Examples for the Metropolis map are shown in the following figure:
+
+```{python}
+def M(p0, alpha, beta):
+    alpha_new = min(alpha, (1-p0) * beta / p0) 
+    beta_new = min(beta, p0 * alpha / (1-p0))
+    return alpha_new, beta_new
+
+fig, ax = make_plot(p0)
+for Q in [(0.1, 0.8), (0.8, 0.2), (0.9, 0.5), (0.9, 0.9), (0.5, 0.5)]:
+    P = M(p0, *Q)
+    ax.plot([Q[0],P[0]],[Q[1],P[1]], ls='--', marker='o', markersize=10,
+            markeredgecolor='k')
+fig.tight_layout()
+```
+
+By construction, the off-diagonal entries in the Metropolis chain $M[Q]$ are *coordinate-wise decreasing*:
+
+\begin{equation}\label{eq:coordinatewise-decreasing}
+M[Q](y, x) \le Q(y, x)\,\,\,\text{for all}\,\, x, y \in \mathcal X \, .
+\end{equation}
+
+In the above figure, $Q$ is either shifted to the left along the $\alpha$ axis, i.e. towards smaller $P(x_2, x_1)$ values until $\mathcal{R}(p)$ is hit, or $Q$ is shifted downwards long the $\beta$ axis. 
+
+A suitable metric on $\mathcal S(\mathcal{X})$ is
+
+\begin{equation}\label{eq:metric}
+d(P, P') = \sum_{x\in\mathcal{X}} \sum_{y\not= x} p(x)\, \left|P(y, x) - P'(y, x)\right|
+\end{equation}
+
+which is only zero, if $P'=P$. The following figure shows "circles" around some $Q\in\mathcal S(\mathcal X)$ which are of course not actual circles because $d(P,P')$ is a weighted L1 norm, so $d$-circles are diamonds.  
+
+For the 2-state system, we have
+
+$$
+d(P, P') = p(x_1)\, |\alpha - \alpha'| + p(x_2)\, |\beta - \beta'|
+$$
+
+where $\alpha, \alpha'$ etc. are the off-diagonal entries of the transition matrices $P, P'$.  
+
+```{python}
+def distance(p, P, Q):
+    M = 1 - np.eye(len(p))
+    return np.sum(np.fabs(P-Q)*M*p)
+
+
+def circle(p0, Q, factor=0.95):
+
+    P = M(p0, *Q)
+    A = transition_matrix(*Q)
+    B = transition_matrix(*P)
+
+    p = np.array([p0, 1-p0])                          
+    d = distance(p, A, B) * factor
+
+    alpha = np.linspace(0., 1., 100)
+    beta = (d - np.fabs(alpha-Q[0]) * p0) / (1-p0)
+    mask = beta >= 0
+    alpha = alpha[mask]
+    beta = beta[mask]
+    
+    alpha = np.append(alpha, alpha[::-1])
+    beta = np.append(Q[1]-beta, Q[1]+beta[::-1])
+    
+    mask = np.logical_and(beta >= 0, beta <= 1)
+
+    return d, alpha[mask], beta[mask]
+    
+fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+ax = list(ax.flat)
+counter = 0
+for Q in [(0.1, 0.8), (0.8, 0.2), (0.9, 0.5), (0.5, 0.5)][:4]:
+    make_plot(p0, ax=ax[counter])
+    P = M(p0, *Q)
+    R = Q[1] * p0 / (1-p0) / Q[0]
+    ax[counter].set_title(r'$|\log R| = {0:.1f}$'.format(np.fabs(np.log(R))))
+    ax[counter].plot([Q[0],P[0]],[Q[1],P[1]], ls='--', marker='o', markersize=10,
+            markeredgecolor='k')
+    d, alpha, beta = circle(p0, Q, 0.97)
+    ax[counter].set_title(r'$d(Q,M[Q]) = {0:.2f}$'.format(d))
+    ax[counter].plot(alpha, beta, color='k', ls='--')
+    counter += 1
+fig.tight_layout()
+```
+
+Billera and Diaconis demonstrate that the Metropolis map minimizes the distance $d(Q,P)$ between the proposal chain $Q$ and all $P\in\mathcal{R}(p)$. Among all minimizers in the set of $p$-reversible chains, it picks the unique element that is coordinate-wise decreasing (Eq. \ref{eq:coordinatewise-decreasing}). It makes sense to demand that the mapping is coordinate-wise decreasing, because otherwise it will be more difficult to guarantee that the mapped chain is still in $\mathcal S(\mathcal X)$. 
+
+### Variations of Metropolis-Hastings
+
+Given a proposal chain $Q$, our goal is to change it to a chain with stationary distribution $p(x)$. The new chain should work as follows: 
+
+* Propose $y \sim Q(\cdot, x)$ 
+
+* Accept or reject $y$ as new $x$ with probability $A(y, x)\in[0,1]$ 
+
+The transition probabilities of the new chain will be
+
+$$
+Q(y, x)\, A(y, x)\,\,\,\text{for}\,\, y\not= x \, .
+$$
+
+Again, the diagonal entries a fixed by column stochasticity. To impose stationarity with regard to our target, we demand that the new chain is $p$-reversible:
+
+$$
+Q(y, x)\, A(y, x)\, p(x) = Q(x, y)\, A(x, y)\, p(y)
+$$
+
+which gives us
+
+$$
+A(y, x) = \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)}\, A(x, y) = R(y, x)\, A(x, y)\, .
+$$
+
+Since $A(y, x) \in [0, 1]$ is a probability, it follows that
+
+$$
+A(x, y) = \frac{1}{R(y, x)} \, A(y, x) \le 1 \,\,\,\Rightarrow\,\,\,
+A(y, x) \le R(y, x)
+$$
+
+Combined with $A(y, x)\le 1$, we have
+
+$$
+A(y, x) \le \min\left\{1, R(y, x)\right\}
+$$
+
+That is, the acceptance probability of any propose-accept scheme is smaller than or equal to the acceptance probability of the Metropolis-Hastings algorithm. The MH algorithm maximizes the chance of moving away from $x$. 
+
+Other choices for $A(y, x)$ have been proposed. These are typically of the form $A(y, x) = f(R(y, x))$ where
+
+$$
+0 \le f(r) \le \min\left\{1, r \right\},\,\,\, r\ge 0 
+$$
+
+For example, Barker's algorithm uses a sigmoidal function $f(r) = r / (1 + r)$ such that
+
+$$
+A(y, x) = \frac{R(y, x)}{1 + R(y, x)}
+$$
+
+An early investigation into different acceptance probabilities is: [Peskun, P. H. (1973). Optimum Monte Carlo sampling using Markov chains. Biometrika, 60:607–612.](https://academic.oup.com/biomet/article/60/3/607/217255)
+
+```{python}
+# Barker's acceptance probability
+
+R = np.linspace(0., 2., 100)
+acc_barker = R / (1 + R)
+acc_metropolis = np.clip(R, 0., 1.)
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(R, acc_barker, color='r', label='Barker', lw=3)
+ax.plot(R, acc_metropolis, color='b', label='Metropolis', lw=3)
+ax.set_xlabel(r'acceptance ratio $R(y, x)$')
+ax.set_ylabel(r'acceptance probability $A(y, x)$')
+ax.legend()
+fig.tight_layout()
+```
+
+### Metropolis-Hastings in continuous sample spaces
+
+The MH algorithm works also for continuous sample space where $p$ is a pdf and $Q(y, x)$ is a Markov kernel. The following example uses a uniform proposal kernel
+
+$$
+Q(y, x) = \mathcal U(x - \epsilon, x + \epsilon)
+$$
+
+with $\epsilon > 0$ being a step size. Since $Q(y, x) = Q(x, y)$, the acceptance ratio simplifies to $p(y)/p(x)$. Let us try to sample from the standard Gaussian distribution
+
+$$
+p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
+$$
+
+```{python}
+# sampling a standard Gaussian with a uniform proposal
+
+class MetropolisHastings:
+    
+    def __init__(self, x, p, Q, S=1e4):
+        """
+        Parameters
+        ----------
+        x : initial state
+        p : target distribution
+        Q : simulator of a symmetric proposal chain
+        S : number of samples
+        """
+        self.p = p
+        self.Q = Q
+        self.S = S
+        self._initial = x
+        
+    def _reset(self):
+        self._counter = 0
+        self.n_accepted = 0
+        self.x = self._initial
+        
+    @property
+    def acceptance_rate(self):
+        return self.n_accepted / self._counter
+        
+    def __next__(self):
+        
+        if self._counter >= self.S:
+            raise StopIteration
+            
+        y = self.Q(self.x)
+        u = np.random.uniform()
+        
+        if u <= self.p(y) / self.p(self.x):
+            self.x = y
+            self.n_accepted += 1
+        self._counter += 1
+        
+        return self.x
+    
+    def __iter__(self):
+        self._reset()
+        return self
+    
+# target
+p = lambda x: np.exp(-x**2/2)
+t = np.linspace(-1, 1., 1000) * 5
+target = t, p(t) / np.sqrt(2*np.pi)
+
+# proposal
+Q = lambda x, eps=0.1: np.random.uniform(x-eps, x+eps)
+
+S = 1e4
+x = 10.
+
+fig, ax = plt.subplots(3, 3, figsize=(12, 9), sharex='col')
+
+for i, eps in enumerate([1e-1, 1e0, 1e1]):
+
+    # run MH simulation
+    mh = MetropolisHastings(x, p, lambda x: Q(x, eps), S)
+    samples = np.array(list(mh))
+    
+    print('acceptance rate: {0:.1%} (stepsize = {1:.2e})'.format(
+        mh.acceptance_rate, eps))
+    
+    # plot results
+    ax[i,0].plot(samples, color='k', lw=2, alpha=0.7)
+    ax[i,1].hist(samples, bins=50, density=True, alpha=0.2, color='k')
+    ax[i,2].hist(samples[1000:], bins=50, density=True, alpha=0.2, color='k')
+    for a in ax[i,1:]:
+        a.plot(*target, color='r')
+        a.set_ylim(0., 0.45)
+fig.tight_layout()
+```

@@ -1,0 +1,8 @@
+project:
+  title: "lecture"
+  render: 
+    # if rendering the project, only consider main file
+    # because it includes all others:
+    - "lecture.qmd"
+
+toc: true

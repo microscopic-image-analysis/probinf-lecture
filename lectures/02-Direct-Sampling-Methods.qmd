@@ -1,0 +1,893 @@
+# Lecture 2: Direct Sampling Methods
+
+
+## Outline
+
+* Can we beat the curse of dimensionality?
+* Random number generation
+* Direct sampling by variable transformation methods
+
+### A warning
+
+Alan Sokal ([Monte Carlo methods in statistical mechanics](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.49.4444&rep=rep1&type=pdf)):
+
+> Monte Carlo is an extremely bad method; it should be used only when all alternative methods are worse.
+
+Why is this so? As we saw Monte Carlo methods have a statistical error that roughly scales with $1/\sqrt{\text{computational budget}}$. Typically, for low-dimensional problems other numerical methods scale much better. For example, even simple quadrature methods such as [Simpon's rule](https://en.wikipedia.org/wiki/Simpson%27s_rule) have an error that scales with $\mathcal O(S^{-4/D})$ rather than $\mathcal O(S^{-1/2})$ where $D$ is the dimension of the integrand. This means that for $D\le 8$, Simpson's rule will be more efficient than Monte Carlo. However, in higher dimensions this is often no longer the case, and we have to resort to Monte Carlo methods. 
+
+Our specific application of Monte Carlo (estimation of $\pi$) is a clear case where Sokal's warning applies. If we use numerical quadrature, we can achieve a high accuracy with much less effort: 
+
+```{python}
+import numpy as np
+import matplotlib.pylab as plt
+
+from scipy.integrate import quad
+
+val, err, info = quad(lambda x: (1-x**2)**(1/2), 0., 1., full_output=True)
+
+print(f'estimate: {4*val} based on {info["neval"]} points')
+print(f'accuracy: {abs(4*val-np.pi)}')
+```
+
+## Do we beat the curse of dimensionality?
+
+Although Monte Carlo doesn't depend explicitly on the dimension of the sample space, it does so in practice. If we go back to our expression for the Monte Carlo error (Eq. \ref{eq:MCerror})
+
+$$
+\sigma(\hat f_S) = \sigma(f) / \sqrt{S}
+$$
+
+for a generalized version of the $\pi$ estimation approach, then the dependence on the dimension of the sampling problem becomes apparent.
+
+In the generalized version, we estimate the volume of a [$D$-dimensional unit-ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) $V(D)$ by the following Monte Carlo procedure:
+
+* Pick a point from a unit hypercube (assuming that this can be done easily)
+* Check if point lies inside ball
+
+Written out in equations where $x$ is now a $D$-dimensional vector:
+
+$$
+V(D) = \int \mathbb 1(\|x\| \le 1) dx = \int p(x)\, f(x)\, dx
+$$
+with 
+$$
+f(x) = 2^D\, \mathbb 1(\|x\| \le 1)\,\,\, \text{and} \,\,\, p(x) = \frac{1}{2^D} \mathbb 1(x \in [-1, 1]^D)
+$$
+
+We can compute how the Monte Carlo error scales by evaluating the mean and variance of $f$:
+
+\begin{eqnarray*}
+\mathbb E[f] &=& V(D)\\
+\text{var}[f] &=& \mathbb E[f^2]  - V^2(D) = 2^D V(D) - V^2(D) = \bigl(2^D - V(D)\bigr)\, V(D) 
+\end{eqnarray*}
+
+Therefore, the error of the above Monte Carlo procedure scales with $D$ as follows:
+
+$$
+\sigma(\hat f) = \sqrt{\frac{\bigl(2^D - V(D)\bigr)\, V(D)}{S}} 
+$$
+
+
+We [have](https://en.wikipedia.org/wiki/Volume_of_an_n-ball): 
+
+$$
+V(D) = \frac{\pi^{D/2}}{\Gamma(D/2+1)} \approx \frac{1}{\sqrt{D\pi}} \left(\frac{2\pi e}{D}\right)^{D/2}
+$$
+
+Therefore, overall:
+
+$$
+\sigma(\hat f) \approx (8e\pi/D)^{D/4} \bigl/\bigr. (\pi D)^{1/4} \sqrt{S}
+$$
+
+```{python}
+from scipy.special import gammaln, lambertw
+
+
+def estimate_volume(D, S):
+    """
+    D : dimension of embedding space
+    S : number of sampling points
+    """
+    volcube = 2**D
+    points = np.random.uniform(-1., 1., size=(S, D))
+    distance = np.linalg.norm(points, axis=1)
+    return np.mean(distance <= 1.) * volcube
+
+
+def volball(D):
+    """
+    Volume of a unit ball in D dimensions
+    See: https://en.wikipedia.org/wiki/Volume_of_an_n-ball
+    """
+    logvol = 0.5 * D * np.log(np.pi) - gammaln(D/2 + 1)
+    return np.exp(logvol)
+```
+
+```{python}
+S = 10000
+n_trials = 1000
+
+dims = np.arange(1, 30)
+vols = np.array([[estimate_volume(D, S) for _ in range(n_trials)] for D in dims])
+```
+
+```{python}
+# show results
+dims = np.arange(len(vols))+1
+kw = dict(xlabel=r'dimension $D$')
+fig, ax = plt.subplots(1, 2, figsize=(8, 4), subplot_kw=kw)
+ax[0].fill_between(dims, vols.mean(1) + vols.std(1), 
+                   vols.mean(1) - vols.std(1), color='k', alpha=0.1)
+ax[0].plot(dims, vols.mean(1), lw=3, color='k', label='estimated volume')
+ax[0].plot(dims, volball(dims), lw=2, color='r', ls='--', label='true volume')
+ax[0].set_ylabel('volume of unit ball')
+ax[0].legend()
+ax[0].set_ylim(-1., 6.)
+
+# Monte Carlo error
+dims = np.arange(1, 100)
+err = np.sqrt((2.**dims - volball(dims)) * volball(dims))
+approx_err = (np.pi*dims)**(-1/4) * (8*np.pi*np.e/dims)**(dims/4)
+dim_crit = -1/lambertw(-1/(8*np.pi)).real
+ax[1].plot(dims, err, lw=3, color='k')
+ax[1].plot(dims, approx_err, lw=2, color='r', ls='--', label='approx. error')
+ax[1].axvline(dim_crit, lw=2, color='b', ls='--', label='largest MC error\n' + r'at $D=24$')
+ax[1].set_ylabel('MC error')
+ax[1].legend()
+fig.tight_layout()
+print(volball(np.arange(1, 10)))
+```
+
+The Monte Carlo error depends on the dimension in a non-trivial fashion. The dimension with the largest scaling factor $\sigma(f)$ is approximately
+
+$$
+D_{\text{max. error}} \approx -1 / W(-1/(8\pi)) \approx 24
+$$
+
+where $W$ is the [Lambert W function](https://en.wikipedia.org/wiki/Lambert_W_function). Another problem is that the chance of hitting a point in the unit ball by sampling from the hypercube $[-1, 1]^D$ dwindles dramatically as $D$ decreases, since
+
+$$
+\text{acceptance rate} = \frac{\text{ volume ball}}{\text{ volume cube}} = \frac{V(D)}{2^D} \to 0
+$$
+
+That is, although the Monte Carlo error decays beyond $D > 24$, the generation of a point inside the ball becomes extremely rare. 
+
+## Pros and Cons of  Monte Carlo 
+
+__Pros__ of the Monte Carlo method:
+
+* Monte Carlo methods are widely applicable. For instance, $f$ and $p$ need not be continuous, differentiable etc.
+
+* Monte Carlo is often easy to implement.
+
+* Monte Carlo *can* work well in multiple dimensions, where grid-based methods can be inefficient/inapplicable. This is supported by the "$\mathcal O(1/\sqrt{S})$ rate of convergence" which is independent of the dimension.
+
+__Cons__:
+
+* Even though the Monte Carlo rate is usually $\mathcal O(1/\sqrt{S})$, the constants involved may grow exponentially in dimension. 
+
+* Deterministic methods may have better rate of convergence than the Monte Carlo rate $1/\sqrt{S}$ (but may also deteriorate faster when dimension increases).
+
+* Monte Carlo estimate is always random, so we never have guaranteed tolerance, but only statistical evidence (consistent confidence intervals at best).
+
+## Pseudo-random Number Generators
+
+Monte Carlo Estimation depends on the availability of uniform random numbers (we needed these in order to generate points in the hypercube). One possibility to generate random numbers is to do random experiments such as rolling a die. Swiss Astronomer [Rudolf Wolf](https://en.wikipedia.org/wiki/Rudolf_Wolf) rolled a pair of dice 20000 times (see e.g. [Wolf dice data](https://www.lesswrong.com/posts/zd89utY4afA59p58k/wolf-s-dice)). He also performed [Buffon's needle](https://en.wikipedia.org/wiki/Buffon%27s_needle_problem) experiment to verify the value of $\pi$. Francis Galton designed a device, the quincunx or [Galton board](https://en.wikipedia.org/wiki/Bean_machine), for generating randomly distributed balls or beans that follow a Gaussian distribution (in fact Binomial distribution). Here is a nice [animation](https://twitter.com/CentrlPotential/status/1332124614391173123) and an interactive [online tool](https://www.mathsisfun.com/data/quincunx.html). The RAND cooperation used an electrical roulette wheel to generate 1 million random numbers that were published as a [book](https://en.wikipedia.org/wiki/A_Million_Random_Digits_with_100,000_Normal_Deviates). More hardware implementations for generating random numbers have been developed (see [wikipedia](https://en.wikipedia.org/wiki/Hardware_random_number_generator) for more information). For example, [RDRAND](https://en.wikipedia.org/wiki/RDRAND) extracts random numbers from an Intel on-chip hardware random number generator. 
+
+```{python}
+# simulation of Galton board
+
+class GaltonBoard:
+    
+    # directions into which ball can jump
+    left, right = -0.5, +0.5    
+    
+    def __init__(self, n_beans=1e4, n_pegs=20):
+        """
+        n_beans : int or float
+          number of beans that will run through board
+        n_pegs : int > 0
+          number of pegs from top to bottom
+        """
+        self.n_beans = int(n_beans)
+        self.n_pegs = int(n_pegs)
+
+        
+    def simulate_jumps(self):
+        """Simulate all jumps as a random walk. """
+        return np.random.choice([GaltonBoard.left, GaltonBoard.right], 
+                                size=(self.n_beans, self.n_pegs))
+    
+    def sample_positions(self):
+        """Simulate jumps and return final position of beans by adding up
+        all steps for left/right. 
+        """
+        return self.simulate_jumps().sum(1)
+
+    
+board = GaltonBoard(n_beans=1e3, n_pegs=99)
+
+# accumulate
+x, counts = np.unique(board.sample_positions(), return_counts=True)
+
+# convert counts to probability
+p = counts.astype('d') / counts.sum()
+
+# fit Gaussian
+mu = np.dot(p, x)
+sigma = np.dot(p, (x-mu)**2)**(1/2)
+t = np.linspace(-1., 1., 1000) * 5 * sigma + mu
+g = np.exp(-0.5 * (t-mu)**2/sigma**2 - 0.5 * np.log(2*np.pi*sigma**2))
+g *= np.diff(x).min()
+
+# compare results graphically
+fig, ax = plt.subplots(1, 1)
+ax.bar(x, p, color='k', alpha=0.2)
+ax.plot(t, g, lw=3, color='k')
+fig.tight_layout()
+```
+
+### Linear congruential generator
+
+[Pseudo random number generators (PRNGs)](https://en.wikipedia.org/wiki/Pseudorandom_number_generator) are typically used to produce uniformly distributed pseudo random numbers. One of the standard PRGNs is the [__linear congruential generator__ (LCG)](https://en.wikipedia.org/wiki/Linear_congruential_generator) introduced by [D. H. Lehmer](https://en.wikipedia.org/wiki/D._H._Lehmer). LCG uses a recurrence relation to generate a new random number $x^{(s+1)}$ from a current one $x^{(s)}$:
+
+$$
+x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m 
+$$
+
+with  
+
+* __modulus__ $m > 0$
+
+* __multiplier__ $a$ where $0 < a < m$
+
+* __increment__ $c$ where $0 \le c < m$
+
+* __seed__ $x^{(0)}$ where $0 \le x^{(0)} < m$
+
+This is an iterative linear mapping combined with the modulo operation resulting in a discontinuity as soon as the next number escapes from the interval $[0,m-1]$. The initial value $x^{(0)}$ is called the __random seed__ or just __seed__. LCGs produce *periodic* random numbers: as soon as a number is visited twice it will produce the exact same sequence of random numbers. This will happen after at most $m$ iterations. Therefore, the period of the sequence is $m$ or smaller, and we have to choose large $m$ in order to not exhaust our random numbers too quickly. Moreover, we should also choose the increment $c$ and multiplier $a$ such that they are smaller than $m$. By construction, $x^{(s)}\in[m]$ and $u^{(s)} = x^{(s)}/m$ are uniformly distributed random numbers in $[0,1)$. Among the most widely used PRNGs is the [Mersenne Twister](https://en.wikipedia.org/wiki/Mersenne_Twister). 
+
+```{python}
+"""
+Pseudo random number generator
+"""
+class PRNG:
+    """PRNG
+
+    Pseudo-random number generator implemented as iterator. Using a linear 
+    congruential generator (LCG) to generate random numbers. Default settings
+    for modulus, multiplier and period are taken from Numerical Recipes. 
+    
+    Example
+    -------
+    >>> prng = PRNG(maximum=1e4)
+    x = list(prng)
+    >>> len(x)
+    10000
+
+    Details:
+    * https://en.wikipedia.org/wiki/Linear_congruential_generator
+    """
+    def __init__(self, m=2**32, a=1664525, c=1013904223, seed=10, maximum=1e6):
+        """
+        Parameters
+        ----------
+        m : int > 0
+            modulus or period
+
+        a : int > 0
+            multiplier (should be smaller than modulus)
+
+        c : int >= 0
+            increment (should be smaller than modulus)
+
+        seed : int >= 0
+            initial state (should be smaller than modulus)
+
+        maximum : float or int
+            maximum number of random numbers to be generated by PRNG
+        """
+        def check_int(i, lower=0, upper=None):
+            valid = type(i) is int and i >= lower
+            if upper is not None:
+                valid &= i < upper
+            return valid
+        
+        msg = '"{0}" must be int >= {1}'
+        assert check_int(m, 1), msg.format('m', 1)
+        assert check_int(a, 1, m), msg.format('a', 1)
+        assert check_int(c, 0, m), msg.format('c', 0)
+        assert check_int(seed, 0, m), msg.format('seed', 0)
+        
+        self.a, self.c, self.m, self.seed = a, c, m, seed
+        self._max = int(maximum)
+        
+        self._reset()
+        
+    def _reset(self):        
+        self.x = self.seed
+        self._counter = 0
+        
+    def __next__(self):
+        """
+        Using recurrence relation 
+
+            X_{n+1} = (a X_n + c) mod m
+
+        to generate new random number
+        """
+        if self._counter >= self._max:
+            raise StopIteration
+        
+        self.x = (self.a * self.x + self.c) % self.m
+        self._counter += 1
+
+        return self.x
+        
+    def __iter__(self):
+        self._reset()
+        return self
+
+
+class Uniform(PRNG):
+    """Pseudo-random numbers between 0 and 1. """
+    def __next__(self):
+        return super().__next__() / float(self.m)
+```
+
+The quality of a LCG depends on the choice of the four "magic numbers" $a, c, m$ and $x^{(0)}$. Let us look at what happens for small periods $m$ (you can also do this with a nice [online app](https://demonstrations.wolfram.com/LinearCongruentialGenerators/) and another [app](https://demonstrations.wolfram.com/LinearCongruentialSequences/)). Let's do it with our Python code:
+
+```{python}
+prng = PRNG(m=181, a=40, c=0, seed=1, maximum=1000)
+x = np.array(list(prng))
+X = np.fft.fft(x)
+
+kw = dict(s=40, color='k', alpha=0.7)
+fig, ax = plt.subplots(1, 3, figsize=(12, 3))
+
+ax[0].scatter(np.arange(100), x[:100], **kw)
+ax[0].plot(x[:100], color='k', lw=2, alpha=0.5)
+ax[0].set_xlabel(r'iteration $s$')
+ax[0].set_ylabel(r'pseudo random number $x^{(s)}$')
+
+ax[1].scatter(x[:100], x[1:101], **kw)
+ax[1].set_xlabel(r'$x^{(s)}$')
+ax[1].set_ylabel(r'$x^{(s+1)}$')
+
+ax[2].plot(np.abs(np.fft.fftshift(X))[1:len(x)//2], 
+                  lw=3, color='k', alpha=0.7)
+ax[2].set_xlabel('spatial frequency')
+ax[2].set_ylabel(r'spectrum $|FT|$')
+
+fig.tight_layout()
+```
+
+As shown in this simple example, LCGs can suffer from serious deficits and biases. A famous example is IBM's [RANDU](https://en.wikipedia.org/wiki/RANDU) algorithm, according to Donald Knuth a "truly horrible" algorithm. A whole array of [*randomness tests*]( https://en.wikipedia.org/wiki/Randomness_tests) has been developed ever since. For example, in the [spectral test](https://en.wikipedia.org/wiki/Spectral_test) successive random numbers are plotted against each other, thereby revealing nonrandom structures in the pseudo random number sequence. 
+
+```{python}
+# LCG from Numerical Recipes
+n_samples = 1e5
+prng = PRNG(maximum=n_samples)
+x = np.array(list(prng))   
+u = x / float(prng.m)
+
+kw = dict(s=5, color='k', alpha=0.2)
+fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+ax[0].hist(u, bins=100, density=True, color='k', alpha=0.2)
+ax[1].scatter(x[:5000], x[1:5001], **kw)
+ax[1].set_xlabel(r'$x^{(s)}$')
+ax[1].set_ylabel(r'$x^{(s+1)}$')
+fig.tight_layout()    
+```
+
+## Sampling a discrete model
+
+Assuming that we have a good source for pseudo random numbers, let us first look at how to use these for sampling a *discrete model*. The sample space is finite or countably infinite: $\mathcal X = \{x_1, \ldots, x_N\}$, where $N=\infty$ is also possible. Without loss of generality we assume $p_i>0$ (zero-probability states are excluded from the sample space). 
+
+How can we use uniform random numbers from $[0, 1]$ to generate samples from $p$? For given $u\sim \mathcal U(0,1)$ pick state $i\in[N]$ such that
+
+\begin{equation}\label{eq:discrete_sampling}
+    i = \min\bigl\{j \in\mathbb N\, :\, \sum_{k=1}^j p_k \ge u  \bigr\}
+\end{equation}
+
+Here and in the following $\mathcal U(0,1)$ denotes the uniform distribution over the unit interval, i.e. $x\sim U(0,1)$ has density $p(x) = \mathbb 1(0 < x < 1)$.  
+
+Why is this procedure correct? Let us call $c_i = \sum_{k=1}^i p_k$, then $c_1 = p_1 > 0$ and $c_N = 1$. Moreover, define $c_0:= 0$. All $c_i\in(0,1]$ (except $c_0$) and sorted $c_{i-1} < c_i$ (since all $p_i>0$). So the intervals $I_i=[c_{i-1}, c_i)$ form a partition of $[0,1)$ and the uniform distribution $\mathbb 1\bigl(x\in[0,1)\bigr)$ can be written as a mixture of uniform distributions: 
+
+$$
+\mathbb 1\bigl(x\in[0,1)\bigr) = \sum_{i=1}^{N} \mathbb 1\bigl(x\in[c_{i-1}, c_{i})\bigr)
+$$
+
+
+Criterion (Eq. \ref{eq:discrete_sampling}) picks the interval with $u\in[c_{i-1}, c_{i})=:I_i$. The length of each interval $I_i$ is $c_i - c_{i-1} = p_i$, and equal to the chance of landing in $I_i$. Therefor the generated $x_i$ will follow $p$.   
+
+```{python}
+# illustration discrete sampling
+
+N = 10
+p = np.random.random(N)
+p /= p.sum()
+i = np.arange(N+1)
+
+c = np.append(0., np.add.accumulate(p))
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.barh(i, c, color='k', alpha=0.5)
+ax.set_ylabel(r'$i$', fontsize=16)
+ax.set_xticks(c)
+ax.set_xticklabels([r'$c_{{{}}}$'.format(ii) for ii in i])
+for cc in c:
+    ax.axvline(cc, ls='--', color='r', lw=2, alpha=0.3)
+fig.tight_layout()
+```
+
+### Sampling from the Poisson distribution
+
+The Poisson distribution is a pmf over the sample space $\mathbb N$, i.e. $x=0, 1, 2, \ldots$ and defined as
+
+\begin{equation}\label{eq:poisson}
+p(x) = \frac{\lambda^x}{x!} e^{-\lambda}, \,\,\, \lambda > 0
+\end{equation}
+
+the parameter $\lambda$ is called *rate*. The mean and variance of $x$ are
+
+$$
+\mathbb E[x] = \lambda, \,\,\, \text{var}[x] = \lambda\,. 
+$$
+
+```{python}
+# Sampling from the Poisson distribution
+# - this is how it's *not* done in practice -
+
+from scipy.special import gammaln
+
+
+def sample_poisson(S, rate=1., return_cdf=True):
+    """
+    S : number of samples
+    rate : rate of Poisson distribution
+    """
+    # uniform random numbers
+    u = np.random.random(int(S))
+    i = np.argsort(u)
+    
+    # array storing samples
+    x = -np.ones(u.shape, dtype='i')
+    
+    # building up cdf
+    cdf = [0.]
+    
+    # stepping through sorted list of uniform random numbers
+    k = 0
+    for v, j in zip(u[i], i):
+        while v > cdf[k]:
+            k += 1
+            pmf = np.exp(k * np.log(rate) - rate - gammaln(k+1))
+            cdf.append(cdf[-1] + pmf)
+        x[j] = k
+        
+    if return_cdf:
+        return x, np.array(cdf)
+    return x
+
+rate = 10.
+limits = 0., 10 * rate**0.5
+x, cdf = sample_poisson(1e3, rate)
+k = np.arange(len(cdf))
+pmf = np.exp(k * np.log(rate) - rate - gammaln(k+1))
+
+bins, hist = np.unique(x, return_counts=True)
+hist = hist.astype('d') / hist.sum()
+
+settings = dict(xlim=limits, xlabel=r'bin $i$')
+fig, ax = plt.subplots(1, 2, figsize=(8, 4), subplot_kw=settings)
+ax[0].plot(k, pmf, color='r', lw=2)
+ax[0].bar(k, cdf, color='lightgrey')
+ax[0].set_ylabel(r'cdf $\sum_{k=1}^i\, p_k$')
+ax[1].bar(bins, hist, color='k', alpha=0.2)
+ax[1].plot(k, pmf, color='r')
+fig.tight_layout()
+```
+
+## Variable transformation methods
+
+We will now move on to continuous sample spaces. Assuming that we can generate uniform random samples from $\mathcal U(0, 1)$, how can we use these samples to generate samples from a non-uniform distribution $p(x)$? In the last section we saw how to do this for pmfs (although it might not be practical for large finite models such as Ising models). 
+
+Let's first look at the simplest version of sampling from a pdf where the sample space is one-dimensional. So we are looking for ways of how to transform a single uniformly distributed variable $u \sim \mathcal U(0, 1)$ to $x \sim p(x)$. To design such as method, we first need to understand how probability distributions transform under parameter transformations. 
+
+### Transformation of probability distributions
+
+Let $h$ be a *one-to-one mapping* between two one-dimensional sample spaces $h: \mathcal X \to \mathcal Y$, and $h^{-1}$ is the inverse function. If $x\sim p_x(x)$, what is the distribution $p_y(y)$ of $y=h(x)$? To answer this question let us compute the distribution $p_y$:
+
+\begin{equation}\label{eq:transform1d}
+p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{h'(h^{-1}(y))}
+\end{equation}
+
+where we used the transformation property of the [delta distribution](https://en.wikipedia.org/wiki/Dirac_delta_function). The transformation rule guarantees that normalized pdfs transform into normalized pdfs. 
+
+This result can be generalized to multiple dimensions. Let $h$ be an invertible one-to-one mapping between two $D$ dimensional sample spaces. Assume further that $h$ is continuously differentiable such that the Jacobian
+
+$$
+\nabla h(x) = \left(\frac{\partial h_i(x)}{\partial x_j} \right)_{i,j}
+$$
+
+is everywhere invertible in $\mathcal X$, i.e. $\text{det}(\nabla h(x)) \not= 0$ for all $x\in \mathcal X$. Then $y=h(x)$ has density
+
+$$
+p_y(y) = \left\{ \begin{array}{c c}
+p_x(h^{-1}(y)) \, |\text{det}(\nabla h^{-1})(y)|, & y \in h(\mathcal X) \\
+0, & y \notin h(\mathcal X)
+\end{array}\right.
+$$
+
+### Inversion method
+
+The [*inversion method*](https://en.wikipedia.org/wiki/Inverse_transform_sampling) is a simple variable transformation method. Let $p(x)$ be a pdf over a sample space $\mathcal X \subset \mathbb R$, then the [*cumulative distribution function* (cdf)](https://en.wikipedia.org/wiki/Cumulative_distribution_function) is:
+
+\begin{equation}\label{eq:cdf}
+P(y) = \Pr(x \le y) = \mathbb E_p[x \le y] = \int^y_{-\infty} p(x)\, dx
+\end{equation}
+
+this is the continuous analog of $c_i$ defined above in the section on sampling discrete models. By construction, $P(x) \in [0, 1]$ for $x \in\mathcal X$. $P(x)$ is continuous and strictly increasing and therefore invertible. Inverse transform sampling uses the following mathematical fact:
+
+\begin{equation}\label{eq:inversion_method}
+x = P^{-1}(u) \sim p(x)\,\,\,\text{for}\,\,\, u\sim\mathcal U(0,1) 
+\end{equation}
+
+That is, we can generate random samples from $p(x)$ by generating uniformly distributed random numbers in $[0, 1]$ and map them to $\mathcal X$ with the inverse of the cdf $P^{-1}$. To see that this is a valid sampling procedure, let us compute the distribution of $x=P^{-1}(u)$ using the transformation rule (Eq. \ref{eq:transform1d}): We have
+
+$$
+\frac{d\, P^{-1}(u)}{d\, u} = \frac{1}{P'(P^{-1}(u))} = \frac{1}{p(P^{-1}(u))}
+$$
+
+Plugging this expression into (Eq. \ref{eq:transform1d}) yields
+
+$$
+p_x(x) = \frac{p_u(P(x))}{(P^{-1})'(P(x))} = \frac{1}{1 / p(x)} = p(x)
+$$
+
+*Example*: Let us apply inverse transformation sampling to the exponential distribution
+
+$$
+p(x) = \lambda \, \exp\{-\lambda x\}, \,\,\, \lambda > 0, \, \mathcal X = \mathbb R_+
+$$
+
+The cumulative distribution function is
+
+$$
+\text{cdf}(x) = \int^x_0 \lambda e^{-\lambda t} \, dt = 1 - e^{-\lambda x} 
+$$
+
+and its inverse: 
+
+$$
+\text{cdf}^{-1}(u) = - \frac{1}{\lambda} \log(1-u) 
+$$
+
+Since $1-u \sim \mathcal U(0,1)$ if $u \sim \mathcal U(0,1)$, we can generate exponentially distributed random variables as follows:
+
+$$
+x^{(s)} = - \frac{\log u^{(s)}}{\lambda}, \,\,\, u^{(s)} \sim \mathcal U(0,1)
+$$
+
+Some more examples:
+
+|name        |pdf              $p(x)$  |cdf            $P(x)$  |inversion           |
+|------------|-------------------------|----------------------|--------------------|
+|[Exponential](https://en.wikipedia.org/wiki/Exponential_distribution) | $\lambda e^{-\lambda x}$ | $1 - e^{-\lambda x}$ | $-\log(u)/\lambda$ | 
+|[Cauchy](https://en.wikipedia.org/wiki/Cauchy_distribution)      |$\frac{\sigma}{\pi(x^2 + \sigma^2)}$ | $\frac{1}{2} + \frac{1}{\pi} \arctan(x/\sigma)$ | $-\sigma\tan(\pi(u-0.5))$ | 
+|[Rayleigh](https://en.wikipedia.org/wiki/Rayleigh_distribution)  | $\frac{x}{\sigma^2} e^{-x^2/2\sigma^2}$ | $1- e^{-x^2/2\sigma^2}$ | $\sigma\,\sqrt{-2\log u}$ |
+|Triangular | $2 (1 - x/a)/a, \, x\in[0,a]$ | $2 (x - x^2/2a)$ | $a(1-\sqrt{u})$ | 
+|[Pareto](https://en.wikipedia.org/wiki/Pareto_distribution)| $a\,b^a / x^{a+1}, \, x\ge b$ | $1-(b/x)^a$ | $b\, u^{-1/a}$ | 
+
+```{python}
+# some examples
+
+class PDF:
+
+    def __init__(self, **params):
+        for name, value in params.items():
+            setattr(self, name, float(value))
+    
+    def sample(self, n=None):
+        u = np.random.random(int(n))
+        return self._invert(u)
+    
+    def __call__(self):
+        pass
+
+    def _invert(self, u):
+        pass
+
+    
+class Exponential(PDF):
+    
+    def __init__(self, _lambda=1.):
+        super().__init__(_lambda=_lambda)
+        
+    def __call__(self, x):
+        return self._lambda * np.exp(-self._lambda*x)
+    
+    def _invert(self, u):
+        return -np.log(u)/self._lambda
+    
+    @property
+    def support(self):
+        return 0., 5 / self._lambda
+
+    
+class Cauchy(PDF):
+    
+    def __init__(self, sigma=1.):
+        super().__init__(sigma=sigma)
+        
+    def __call__(self, x):
+        return self.sigma / np.pi / (x**2 + self.sigma**2)
+    
+    def _invert(self, u):
+        return self.sigma * np.tan(np.pi*(u-0.5))
+    
+    @property
+    def support(self):
+        return -10., +10.
+
+    
+class Rayleigh(PDF):
+
+    def __init__(self, sigma=1.):
+        super().__init__(sigma=sigma)
+
+    def __call__(self, x):
+        t = (x/self.sigma)
+        return t * np.exp(-0.5*t**2) / self.sigma
+
+    def _invert(self, u):
+        return self.sigma * np.sqrt(-2*np.log(u))
+
+    @property
+    def support(self):
+        return 0., 5 * self.sigma
+
+
+class Triangular(PDF):
+
+    def __init__(self, a=1.):
+        super().__init__(a=a)
+
+    def __call__(self, x):
+        return 2 * (1 - x/self.a) / self.a
+
+    def _invert(self, u):
+        return self.a * (1-np.sqrt(u))
+
+    @property
+    def support(self):
+        return 0., self.a
+
+
+class Pareto(PDF):
+
+    def __init__(self, a=1., b=1.):
+        super().__init__(a=a, b=b)
+
+    def __call__(self, x):
+        return self.a * self.b**self.a / (x**(self.a+1) + 1e-100) * (x>=self.b)
+
+    def _invert(self, u):
+        return self.b / u**(1/self.a)
+
+    @property
+    def support(self):
+        return 0., 10 * self.b
+        return self.b, 10 * self.b
+    
+    
+pdfs = [Exponential(_lambda=0.5), Cauchy(), Rayleigh(sigma=2.),
+        Triangular(a=2.), Pareto()]
+
+S = int(1e4)
+
+kw = dict(bins=20, color='k', alpha=0.1, density=True)
+fig, ax = plt.subplots(1, len(pdfs), figsize=(12, 3))
+
+for a, pdf in zip(ax, pdfs):
+
+    x = np.linspace(*(pdf.support + (1000,)))
+    y = pdf.sample(S)
+    y = y[(y > x.min()) & (y < x.max())]
+
+    a.set_title(pdf.__class__.__name__)
+    a.plot(x, pdf(x), lw=2, color='k')
+    a.hist(y, **kw)
+    a.set_xlim(*pdf.support)
+    
+fig.tight_layout()
+    
+```
+
+In principle, the inverse transformation approach (Eq. \ref{eq:inversion_method}) generalizes to multiple dimensions (see, for example, Murray Rosenblatt: [Remarks on a Multivariate Transformation](https://www.jstor.org/stable/2236692?seq=1#metadata_info_tab_contents)):
+
+\begin{eqnarray*}\label{eq:multivariate_transform}
+%
+P_1(x_1') &=& \Pr(x_1 < x_1') = \int \mathbb 1(x_1 \le x_1')\, p(x_1, \ldots, x_D)\, dx_1 \cdots dx_D \\
+%
+P_2(x_2'\mid{}x_1) &=& \Pr(x_2 < x_2' \mid{}x_1) = \int \mathbb 1(x_2 \le x_2')\, p(x_2, \ldots, x_D\mid{}x_1)\, dx_2 \cdots dx_D \\
+ &\vdots&  \\
+P_D(x_D'\mid{}x_{D-1}, \ldots, x_{1}) &=& \Pr(x_D < x_D'\mid{}x_{D-1}, \ldots, x_{1}) = \int \mathbb 1(x_D \le x_D')\, p(x_D\mid{}x_{D-1}, \ldots, x_{1})\, dx_D \\
+\end{eqnarray*}
+
+However, only in very rare cases is it possible to compute the multivariate cumulative distribution function in higher dimensional spaces, let alone invert it in closed form. 
+
+So this expression is mostly of theoretical interest to us. Nevertheless, it is curious to see that multivariate pdfs can in principle be mapped to a uniform distributions over the hypercube: 
+
+$$
+u_i = P_i(x_i\mid{}x_{i-1}, \ldots x_{1}), \,\,\, i=1, \ldots, D
+$$
+
+By construction $u=(u_1, \ldots, u_D) \in [0, 1]^D$, and the pdf of $u$ is
+
+$$
+p_u(u) = p_x(x(u)) \prod_i \biggl|\frac{d u_i}{d x_i}\biggr|^{-1} = 1
+$$
+
+since the Jacobian matrix is triagonal (so its determinant is just a product over the diagonal elements) and 
+
+$$
+p(x_1, \ldots, x_D) = p(x_D \mid{} x_{D-1}, \ldots, x_{1}) \cdots p(x_2\mid{}x_1) \, p(x_1)
+$$
+
+### Variable transformation method
+
+Sometimes one can find a transformation of the sample space such that the new distribution is easier to sample. A specific example is the [Box-Muller method]( https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform) for generating samples from a standard Gaussian distribution:
+
+$$
+p(x) = \frac{1}{\sqrt{2\pi}} \exp\bigl\{-x^2/2\bigr\}
+$$
+
+where $x \in \mathbb R$. The first trick is to make the problem seemingly more complicated by transforming it to a two-dimensional distribution by introducing $y$ which also follows a standard Gaussian distribution. That is, 
+
+$$
+p(x,y) = \frac{1}{2\pi} \exp\bigl\{-(x^2+y^2)/2 \bigr\}\, .
+$$
+
+Because $p(x, y)$ depends on $x$ and $y$ only through their distance from the origin $r = \sqrt{x^2 + y^2}$, it makes sense to transform $(x, y)$ to polar coordinates:
+
+$$
+\begin{pmatrix} x \\ y \end{pmatrix} = 
+\begin{pmatrix} r\cos\varphi \\ r\sin\varphi \end{pmatrix}
+$$
+
+with the new sample space $[0, \infty) \times [0, 2\pi]$. The Jacobian of the parameter transformation is
+
+$$
+\frac{\partial (x, y)}{\partial (r, \varphi)} = 
+\begin{pmatrix}
+    \cos\varphi & -r\sin\varphi \\
+    \sin\varphi & r\cos\varphi \\
+\end{pmatrix}
+$$
+
+with determinant
+$$
+\left|\frac{\partial (x, y)}{\partial (r, \varphi)}\right| = r
+$$
+
+Therefore,
+
+$$
+p(r, \varphi) = \frac{r}{2\pi} e^{-r^2/2} = p(r)\, p(\varphi)
+$$
+
+with $p(\varphi) = \frac{1}{2\pi} \mathbb 1\bigl(\varphi\in[0, 2\pi]\bigr)$. 
+
+The cdf of $p(r)$ is
+$$
+\int_0^r t e^{-t^2/2}\, dt = e^{-t^2/2} \biggl|_r^0 \biggr. = 1 - e^{-r^2/2}
+$$
+
+We can obtain a random sample from $p(x, y)$ by first generating two uniform random numbers $u, v \in \mathcal U(0,1)$ and then letting $r = \sqrt{-2\log(1 - u)}$ and $\varphi=2\pi v$ from which we obtain:
+
+$$
+x = \sqrt{-2\log(u)}\cos(2\pi v),\,\,\, 
+y = \sqrt{-2\log(u)}\sin(2\pi v)
+$$
+
+where we used the fact that $1-u \in\mathcal U(0,1)$ if $u\in \mathcal U(0,1)$. 
+
+```{python}
+# Box Muller method
+
+def sample_gaussian(S):
+    """
+    Sample standard Gaussian distribution using Box-Muller 
+    """
+    u, v = np.random.random(size=(2, int(S)))
+    r = np.sqrt(-2*np.log(u))
+    phi = 2 * np.pi * v
+    
+    return r * np.cos(phi), r * np.sin(phi)
+
+
+S = 1e4
+x, y = sample_gaussian(S)
+t = np.linspace(-1., 1., 1000) * 5
+p = np.exp(-0.5*t**2) / np.sqrt(2*np.pi)
+
+kw = dict(bins=100, color='k', alpha=0.2, density=True)
+fig, ax = plt.subplots(1, 2, figsize=(8, 4), 
+                       subplot_kw=dict(yticks=[0., 0.1, 0.2, 0.3, 0.4]))
+ax[0].hist(x, **kw)
+ax[0].set_xlabel(r'$x$')
+ax[1].hist(y, **kw)
+ax[1].set_xlabel(r'$y$')
+for a in ax:
+    a.plot(t, p, lw=3, alpha=0.5, color='r')
+fig.tight_layout()
+```
+
+### Multivariate Gaussians
+
+By using a variable transformation, we can use samples from univariate standard Gaussians to generate samples from general multivariate Gaussians: 
+
+$$
+x \sim \mathcal N(\mu, \Sigma) = \frac{1}{|2\pi\Sigma|^{1/2}} \exp\left\{-\frac{1}{2} (x-\mu)^T\Sigma^{-1} (x-\mu) \right\}
+$$
+
+where the covariance matrix $\Sigma$ is positive definite and therefore has a Cholesky decomposition $\Sigma=LL^T$ with a lower triangular matrix $L$.  
+
+Now consider $y\sim \mathcal N(0, I)$ (these can be generated with the Box-Muller method) and the linear transformation
+
+$$
+x = \mu + L y\,\,\, \Rightarrow \,\,\, y = L^{-1} (x-\mu).
+$$
+
+The Jacobian of this transform is $L$ with determinant $|L| = \sqrt{|\Sigma|}$. Thus the distribution of $x$ is
+
+$$
+p_x(x) = (2\pi)^{-D/2} \exp\left\{-\frac{1}{2} (x-\mu)^T (L^{-1})^T L^{-1} (x-\mu) \right\} / \sqrt{|\Sigma|} = \mathcal N(\mu, \Sigma)
+$$
+
+since $(L^{-1})^T L^{-1} = (L^T)^{-1} L^{-1} = (LL^T)^{-1} = \Sigma^{-1}$. 
+
+```{python}
+# 2d example
+
+# parameters of a 2d Gaussian
+sigma1, sigma2, rho = 1., 3., 0.7
+Sigma = np.array([[sigma1**2, rho*sigma1*sigma2],
+                [rho*sigma1*sigma2, sigma2**2]])
+L = np.linalg.cholesky(Sigma)
+mu = np.array([1., -1.])
+
+# transformation of the grid
+grid1 = np.reshape(np.mgrid[-1.:1.:10j,-1:+1.:10j], (2, -1)).T
+limits = (-5., 5.)
+c = plt.cm.viridis(np.linspace(0., 1., len(grid1)))
+
+# sampling using a linear transformation
+S = int(1e3)
+x = np.random.standard_normal((S, 2))
+y = x.dot(L.T) + mu
+
+# evaluate 2d Gaussian on a grid
+axes = [np.linspace(yy.min(), yy.max(), 100) for yy in y.T]
+grid = np.reshape(np.meshgrid(*axes), (2, -1)).T
+prob = np.exp(-0.5 * np.sum(np.square((grid-mu).dot(np.linalg.inv(L).T)), 1))
+prob = prob.reshape(len(axes[0]), len(axes[1]))
+
+# show initial distributions and its transformed version
+kw = dict(s=20, color='k', alpha=0.2)
+fig, ax = plt.subplots(2, 2, figsize=(8, 8), sharex='all', sharey='all')
+ax[0, 0].scatter(*grid1.T, c=c)
+ax[0, 1].scatter(*(grid1.dot(L.T) + mu).T, c=c)
+ax[1, 0].scatter(*x.T, **kw)
+ax[1, 1].scatter(*y.T, **kw)
+ax[1, 1].scatter(*mu, s=100, color='r')
+ax[1, 1].contour(axes[0], axes[1], prob)
+xmax = 7
+for a in ax.flat:
+    a.set_xlim(-xmax, xmax)
+    a.set_ylim(-xmax, xmax)
+fig.tight_layout()
+```

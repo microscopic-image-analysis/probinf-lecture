@@ -1,0 +1,849 @@
+# Lecture 3: Rejection and Importance Sampling
+
+## Outline
+
+* More direct sampling methods
+* Rejection sampling
+* Importance sampling
+
+### Recap
+
+* Our goal is to compute $\mathbb E_p[f]$ for some probabilistic model $p$. Most inference tasks can be reduced to such sums or integrals
+
+* Monte Carlo approximation: $\mathbb E_p[f] \approx \hat f_S = \frac{1}{S} \sum_{s=1}^S f(x^{(s)})$ where $x^{(s)} \sim p(x)$. 
+
+* Properties: unbiased ($\mathbb E[\hat f_S] = \mathbb E_p[f]$) and $\text{var}[\hat f_S] = \frac{\text{var}[f]}{S}$
+
+* Monte Carlo errors shrink with $1/\sqrt{S}$, no dependence on dimension $D$, but factor $\text{var}[f]$ can depend on $D$ in an unfavorable fashion (hypersphere example)
+
+* Correct sampling means that approximate probability $\hat p_S(x) = \frac{1}{S} \sum_s \delta(x - x^{(s)}) \to p(x)$ for $S\to\infty$ ("histogram over samples approximates true model"). But how to sample?
+
+* Uniformly distributed samples can be generated with pseudo-random number generators such as the linear congruential generator. These have their own subtleties...
+
+* Direct sampling is possible via variable transformation methods that utilize the transformation rule: $p_y(y) = p_x(h^{-1}(y)) / |\nabla h(h^{-1}(y))|$
+
+* Inversion method: $h(x) = P(x) = \int^x p(x')\, dx$ (cumulative distribution function)
+
+* Some examples of transformation methods: Box-Muller $(x, y) = r (\cos\varphi, \sin\varphi)$, multivariate Gaussians 
+
+#### Sampling uniformly from the hypersphere
+
+The $D$-dimensional standard Gaussian distribution $\mathcal N(0, I)$ can be used to sample from the [hypersphere](https://en.wikipedia.org/wiki/N-sphere) in $D$-dimensional space $\mathbb S^{D-1} = \{ x \in \mathbb R^D : \|x\| = 1\}$. To see this, consider
+
+$$
+\mathcal N(0, I) = (2\pi)^{-D/2} \exp\bigl\{-\|x\|^2/2 \bigr\} \to (2\pi)^{-D/2}\, r^{D-1} e^{-r^2/2} \mathbb 1(\|x\| = 1) 
+$$
+
+That is, the $D$-dimensional standard Gaussian distribution is spherically symmetric and therefore
+
+$$
+x/\|x\| \sim \mathcal U(\mathbb S^{D-1})\,\,\, \text{where}\,\,\, x \sim \mathcal N(0, I)
+$$
+
+```{python}
+# sampling from the hypersphere
+import numpy as np
+import matplotlib.pylab as plt
+
+def sample_sphere(S, D=2):
+    """
+    S : number of samples
+    D : dimension of embedding space
+    """
+    x = np.random.standard_normal((D, S))
+    return (x/np.linalg.norm(x, axis=0)).T
+
+x = sample_sphere(10000)
+angle = np.arctan2(x[:,1], x[:,0])
+kw = dict(color='k', alpha=0.2, s=20)
+fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+ax[0].scatter(*x[:200].T, **kw)
+ax[1].hist(angle, bins=30, density=True, alpha=0.2, color='k')
+ax[1].set_xlabel('angle')
+fig.tight_layout()
+```
+
+#### Sampling from the unit ball
+
+Using samples from the $(D-1)$-sphere we can also easily sample from the [$D$-dimensional unit ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) $\mathbb B^D = \{x\in\mathbb R : \|x\| \le 1\}$. Every element in $\mathbb B^D$ can be decomposed into
+
+$$
+x = r\, u \in \mathbb B^D\,\,\,\text{where}\,\,\, u\in\mathbb S^{D-1},\, r\in[0, 1]
+$$
+
+The distribution of $r$ follows from the surface area of $\mathbb S^{D-1}$ which scales with $r^{D-1}$, therefore:
+
+$$
+p(r, u) = D\, r^{D-1}\, \mathbb 1(\|u\| = 1)
+$$
+
+The cdf of the radial component is $r^D$ and we obtain the following sampling rule:
+
+1. $u^{(s)}=x^{(s)}/\|x^{(s)}\|$ where $x^{(s)} \sim \mathcal N(0, I_D)$
+
+2. $r^{(s)} = (v^{(s)})^{1/D}$ where $v^{(s)} \sim \mathcal U(0, 1)$
+
+3. then $r^{(s)} u^{(s)} \sim \mathcal U(\mathbb B^D)$
+
+```{python}
+# sampling from the unit ball
+
+def sample_ball(S, D=2):
+    """
+    Sampling from the D-ball
+    S : number of samples
+    D : dimension of embedding space
+    """
+    # sample from hypersphere
+    x = np.random.standard_normal((D, int(S)))
+    u = x / np.linalg.norm(x, axis=0)
+    # sample radius
+    r = np.random.random(int(S))**(1/D)
+    return (u*r).T
+                                                                            
+x = sample_ball(10000)
+angle = np.arctan2(x[:,1], x[:,0])
+kw = dict(color='k', alpha=0.2, s=20)
+fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+ax[0].scatter(*x[:1000].T, **kw)
+ax[1].hist(angle, bins=30, density=True, alpha=0.2, color='k')
+ax[1].set_xlabel('angle')
+fig.tight_layout()
+```
+
+#### Sampling from a radially symmetric distribution
+
+It is straightforward to generalize sampling from a unit ball to any spherically symmetric distribution. A spherically symmetric distribution over $D$ continuous variables has the form:
+
+$$
+    p(x) \propto f(\|x\|)
+$$
+
+where $f(r)$ is defined for $r\in\mathbb R_+$. A convenient parameterization are spherical coordinates, resulting in the distribution
+
+$$
+p(x) \to r^{D-1}f(r)\, \mathcal{U}(\mathbb S^{D-1})
+$$
+
+We know how to generate uniform samples from $\mathcal U(\mathbb S^{D-1})$. The remaining problem is to sample from
+
+$$
+p(r) \propto r^{D-1} f(r),\,\,\, r\ge 0
+$$
+
+So we have reduced a $D$-dimensional sampling problem to a one-dimensional problem.
+
+#### Sampling from an elliptically symmetric distribution
+
+A similar technique can be used to generalize sampling from spherically symmetric distributions to elliptically symmetric distributions of the form
+
+$$
+p(x) \propto f\bigl((x-b)^T\!\!A(x-b)\bigr)
+$$
+
+where $x, b \in \mathbb R^D$ and $A\in\mathbb R^{D\times D}$ is positive definite; $f(r)\ge 0$ is an (unnormalized) radial pdf defined for $r\in\mathbb R_+$.  
+
+### Using known relations between probability distributions for sampling
+
+The [Erlang distribution](https://en.wikipedia.org/wiki/Erlang_distribution), a special version of the [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution), has the functional form
+
+\begin{equation}\label{eq:erlang}
+    p(x|k, \lambda) = \frac{\lambda^k}{\Gamma(k)} x^{k - 1} e^{-\lambda x}, \, k \in \mathbb N, \, k> 0,\, \lambda > 0
+\end{equation}
+
+We can use exponentially distributed random variables $z_i \sim \lambda e^{-\lambda z_i}, i=1, \ldots, k$ to produce an Erlang variate. Define $z_i = x y_i$ with $y_i\in[0, 1]$ for $1 \le i \le k-1$ and $z_k = x \bigl(1-\sum_{i=1}^{k-1} y_i\bigr)$, then $x = \sum_i z_i$. The Jacobian of the parameter transform is
+
+$$
+\frac{\partial (z_1, \ldots, z_k)}{\partial (x, y_1, \ldots, y_{k-1})} = 
+\begin{pmatrix}
+y_1 & x & 0 & \cdots & 0 \\
+y_2 & 0 & x & \cdots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+y_{k-1} & 0 & 0 & \cdots & x \\
+1- \sum_i y_{i} & -x & -x & \cdots & -x \\
+\end{pmatrix}
+$$
+
+with determinant
+
+$$
+\left|\frac{\partial (z_1, \ldots, z_k)}{\partial (x, y_1, \ldots, y_{k-1})}\right| \propto x^{k-1} 
+$$
+
+Therefore:
+
+$$
+x \sim x^{k-1} e^{-\lambda x}
+$$
+
+```{python}
+# sampling from Erlang
+from scipy.special import gammaln
+
+
+def sample_erlang(S, k=1, beta=1.):
+    
+    u = np.random.random((int(S), k))
+    z = - np.log(u) / beta
+    x = z.sum(1)
+
+    return x
+
+
+k = 10
+beta = 2.
+S = 1e4
+
+x = sample_erlang(S, k=k, beta=beta)
+
+t = np.linspace(0., x.max(), 1000)
+p = k * np.log(beta) + (k-1) * np.log(t+1e-100) - beta * t - gammaln(k)
+p = np.exp(p)
+
+fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+ax.plot(t, p, color='r', lw=2)
+ax.hist(x, bins=50, color='lightgrey', density=True)
+fig.tight_layout() 
+```
+
+There are many more relationships between standard univariate probability distributions that can be exploited for sampling (an interactive version of the following Figure can be found at [Leemis & Mc Queston: Univariate Distribution RelationShips](http://www.math.wm.edu/~leemis/chart/UDR/UDR.html)):
+
+![Relationships between pdfs](images/UnivariateDistributionRelationships.png "Relationshipts between univariate pdfs")
+
+### Further reading
+
+Donald Knuth: [The Art of Computer Programming, Vol. 2, Chap. 1](https://en.wikipedia.org/wiki/The_Art_of_Computer_Programming)
+
+Luc Devroye: [Non-Uniform Random Variate Generation](https://link.springer.com/book/10.1007/978-1-4613-8643-8)
+
+## Rejection sampling
+
+Direct sampling methods are specifically designed for particular target distributions. For complex probabilistic models such as the Ising model, it will not be possible to use these methods. We will now discuss methods that can be applied to more general probabilistic models.   
+
+[*Rejection sampling*](https://en.wikipedia.org/wiki/Rejection_sampling) is an early sampling approach that has been developed by von Neumann. The idea is to use a helper distribution $q$ from which we can sample easily in order to sample from a more complicated model $p$. To be a valid proposal distribution, $q$ must satisfy
+
+\begin{equation}\label{eq:rejection_proposal}
+    p(x) \le M q(x)
+\end{equation}
+
+for a constant $M$ which implies $M\ge 1$, since $p$ and $q$ are normalized pdfs. Moreover, the support of $p$ should be contained in the support of the proposal distribution $q$. Let's define the ratio 
+
+\begin{equation}\label{eq:rejection_accprob}
+r(x) := \frac{p(x)}{M q(x)}
+\end{equation}
+
+which is smaller than or equal to 1 for all $x$ with $q(x)>0$, otherwise we set $r(x) = 1$. 
+
+### Algorithm: Rejection sampling
+
+The algorithm produces random samples $x^{(s)}$ by iterating over the following steps until the desired number of samples $S$ has been generated: 
+
+1. Draw $x \sim q(x)$
+
+2. Draw $u \sim \mathcal U(0, 1)$
+
+3. $r \gets \frac{p(x)}{Mq(x)}$
+
+4. If $u < r$, then 
+
+    * $x^{(s)} \gets x$
+    * $s \gets s+1$. 
+
+5. If $s < S$, go to 1. 
+
+#### Example: Sampling a Gaussian with a Cauchy proposal
+
+The standard Gaussian distribution is
+
+$$
+p(x) = \frac{1}{\sqrt{2\pi}}\, e^{-x^2/2}
+$$
+
+and the Cauchy distribution
+
+$$
+q(x) = \frac{1}{\pi} \frac{1}{1 + x^2}\, .
+$$
+
+The Cauchy distribution can be sampled with the inversion method: $x^{(s)} = -\tan(\pi u^{(s)}), \, u^{(s)} \sim \mathcal U(0, 1)$ (see table above). 
+
+To show that the Cauchy distribution is a valid proposal distribution, we first have to bound the ratio
+
+$$
+f(x) = \frac{p(x)}{q(x)} = \sqrt{\frac{\pi}{2}}\, (1 + x^2)\, e^{-x^2/2}\, .
+$$
+
+The first derivative is 
+$$
+f'(x)  = \sqrt{\frac{\pi}{2}}\, x\, (1 - x^2)\, e^{-x^2/2}
+$$
+with zeros $x=-1, 0, 1$. The second derivative $f''(x) = \sqrt{\frac{\pi}{2}}\, (x^4 - 4x^2 +1)\, e^{-x^2/2}$ is positive at $x=0$ and negative at $x=\pm 1$. Therefore, $x=\pm 1$ are the locations of the maxima of $f$, and the upper bound is $M := f(1) = \sqrt{2\pi/e} \approx 1.52$. 
+
+```{python}
+def sample_cauchy(S):
+    u = np.random.random(int(S))
+    return -np.tan(np.pi * u)
+
+
+def calc_ratio(t):
+    return 0.5 * (1 + t**2) * np.exp(-0.5 * t**2) * np.sqrt(np.e)
+    
+
+S = int(1e3)
+M = np.sqrt(2*np.pi/np.e)
+y = sample_cauchy(M*S)
+r = calc_ratio(y)
+u = np.random.random(y.shape)
+Mq = M / (1 + y**2) / np.pi
+
+t = np.linspace(-1., 1., 1000) * 5
+q = 1 / (1 + t**2) / np.pi
+p = np.exp(-0.5 * t**2) / np.sqrt(2*np.pi)
+M
+```
+
+```{python}
+fig, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True, 
+                       sharey=True)
+#
+ax[0].fill_between(t, t*0., M*q, color='b', alpha=0.1)
+ax[0].plot(t, M*q, color='b', lw=2, ls='--', label=r'scaled Cauchy $Mq$')
+ax[0].plot(t, p, color='r', lw=2, ls='-', label=r'Gaussian $p$')
+ax[0].legend(loc=5)
+#
+ax[1].fill_between(t, t*0., M*q, color='b', alpha=0.1)
+ax[1].scatter(y[u<r], (Mq*u)[u<r], color='r', s=10, alpha=0.5)
+ax[1].scatter(y[u>=r], (Mq*u)[u>=r], color='b', s=10, alpha=0.5)
+ax[1].plot(t, M*q, color='b', lw=2, ls='--', label=r'scaled Cauchy $Mq$')
+ax[1].plot(t, p, color='r', lw=2, ls='-', label=r'Gaussian $p$')
+#
+ax[2].hist(y[u<r], bins=50, color='lightgrey', density=True)
+ax[2].plot(t, p, color='r', lw=2, ls='-')
+#
+ax[2].set_xlim(-5., 5)
+ax[2].set_ylim(0., 0.5)
+
+fig.tight_layout()
+```
+
+### Why does rejection sampling work?
+
+Let's formalize the rejection sampling algorithm. To this end, we introduce a binary random variable $a\in\{0, 1\}$ indicating if a proposal $x \sim q(x)$ has been accepted or not. The probability of being accepted, $a=1$, or rejected, $a=0$, is
+
+$$
+p(a=1\mid{}x) = r(x), \,\,\ p(a=0\mid{}x) = 1 - r(x)\, .
+$$
+
+This means that $a$ is a [Bernoulli variable](https://en.wikipedia.org/wiki/Bernoulli_distribution):
+
+$$
+p(a\mid{}x) = \bigl[r(x)\bigr]^a \bigl[1-r(x)\bigr]^{1-a}, \,\,\, a\in\{0, 1\}\, .
+$$
+
+The joint distribution of $x$ and $a$ is
+
+$$
+p(a, x) = p(a\mid{}x)\, q(x)
+$$
+
+since $x\sim q$. The accepted samples are those for which $a=1$. These samples follow the *conditional* distribution $p(x\mid{}a=1)$. That is 
+
+$$
+x^{(s)} \sim p(x\mid{}a=1)\, .
+$$
+
+It is straight forward to compute this distribution. We have $p(x\mid{}a=1) = p(x, a=1)\, /\, p(a=1)$. We need to compute the marginal probability $p(a=1)$:
+
+\begin{equation}\label{eq:rs-acceptance}
+p(a=1) = \int p(x, a=1)\, dx = \int q(x)\, r(x)\, dx = \int q(x)\, \frac{p(x)}{Mq(x)}\, dx = \frac{1}{M}
+\end{equation}
+
+since $p$ is normalized. Equation (\ref{eq:rs-acceptance}) tells us that the average probability to propose an acceptable sample is $M^{-1}$. We can now compute the desired conditional distribution $p(x\mid{}a=1)$: 
+
+$$
+p(x\mid{}a=1) = \frac{p(x, a=1)}{p(a=1)} = M q(x)\, r(x) = M q(x)\, \frac{p(x)}{M q(x)} = p(x)\, .
+$$
+
+#### Waiting time before acceptance
+
+We can also compute the number of attempts it needs to generate an acceptable proposal. Let's call this number $T$. The probability that a proposal is accepted after $T-1$ unsuccessful trials is 
+
+$$
+\Pr(T) = [p(a=0)]^{T-1} p(a=1) = [1-M^{-1}]^{T-1} M^{-1}, \,\,\, T\in \{1, 2, 3, \ldots \} 
+$$
+
+which is the probability that the first $T-1$ samples are rejected ($a^{(t)}=0, \, t<T$) and the last sample is accepted $a^{(T)}=1$. This distribution is a [geometric distribution](https://en.wikipedia.org/wiki/Geometric_distribution) and normalized since
+
+$$
+\sum_{T\ge 1} \Pr(T) = \sum_{T\ge 1} [1-M^{-1}]^{T-1}\, M^{-1} = M^{-1} \sum_{T\ge 0} [1-M^{-1}]^{T} = \frac{M^{-1}}{1 - (1 - M^{-1})} = 1
+$$
+
+using the summation rules for [geometric progressions](https://en.wikipedia.org/wiki/Geometric_progression) and [geometric series](https://en.wikipedia.org/wiki/Geometric_series). 
+
+The expected time one has to wait until an acceptable sample is proposed is
+
+$$
+\mathbb E[T] = \sum_{T\ge 1} T\, \Pr(T) = M^{-1} \sum_{T\ge 1} T\, [1-M^{-1}]^{T-1} = 1 + M^{-1} \sum_{T \ge 0} T \, [1-M^{-1}]^T\, .
+$$
+
+To compute the last series, let us rewrite it as $\sum_{T\ge 0} T e^{-\lambda T}$ where $\lambda = - \log(1-M^{-1}) > 0$:
+
+$$
+\sum_{T\ge 0} T e^{-\lambda T} = - \sum_{T\ge 0} \frac{d}{d\lambda} e^{-\lambda T} = - \frac{d}{d\lambda} \sum_{T\ge 0} e^{-\lambda T} = - \frac{d}{d\lambda} \frac{1}{1 - e^{-\lambda}} = \frac{e^{-\lambda}}{(1 - e^{-\lambda})^2}\, .
+$$
+
+By substituting $e^{-\lambda} = 1-M^{-1}$ we obtain
+
+$$
+\mathbb E[T] = 1 + M^{-1} \frac{1-M^{-1}}{(1 -(1-M^{-1}))^2} = 1 + M^{-1} \frac{1-M^{-1}}{M^{-2}} = M\, .
+$$
+
+The larger $M$, the longer is the average time that we have to wait until a sample is accepted. Therefore, we should try to design an envelope $Mq(x)>p(x)$ that is as tight as possible. 
+
+Let us modify the above code for sampling a Gaussian using Cauchy proposals by allowing $M$ to be greater than the tightest upper bound $\sqrt{2\pi/e}$ and investigate the effect on the waiting time: 
+
+```{python}
+# tightest bound
+M_opt = (2*np.pi/np.e)**(1/2)
+
+def calc_ratio(t, M=M_opt):
+    return 0.5 * (1 + t**2) * np.exp(-0.5 * t**2) * np.sqrt(np.e) * (M_opt/M)
+
+# evaluate Gaussian and Cauchy distribution
+t = np.linspace(-1., 1., 1000) * 5
+q = 1 / (1 + t**2) / np.pi
+p = np.exp(-0.5 * t**2) / np.sqrt(2*np.pi)
+
+# rejection sampling
+S = int(2e4)
+
+fig, ax = plt.subplots(2, 3, figsize=(12, 8), sharex='col')
+
+# M = factor * M_opt
+for i, factor in enumerate([2, 4]):
+
+    M = factor * M_opt
+    y = sample_cauchy(S)
+    r = calc_ratio(y, M)
+    u = np.random.random(y.shape)
+    Mq = M / (1 + y**2) / np.pi
+ 
+    # waiting times
+    T = np.diff(np.nonzero(u<r)[0])
+
+    ax[i,0].set_title(r'$M={0}\, \sqrt{{2\pi/e}}$'.format(factor))
+    ax[i,0].fill_between(t, t*0., M*q, color='b', alpha=0.1)
+    ax[i,0].plot(t, M*q, color='b', lw=2, ls='--', label=r'scaled Cauchy $Mq$')
+    ax[i,0].plot(t, p, color='r', lw=2, ls='-', label=r'Gaussian $p$')
+    ax[i,0].legend()
+    #
+    ax[i,1].set_title(r'$M={0}\, \sqrt{{2\pi/e}}$'.format(factor))
+    ax[i,1].fill_between(t, t*0., M*q, color='b', alpha=0.1)
+    ax[i,1].scatter(y[u<r], (Mq*u)[u<r], color='r', s=1, alpha=0.5)
+    ax[i,1].scatter(y[u>=r], (Mq*u)[u>=r], color='b', s=1, alpha=0.5)
+    ax[i,1].plot(t, M*q, color='b', lw=2, ls='--', label=r'scaled Cauchy $Mq$')
+    ax[i,1].plot(t, p, color='r', lw=2, ls='-', label=r'Gaussian $p$')
+    #
+    times, counts = np.unique(T, return_counts=True)
+    ax[i,2].bar(times, counts, color='lightgrey')
+    ax[i,2].set_xlim(0, times.max()+1)
+    ax[i,2].set_ylim(10, counts.max()*1.1)
+    ax[i,2].set_xlabel(r'waiting time $T$')
+
+    for a in ax[i,:2]:
+        a.set_xlim(-5, 5.)
+        a.set_ylim(0., factor/2)
+        
+    for a in ax[:,2]:
+        a.set_xlim(0, times.max()+1)
+fig.tight_layout()
+```
+
+### Geometric interpretation
+
+A geometric interpretation of rejection sampling is that we generate points $(x,y)$ under the graph of $Mq(x)$ in the following fashion: The $x$ coordinate is drawn from $q$, and the $y$ coordinate from a uniform distribution $y=M q(x) u$ where $u\sim \mathcal U(0, 1)$:
+
+$$
+(x, y) \sim q(x)\, \mathbb 1\bigl(y < Mq(x)\bigr)
+$$
+
+$(x,y)$ is accepted if $y < p(x)$ otherwise it is rejected. Therefore, the area under $Mq$ can be separated into an *acceptance region* and a *rejection region*. The value of $M$ determines the relative size of the rejection and acceptance regions. 
+
+```{python}
+from scipy.ndimage import gaussian_filter
+
+t = np.linspace(-1., 1., 1000) * 10
+mu = np.array([-2,  5. ])
+sigma = np.array([90., 120. ])
+w = np.array([0.7, 0.3])
+
+p = 0.
+for k in range(len(mu)):
+    y = t * 0.
+    y[np.argmin(np.fabs(mu[k]-t))] = 1.
+    p += gaussian_filter(y, sigma=sigma[k]) * w[k]
+p /= p.sum()
+
+q = np.exp(-0.5 * t**2 / 16) + 0.1
+q /= q.sum()
+
+M = np.max(p/q) * 1.1
+
+fs = 20
+fig, ax = plt.subplots(subplot_kw=dict(xticks=[], yticks=[]))
+ax.fill_between(t, p, q*M, color='r', alpha=0.2)
+ax.plot(t, q*M, color='r', lw=3, label=r'$Mq$')
+ax.fill_between(t, p*0, p, color='b', alpha=0.2)
+ax.plot(t, p, color='b', lw=3, label=r'$p$')
+ax.annotate('accept', (0.32, 0.2), xycoords='axes fraction', color='b', fontsize=fs)
+ax.annotate('reject', (0.55, 0.4), xycoords='axes fraction', color='r', fontsize=fs)
+ax.legend(fontsize=fs)
+ax.set_frame_on(False)
+```
+
+There are multiple factors that influence $M$. The size of the support of $q$ has a direct impact on $M$: The larger the support of $q$, the larger we have to choose $M$ to still satisfy the condition $p(x) \le Mq(x)$, because the probability mass of the proposal distribution is distributed over a larger region and the density $q$ is scaled down. The tightest $M$ can be found by maximizing the ratio $p(x)/q(x)$ over the sample space. In general, this will be a hard optimization problem. But even if we find the tightest value of $M$, the size of the rejection region will grow exponentially with dimension $D$.   
+
+### Rejection sampling scales badly with dimension
+
+Finding tight bounds in high dimensions is very difficult. Moreover, the volume of the rejection region will scale exponentially with dimension. For example, if we sample a $D$ dimensional Gaussian by using $D$ Cauchy variates, than each dimension contributes a factor of $\sqrt{2\pi/e} \approx 1.5$ such that the overall $M$ scales as $1.5^D$. As a consequence, the waiting time will scale exponentially with dimension and using rejection sampling will become increasingly inefficient as the size of our probabilistic model grows. 
+
+### Unnormalized target and proposal distribution
+
+Often, it is not possible to normalize a probabilistic model. So we only know $p^*(x)$ and $q^*(x)$ with
+
+\begin{eqnarray*}
+p(x) &=& \frac{p^*(x)}{Z_p}\,\,\,\text{with}\,\,\, Z_p = \int_{\mathcal X} p^*(x)\, dx < \infty\\ 
+q(x) &=& \frac{q^*(x)}{Z_q}\,\,\,\text{with}\,\,\, Z_q = \int_{\mathcal X} q^*(x)\, dx < \infty\, . 
+\end{eqnarray*}
+
+The condition that has to be satisfied is now
+
+$$
+p^*(x) \le M q^*(x)\,\,\, \Rightarrow M \ge Z_p/Z_q\, .
+$$
+
+In analogy to Eq. (\ref{eq:rejection_accprob}), the acceptance probability changes to
+
+$$
+r(x) = \frac{p^*(x)}{M q^*(x)} \le 1
+$$
+
+Otherwise the sampling procedure and the proof of its validity work in the same fashion:
+
+$$
+p(x, a=1) = q(x)\, r(x) = \frac{q^*(x)}{Z_q} \frac{p^*(x)}{M q^*(x)} = \frac{p^*(x)}{MZ_q} 
+$$
+
+and
+
+$$
+p(a=1) = \int_{\mathcal X} p(x, a=1)\, dx = \frac{Z_p}{MZ_q}\, .
+$$
+
+So
+$$
+x^{(s)} \sim \frac{p(x, a=1)}{p(a=1)} = \frac{p^*(x)}{MZ_q}\, \frac{MZ_q}{Z_p} = \frac{p^*(x)}{Z_p} = p(x)\, .
+$$
+
+## Importance sampling
+
+Rejection sampling becomes very inefficient as soon as no tight bound can be found and most samples are rejected. We saw a drastic version of this problem in our attempt to estimate the volume of the $D$-ball by accepting or rejecting samples from a hypercube: The acceptance probability is the ratio of the volumes of the $D$-ball and the $D$-cube and drops to zero with a rate that is exponential in $D$. 
+
+[*Importance sampling*](https://en.wikipedia.org/wiki/Importance_sampling) tries to overcome some of these problems by using a strategy that does not reject samples, but weighs them thereby avoiding to "waste" any samples. Otherwise the idea of importance sampling is very similar to rejection sampling: A helper distribution $q$ (from which we can sample easily) is used to generate samples that are now reweighted rather than accepted or rejected. The weights are chosen such that samples from $q$ can be used to compute expectations under the target model $p$.
+
+To derive importance sampling, let us look at the expectation 
+
+$$
+\mathbb E_p[f] = \int_{\mathcal X} f(x)\, p(x)\, dx = \int_{\mathcal X} f(x)\, \frac{p(x)}{q(x)}\, q(x)\, dx = \int_{\mathcal X} f(x)\, w(x)\, q(x)\, dx = \mathbb E_q[wf]\, .
+$$
+
+So expectations with respect to $p$ can be expressed as expectations with respect to $q$, if samples $x$ are weighted with $w(x) = \frac{p(x)}{q(x)}$. The only requirement is
+
+$$
+q(x) = 0\,\,\, \Rightarrow\,\,\, f(x)p(x) = 0
+$$
+
+which is easier to satisfy than the requirements for rejection sampling.
+
+### Algorithm: Importance sampling
+
+The algorithm produces random samples $x^{(s)}$ and (importance) weights $w^{(s)}$: 
+
+1. Sample $x^{(s)} \sim q(x)$ for $s=1,\ldots, S$.
+
+2. Compute weights $w^{(s)} = \frac{p(x^{(s)})}{q(x^{(s)})}$
+
+Expectation values are then approximated by
+
+\begin{equation}\label{eq:IS}
+\mathbb E_p[f] \approx \hat f_{\text{IS}} := \frac{1}{S} \sum_{s=1}^S w^{(s)} \, f(x^{(s)})
+\end{equation}
+
+The right hand side can be interpreted as the expectation of $f$ under the approximate density
+
+\begin{equation}\label{eq:is-approximation}
+\hat p_S(x) = \frac{1}{S} \sum_{s=1}^S w^{(s)} \delta\bigl(x - x^{(s)}\bigr)\, .
+\end{equation}
+
+This is a generalization of the approximate density introduced earlier in Eq. (\ref{eq:approximate_pdf}). 
+
+Let us again use a Gaussian target and a Cauchy proposal to illustrate the sampling algorithm:
+
+```{python}
+def sample_cauchy(S, lower=-10, upper=10):
+    u = np.random.random(2*int(S))
+    x = -np.tan(np.pi * u)
+    m = (x >= lower) & (x <= upper)
+    return x[m][:int(S)]
+
+
+def pdf_gaussian(x):
+    return np.exp(-0.5*x**2) / np.sqrt(2*np.pi)
+
+
+def pdf_cauchy(x):
+    return np.pi / (1 + x**2)
+
+
+S = int(5e3)
+t = np.linspace(-1., 1., 1000) * 5
+p = pdf_gaussian(t)
+q = pdf_cauchy(t)
+
+x = sample_cauchy(S, -20, 20)
+w = pdf_gaussian(x) / pdf_cauchy(x)
+kw = dict(xlim = (-8, 8), xlabel = r'$x$')
+kw_hist = dict(bins=100, density=True, color='k', alpha=0.2)
+
+fig, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True, subplot_kw=kw)
+#
+ax[0].set_title(r'weight $w(x) = p(x) / q(x)$')
+ax[0].plot(t, p / q, color='k', lw=3, alpha=0.7)
+ax[0].set_ylabel(r'$w(x)$')
+#
+ax[1].set_title('without importance weights')
+ax[1].hist(x, **kw_hist)
+#
+ax[2].set_title('with importance weights')
+ax[2].hist(x, weights=w/S, **kw_hist)
+#
+for a in ax[1:]:
+    a.plot(t, p, color='r', lw=2, label=r'target $p$')
+    a.legend()
+#
+fig.tight_layout()
+```
+
+### Properties of importance sampling
+
+The importance sampling estimator (Eq. \ref{eq:IS}) is unbiased: The $S$ samples follow the joint distribution $q_S(x^{(1)}, \ldots, x^{(S)}) = \prod_s q(x^{(s)})$, and the expectation of the importance sampling estimator is
+
+$$
+\mathbb E_{q_S}[\hat f_{\text{IS}}] 
+= \frac{1}{S} \mathbb E_{q_S}\biggl[\sum_s f(x^{(s)}) p(x^{(s)})/q(x^{(s)})\biggr] 
+= \frac{1}{S} \sum_s \underbrace{\mathbb E_{q_S}\biggl[f(x^{(s)}) p(x^{(s)})/q(x^{(s)})\biggr]}_{\mathbb E_p[f]} 
+= \mathbb E_p[f]\, .
+$$
+
+The law of large numbers guarantees that $\hat f_{\text{IS}} \to \mathbb E_p[f]$ for $S\to\infty$. 
+
+Since the importance sampling (IS) estimator $\hat f_{\text{IS}}$ is simply the Monte Carlo estimator for $w(x)f(x)$ and sampling distribution $q$, also the variance is readily available from Eq. (\ref{eq:MCvariance}): 
+
+$$
+\text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \text{var}_q[wf] \, . 
+$$
+
+Using $\text{var}[f] = \mathbb E[f^2] - (\mathbb E[f])^2$, we obtain
+
+$$
+\text{var}_q[wf] = \underbrace{\mathbb E_q[(wf)^2]}_{\mathbb E_p[wf^2]} - \bigl(\underbrace{\mathbb E_q[wf]}_{\mathbb E_p[f]}\bigr)^2 = \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2
+$$
+
+\begin{equation}\label{eq:ISvariance}
+\text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \biggl( \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2 \biggr)\, . 
+\end{equation}
+
+Like the error of the standard Monte Carlo approximation, the error of the IS estimator shrinks with $1/\sqrt{S}$. We can also minimize the variance of the IS estimator as a functional of the proposal distribution (subject to the constraint $\int q(x)\, dx = 1$), which can be achieved by minimizing the Lagrangian $\mathbb E_p[p/q\, f^2] + \lambda (1-\int q(x) dx)$ resulting in the optimal IS proposal:
+
+$$
+q_{\text{opt}}(x) \propto |f(x)|\, p(x)\, .
+$$
+
+This estimator achieves minimum variance
+$$
+\left(\mathbb E_p[|f|] \right)^2 - \left(E_p[f] \right)^2
+$$
+
+which can approach zero if $f(x) \ge 0$. However, this result is mostly of theoretical interest. 
+
+### Comparison between classical Monte Carlo and importance sampling
+
+* Importance sampling should be used when we cannot sample efficiently from the target model $p$
+
+* A reason to use importance sampling can be to reduce the variance over the classical Monte Carlo estimator
+
+* Importance sampling can be used if rejection sampling is not applicable (because we cannot find an upper bound for the ratio $p(x)/q(x)$)
+
+### Self-normalized importance sampling
+
+In case of complex, high-dimensional probabilistic models the normalizing constants are often missing:
+
+$$
+p(x) = \frac{p^*(x)}{Z_p}, \, q(x) = \frac{q^*(x)}{Z_q}
+$$
+
+with $Z_p = \int p^*(x)\, dx$ and $Z_q = \int q^*(x)\, dx$.
+
+In this case the importance weights 
+
+$$
+w(x) = \frac{p(x)}{q(x)} = \frac{Z_q}{Z_p} \frac{p^*(x)}{q^*(x)}
+$$
+
+are not readily available, because the ratio of normalizing constants $Z_q/Z_p$ is unknown. 
+
+However, we can use importance sampling to estimate this unknown ratio:
+
+$$
+\frac{Z_p}{Z_q} = \frac{\int p^*(x)\, dx}{Z_q} = \frac{\int \frac{p^*(x)}{q^*(x)}\, q^*(x)\, dx}{Z_q} = \int \frac{p^*(x)}{q^*(x)} \, q(x)\, dx = \mathbb E_q[p^*/q^*] 
+$$
+
+The IS estimator for the ratio of normalizing constants is
+
+\begin{equation}\label{eq:ISratio}
+(\widehat{Z_p/Z_q})_{\text{IS}} = \frac{1}{S} \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})} \, .
+\end{equation}
+
+Plugging this estimator into standard IS estimator (Eq. \ref{eq:IS}) yields the *self-normalized* importance sampling (NIS) estimator
+
+\begin{equation}\label{eq:ISselfnormalized}
+\hat f_{\text{NIS}} = \frac{\sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}\, f(x^{(s)})}{ \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}} = \frac{\sum_{s=1}^S w^{(s)}\, f(x^{(s)})}{ \sum_{s=1}^S w^{(s)}}
+\end{equation}
+
+In contrast to $\hat f_{\text{IS}}$, the self-noramlized IS estimator $\hat f_{\text{NIS}}$ is biased, but strongly consistent, meaning that for $S\to\infty$ the NIS estimator converges to the correct estimate: $\hat f_{\text{NIS}} \to \mathbb E_p[f]$. The asymptotic variance of the estimator can be approximated by
+
+\begin{equation}\label{eq:NISvar}
+\text{var}_{\text{as}}[\hat f_{\text{NIS}}] =  \frac{\frac{1}{S} \sum_s [w^{(s)}]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}}\bigr)^2}{\bigl[\frac{1}{S} \sum_s w^{(s)}\bigr]^2}\, .   
+\end{equation}
+
+### Effective sample size
+
+The [effective sampling size (ESS)](https://en.wikipedia.org/wiki/Effective_sample_size) is the number of *independent* samples $S_{\text{eff}}$ that would result in the same variance as the NIS estimator (Eq. \ref{eq:NISvar}). To compute ESS, we match the asymptotic variance of $\hat f_{\text{NIS}}$ with the variance resulting from $S_{\text{eff}}$:    
+
+$$
+\frac{1}{S} \text{var}_{\text{as}}[\hat f_{\text{NIS}}] = \frac{\sum_s \bigl[w^{(s)}\bigr]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}} \bigr)^2}{\bigl[\sum_s w^{(s)}\bigr]^2} = \frac{\sigma^2}{S_{\text{eff}}}
+$$
+
+where $\sigma^2 = \text{var}_p[f]$. For $f(x^{(s)}) - \hat f_{\text{NIS}} \approx \sigma$, we obtain:
+
+\begin{equation}\label{eq:ESS}
+S_{\text{eff}} = \frac{\bigl[\sum_s w^{(s)}\bigr]^2}{\sum_s \bigr[w^{(s)}\bigl]^2}
+\end{equation}
+
+The two extreme cases are:
+
+1. All importance weights are the same, $w^{(s)} = 1/S$, in which case $S_{\text{eff}} = S$.  
+
+2. All but one weight are zero, $w^{(1)} = 1$ and $w^{(s)} = 0$ for $s\ge 2$, in which case $S_{\text{eff}} = 1$.   
+
+ESS can be used as a diagnostic for the performance of importance sampling. The larger ESS, the more reliable are the estimates. 
+
+## Drawbacks of importance and rejection sampling
+
+Both rejection and importance sampling in *high dimensions* $D$ often suffer from various difficulties. High-dimensional probabilities tend to concentrate around a [*typical set*](https://en.wikipedia.org/wiki/Typical_set). This is a general feature of high-dimensional probabilistic models, also known as [*concentration of measure*](https://en.wikipedia.org/wiki/Concentration_of_measure). The most likely sets need __not__ be members of the typical set, which can be counter-intuitive. In case of a $D$-dimensional standard Gaussian $\mathcal N(0, I_D)$ (where $I_D$ is the $D$-dimensional identity matrix) we have:
+
+$$
+\mathbb E[\|x\|^2] = \text{tr}I_D = D\, .
+$$
+
+This means that most states will have a distance of $\sqrt{D}$ from the origin, whereas the most likely state, $x=0$, has zero distance. This phenomenon has been described as ["high-dimensional Gaussian are soap bubbles"](https://www.inference.vc/high-dimensional-gaussian-distributions-are-soap-bubble/). 
+
+To understand the implications for rejection and importance sampling, let us look at a toy example with Gaussian target and proposal in $D$ dimensions:
+
+$$
+p(x) = \mathcal N\bigl(0, I_D\bigr),\,\,\, q(x) = \mathcal N\bigl(0, \sigma^2 I_D\bigr), \,\,\, \sigma\ge 1\, .
+$$
+
+The ratio of both distributions is
+
+$$
+w(x) = \sigma^D \exp\left\{-\frac{\|x\|^2}{2} \bigl(1 - \sigma^{-2}\bigr)  \right\} \le \sigma^D = M\, .
+$$
+
+An implication for rejection sampling is that the acceptance probability $p(a=1) = \sigma^{-D}$ decays exponentially in $D$, likewise the time we have to wait to generate a sample that can be accepted increases exponentially in $D$.
+
+The implications for importance sampling are similarly bad: The average importance weight is
+
+$$
+\mathbb E_q[w] = 1
+$$
+
+independent of $D$, but the variance
+
+$$
+\text{var}[w] = \mathbb E_q[w^2] - \bigl(\mathbb E_q[w]\bigr)^2 = \left(\frac{\sigma^4}{2\sigma^2-1}\right)^{D/2} - 1 
+$$
+
+grows exponentially in $D$, since 
+
+$$
+\frac{\sigma^4}{2\sigma^2 -1} \ge 1
+$$
+
+for $\sigma > 1$. 
+
+(To see the previous inequality: $0 \le (\sigma^2 - 1)^2 = \sigma^4 - 2\sigma^2 + 1 \,\,\Rightarrow\,\, \sigma^4 > 2\sigma^2 - 1$. If $\sigma>1$, then $2\sigma^2 - 1 > 0$ and we can divide the last inequality by this factor without changing the direction.)
+
+```{python}
+sigma = np.linspace(1., 5., 100) 
+w2 = sigma**4 / (2.*sigma**2 - 1)
+fig, ax = plt.subplots()
+ax.plot(sigma, w2, color='k', lw=2)
+ax.axhline(1., ls='--', color='r', alpha=0.5)
+ax.set_xlabel(r'$\sigma$')
+ax.set_ylabel(r'$E_q[w^2]$')
+ax.set_ylim(0., None)
+fig.tight_layout()
+```
+
+The effective sample size is
+
+$$
+ESS = \frac{\bigl(\mathbb E_q[w]\bigr)^2}{\mathbb E_q[w^2]} = \left(\frac{\sigma^4}{2\sigma^2-1}\right)^{-D/2}
+$$
+
+and decays with $D$. 
+
+To see this more directly, let's try to characterize the typical set of a Gaussian model $\mathcal N\bigl(0, \sigma^2 I_D\bigr)$. Since the distribution is spherically symmetric, the distance from the center, $r=\|x\|$, follows the distribution
+
+$$
+p(r) \propto r^{D-1} e^{-r^2/2\sigma^2}\, .
+$$
+
+This implies that the pdf of the squared distance $r^2$ is a [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution) with shape parameter $D/2$ and scale $2\sigma^2$, therefore
+
+$$
+\mathbb E[\|x\|^2] = D\sigma^2, \,\,\, \text{var}[\|x\|^2] = 2\sigma^4 D . 
+$$
+
+The typical set is characterized by states with
+
+$$
+\|x\|^2 \approx \sigma^2 \bigl(D \pm \sqrt{2D}\bigr) = \sigma^2 D \bigl(1 \pm \sqrt{2/D}\bigr)\, .
+$$
+
+These states have an ever increasing distance from the origin, $\sim \sigma\sqrt{D}$, and concentrate in spherical shells that become thinner and thinner as $D$ increases. It will therefore be increasingly difficult to match the typical sets of the proposal and target pdf. At the same time, weights will fluctuate by factors of $\exp\{\pm\sqrt{2D}\}$, resulting in only a few dominant states and an effective sample size that drops to one.  
+
+If we compare the probability of the maximum probability state $x_{\max} = 0$ with the probability of an element $x_{\text{typical}}$ of the typical set, we get:
+
+$$
+\frac{p(x_{\text{typical}})}{p(x_{\max})} \simeq \exp\left\{-\frac{1}{2}(D \pm \sqrt{2D}) \right\}
+$$
+
+
+In summary, the two major problems of importance sampling are: 
+
+* Finding a good proposal $q$ whose typical set (region of states $x$ that are representative of $q$) overlaps with the typical set of the target $p$
+
+* Weights are likely to vary by large factors, because the probabilities of points in a typical set, although similar to each other, still differ by factors of order $\exp(\sqrt{D})$, so the weights will too, unless $q$ is a near-perfect approximation to
+$p$

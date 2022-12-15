@@ -1,1 +1,8 @@
 .ipynb_checkpoints
+./env
+.venv
+
+# quarto output
+lecture_files
+lecture.html
+/.quarto/
