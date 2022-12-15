@@ -4,5 +4,6 @@
 
 # quarto output
 lecture_files
-lecture.html
+*.html
+lectures/*_files
 /.quarto/
