@@ -40,11 +40,11 @@ So only if the Markov is both *irreducible* and *aperiodic*, then we have a uniq
 
 Irreducibility and aperiodicity implies that $\pi$ is unique (see, for example, [Diaconis: The Markov Chain Monte Carlo Revolution](https://www.ams.org/journals/bull/2009-46-02/S0273-0979-08-01238-X/)) and powers of $P$ converge to a rank one matrix
 
-\begin{equation}\label{eq:fundamental}
+$$
 P^S(x, y) \to \pi(x)
-\end{equation}
+$$ {#eq-fundamental}
 
-for $S\to\infty$ and all $x, y \in\mathcal X$. Equation (\ref{eq:fundamental}) means that we can start from any initial state $y\in\mathcal X$ with $\pi(y) > 0$ and will eventually produce samples from the stationary distribution $\pi$. Another way to express this *convergence in distribution* is:
+for $S\to\infty$ and all $x, y \in\mathcal X$. Equation (@eq-fundamental) means that we can start from any initial state $y\in\mathcal X$ with $\pi(y) > 0$ and will eventually produce samples from the stationary distribution $\pi$. Another way to express this *convergence in distribution* is:
 
 $$
 |P^S p - \pi| \to 0
@@ -60,7 +60,7 @@ That is, if $P$ is irreducible and aperiodic, then matrix powers of $P$ converge
 
 The fundamental theorem for Markov chains follows from the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) for non-negative matrices and the irreducibility of $P$. 
 
-Why does theorem (\ref{eq:fundamental}) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from $x$ to $y$ according to $P(y, x)$. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution. 
+Why does theorem (@eq-fundamental) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from $x$ to $y$ according to $P(y, x)$. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution. 
 
 But there is still something missing in order to use the simulation of a Markov chain for probabilistic inference. In our setting, we are given a probabilistic model $p$ (our target distribution) rather than a transition matrix $P$. So we are still facing the challenge of designing a suitable Markov chain that has the desired target as its stationary distribution. This problem has been solved in a very ingenious fashion by Metropolis et al., as we will see soon. 
 
@@ -123,9 +123,9 @@ Before we explain the Metropolis algorithm, let us briefly state the convergence
 
 Irreducibility and aperiodicity of a stochastic transition matrix implies a strong law of large numbers for Markov chains: 
 
-\begin{equation}\label{eq:lln_markov}
+$$
 \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr) \to \mathbb E_{\pi}[f]
-\end{equation}
+$$ {#eq-lln_markov}
 
 where $x^{(s)} \sim \Pr\bigl(x\mid x^{(s-1)}\bigr) = P\bigl(x, x^{(s-1)}\bigr)$ is an irreducible, aperiodic Markov chain with stationary distribution $\pi$. Therefore, simulating a Markov chain produces samples that can be used to approximate an expectation similar to the approximation in standard Monte Carlo or importance sampling. 
 
@@ -135,28 +135,30 @@ Analogous to the standard Monte Carlo approximation, Markov chain Monte Carlo (M
 
 A very important concept to verify stationarity of a Markov chain $P$ is *reversibility*. A Markov chain is *$\pi$-reversible* if the transition matrix satisfies the *detailed balance* equations
 
-\begin{equation}\label{eq:reversible}
+$$
 P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
-\end{equation}
+$$ {#eq-reversible}
 
-for all $x, y \in \mathcal X$ for some distribution $\pi$. From the point of view of probability flow across the transition graph, the detailed balance equations (\ref{eq:reversible}) state that "the amount of probability mass flowing from a source state $x$ to a sink $y$ via the directed edge with capacity $P(y, x)$ equals the probability mass flowing backwards." So the dynamics across the transition graph is in a steady state. As a consequence, reversibility implies that $\pi$ is an invariant distribution:
+for all $x, y \in \mathcal X$ for some distribution $\pi$. From the point of view of probability flow across the transition graph, the detailed balance equations (@eq-reversible) state that "the amount of probability mass flowing from a source state $x$ to a sink $y$ via the directed edge with capacity $P(y, x)$ equals the probability mass flowing backwards." So the dynamics across the transition graph is in a steady state. As a consequence, reversibility implies that $\pi$ is an invariant distribution:
 
-\begin{equation}\label{eq:reversible_invariance}
+$$
 \sum_{y\in\mathcal X} P(x, y)\pi(y) = \sum_{y\in\mathcal X} P(y, x) \pi(x) = \pi(x)\, .
-\end{equation}
+$$ {#eq-reversible_invariance}
 
 Therefore, to verify that a distribution of interest (our target distribution) is the invariant distribution of a Markov chain, we can simply check if the transition matrix satisfies detailed balance with respect to the target distribution. 
 
-The contrary to (\ref{eq:reversible_invariance}) is __not__ true: The fact that $\pi$ is a stationary distribution of the transition matrix $P$ does not imply, that $P$ is $\pi$-reversible. 
+The contrary to (@eq-reversible_invariance) is __not__ true: The fact that $\pi$ is a stationary distribution of the transition matrix $P$ does not imply, that $P$ is $\pi$-reversible. 
 
 If we start a Markov chain in the stationary distribution, $p^{(0)} = \pi$, then
-\begin{eqnarray*}\label{eq:forward-backward}
-\Pr\bigl(x_S = x^{(S)}, \ldots x_0=x^{(0)}\bigr) &=& 
-\prod_{s=1}^S P\bigl(x^{(s)}, x^{(s-1)}\bigr)\,  \pi\bigl(x^{(0)}\bigr)\\
-&=&
-\prod_{s=1}^S P\bigl(x^{(s-1)}, x^{(s)}\bigr)\, \pi\bigl(x^{(S)}\bigr) \\
-&=& \Pr\bigl(x_S = x^{(0)}, \ldots x_0=x^{(S)}\bigr)
-\end{eqnarray*}
+$$
+\begin{aligned}
+    \Pr\bigl(x_S = x^{(S)}, \ldots x_0=x^{(0)}\bigr) &= 
+    \prod_{s=1}^S P\bigl(x^{(s)}, x^{(s-1)}\bigr)\,  \pi\bigl(x^{(0)}\bigr)\\
+    &=
+    \prod_{s=1}^S P\bigl(x^{(s-1)}, x^{(s)}\bigr)\, \pi\bigl(x^{(S)}\bigr) \\
+    &= \Pr\bigl(x_S = x^{(0)}, \ldots x_0=x^{(S)}\bigr)
+\end{aligned}
+$$ {#eq-forward-backward}
 
 The probability of generating a Markov chain when starting in the stationary distribution is the same in forward and backward direction. This is why the Markov chain is called *reversible*.
 
@@ -183,9 +185,9 @@ Generate some initial $x^{(0)} \sim p^{(0)}$ and iterate for $s=1, 2, \ldots$:
 
 2. generate a uniform random number $u \sim \mathcal U(0, 1)$; if $u \le A\bigl(y, x^{(s-1)}\bigr)$ then *accept* and set $x^{(s)} = y$, else *reject* and set $x^{(s)} = x^{(s-1)}$. The acceptance probability is given by
 
-\begin{equation}\label{eq:MHaccept}
-A(y, x) = \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}
-\end{equation}
+$$
+    A(y, x) = \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}
+$$ {#eq-MHaccept}
 
 
 The MH algorithm is the first and most important Markov chain Monte Carlo (MCMC) algorithm. Most other MCMC algorithms are specialized versions of MH sampling. 
@@ -202,9 +204,9 @@ The MH algorithm is the first and most important Markov chain Monte Carlo (MCMC)
 
 5. We don't need to know the normalizing constants of the target distribution and the proposal chain, since the MH algorithm only involves *ratios* of the target distribution and the transition rates of the proposal chain. If the unnormalized target and proposal chain are denoted 
     
-    \begin{equation}\label{eq:unnormalized}
+$$
     p(x) = \frac{1}{Z_p} p^*(x), \,\,\, Q(x, y) = \frac{1}{Z_Q} Q^*(x, y)
-    \end{equation}
+$$ {#eq-unnormalized}
 
 where $p^*(x) \ge 0$ and $Z_p = \sum_x p^*(x)$ etc., then the *acceptance ratio* is
 
@@ -267,15 +269,15 @@ The MH algorithm works because of the validity of the following statements:
 
 The MH algorithm generates a Markov chain on $\mathcal X$. The transition probabilities of the Markov chain are given by
 
-\begin{equation}\label{eq:MHtransitions}
+$$
 P(y, x) = Q(y, x)\, A(y, x) + \delta(y,x)\, r(x)
-\end{equation}
+$$ {#eq-MHtransitions}
 
 where the acceptance probability $A(y, x)$ is defined above, and the rejection probability is
 
-\begin{equation}\label{eq:MHrejection}
+$$
 r(x) = 1 - \sum_{y\in \mathcal X} Q(y, x)\, A(y, x)
-\end{equation}
+$$ {#eq-MHrejection}
 
 The transition probability of $y\not= x$ is $A(y, x)\, Q(y, x)$ by construction of the algorithm. The term for $y=x$ is obtained by subtracting the sum $\sum_y A(y, x)\, Q(y, x)$ from one, which is just $r(x)$. In general, it holds that the diagonal entries of the transition matrix are fixed by column stochasticity: 
 
@@ -287,16 +289,19 @@ So it is sufficient to know the off-diagonal elements.
 
 #### Stationarity of the target distribution
 
-To show that the target distribution $p(x)$ is indeed the stationary distribution of the Markov chain generated by the MH algorithm, we check if the transition matrix (\ref{eq:MHtransitions}) is $p$-reversible. For $y\not= x$ we have:
-\begin{eqnarray*}\label{eq:MHreversible}
-P(y, x)\, p(x) 
-&=& Q(y, x)\, A(y, x)\, p(x) \\
-&=& Q(y, x)\, \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}\, p(x) \\
-&=&\min\left\{ Q(y, x)\, p(x), Q(x, y)\, p(y) \right\}\\
-&=& Q(x, y)\, \min\left\{1, \frac{Q(y, x)}{Q(x, y)}\frac{p(x)}{p(y)} \right\}\, p(y) \\
-&=& Q(x, y)\, A(x, y)\, p(y) \\
-&=& P(x, y)\, p(y)
-\end{eqnarray*}
+To show that the target distribution $p(x)$ is indeed the stationary distribution of the Markov chain generated by the MH algorithm, we check if the transition matrix (@eq-MHtransitions) is $p$-reversible. For $y\not= x$ we have:
+
+$$
+\begin{aligned}
+    P(y, x)\, p(x) 
+    &= Q(y, x)\, A(y, x)\, p(x) \\
+    &= Q(y, x)\, \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}\, p(x) \\
+    &=\min\left\{ Q(y, x)\, p(x), Q(x, y)\, p(y) \right\}\\
+    &= Q(x, y)\, \min\left\{1, \frac{Q(y, x)}{Q(x, y)}\frac{p(x)}{p(y)} \right\}\, p(y) \\
+    &= Q(x, y)\, A(x, y)\, p(y) \\
+    &= P(x, y)\, p(y)
+\end{aligned}
+$$ {#eq-MHreversible}
 
 The MH chain satisfies the detailed balance equations with regard to our target distribution. Therefore, $p$ is a stationary distribution and will be sampled in the long run. 
 
@@ -389,39 +394,39 @@ Cons:
 
 The MH algorithm takes a base chain $Q$, the proposal chain, that does not yet have the desired target distribution $p$ and tweaks it in such a way that the new chain has the correct distribution. This is achieved by constructing a new chain $P$ that is $p$-reversible:
 
-\begin{equation}\label{eq:p-reversible}
+$$
     P(x, y)\, p(y) = P(y, x)\, p(x)
-\end{equation}
+$$ {#eq-p-reversible}
 
 The mapping from $Q$ to $P$ involves the acceptance ratio
 
-\begin{equation}\label{eq:acceptance-ratio}
+$$
     R(y, x) = \frac{Q(x, y)\, p(y)}{Q(y, x)\, p(x)}
-\end{equation}
+$$ {#eq-acceptance-ratio}
 
 and is defined as
 
-\begin{equation}\label{eq:metropolized}
+$$
 P(y, x) = \left\{
 \begin{array}{c c}
 Q(y, x)\, \min\{1, R(y, x)\} & \text{ if } y\not= x \\
 \sum_z Q(z, x) \bigl(1 - \min\{1, R(z, x)\}\bigr) & \text{ if } y=x\\ 
 \end{array}\right.
-\end{equation}
+$$ {#eq-metropolized}
 
 If $Q$ is irreducible, then $P$ is also irreducible. 
 
-The acceptance ratio $R(y, x)$ (Eq. \ref{eq:acceptance-ratio}) assesses how unbalanced the proposal chain is, i.e. how strongly $Q$ deviates from $p$-reversibility. If $Q$ were already $p$-reversible, then the ratio $R$ would always be one, and the proposal would always be accepted. The larger $R(y, x)$ deviates from one, the more unbalanced is the proposal chain with regard to the target. Since $R(x, y) = 1 / R(y, x)$, a strong flux of probability in one direction, results in a reduced flux of probability in the backwards direction. 
+The acceptance ratio $R(y, x)$ (Eq. @eq-acceptance-ratio) assesses how unbalanced the proposal chain is, i.e. how strongly $Q$ deviates from $p$-reversibility. If $Q$ were already $p$-reversible, then the ratio $R$ would always be one, and the proposal would always be accepted. The larger $R(y, x)$ deviates from one, the more unbalanced is the proposal chain with regard to the target. Since $R(x, y) = 1 / R(y, x)$, a strong flux of probability in one direction, results in a reduced flux of probability in the backwards direction. 
 
 To better understand how the mapping from some irreducible proposal chain $Q$ to a $p$-reversible Metropolis chain $P$ works, let me try to explain a very nice paper by [Billera & Diaconis: A Geometric Interpretation of the Metropolis-Hastings Algorithm](https://projecteuclid.org/euclid.ss/1015346318). This paper sets out to provide a global view on why the MH algorithm in some sense provides the optimal way of turning some arbitrary Markov chain $Q$ into a Markov chain with the desired stationary distribution. 
 
-First let us think of the space of all possible Markov chains indexed by states from the finite sample space $\mathcal X$. This space is formed by left stochastic square matrices of size $|\mathcal X|$ and will be called $\mathcal S(\mathcal X)$. $\mathcal S(\mathcal X)$ is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of $\mathcal S(\mathcal X)$ is $|\mathcal X|(|\mathcal X| -1 )$: there are $|X|^2$ non-negative entries in total from which we need to subtract $|X|$ diagonal entries that are fixed by column stochasticity (Eq. \ref{eq:leftstochastic}).
+First let us think of the space of all possible Markov chains indexed by states from the finite sample space $\mathcal X$. This space is formed by left stochastic square matrices of size $|\mathcal X|$ and will be called $\mathcal S(\mathcal X)$. $\mathcal S(\mathcal X)$ is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of $\mathcal S(\mathcal X)$ is $|\mathcal X|(|\mathcal X| -1 )$: there are $|X|^2$ non-negative entries in total from which we need to subtract $|X|$ diagonal entries that are fixed by column stochasticity (Eq. @eq-leftstochastic).
 
 For a fixed target distribution $p$, the subset $\mathcal R(p)$ of all Markov matrices that are $p$-reversible 
-\begin{equation}\label{eq:p-reversible-chains}
+$$
 \mathcal R(p) = \left\{ P \in \mathcal S(\mathcal X): P(x, y)\, p(y) = P(y, x)\, p(x) \right\}
-\end{equation}
-has dimension $|\mathcal X|(|\mathcal X| - 1) / 2$, because $p$-reversibility (Eq. \ref{eq:p-reversible}) fixes a triangular portion of the transition matrix
+$$ {#eq-p-reversible-chains}
+has dimension $|\mathcal X|(|\mathcal X| - 1) / 2$, because $p$-reversibility (Eq. @eq-p-reversible) fixes a triangular portion of the transition matrix
 
 $$
 P(y, x) = P(x, y) \frac{p(y)}{p(x)}
@@ -429,7 +434,7 @@ $$
 
 We can either choose $P(x, y)$ upon which $P(y, x)$ is fixed, or vice versa. $\mathcal R(p)$ is a convex subspace of $\mathcal S$: If $P, P' \in \mathcal R(p)$, then $\lambda P + (1-\lambda) P' \in \mathcal R(p)$ for $\lambda\in[0,1]$. 
 
-To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. \ref{eq:twostate}). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by $\alpha = \Pr(x_2|x_1)$ and $\beta=\Pr(x_1|x_2)$. The $p$-reversible chains form a one-dimensional subspace
+To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. @eq-twostate). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by $\alpha = \Pr(x_2|x_1)$ and $\beta=\Pr(x_1|x_2)$. The $p$-reversible chains form a one-dimensional subspace
 
 $$
 \mathcal R(p) = \left\{(\alpha, \beta) \in [0,1]^2 : \beta = \frac{p(x_1)}{p(x_2)}\,\alpha  \right\}
@@ -475,11 +480,11 @@ fig.tight_layout()
 
 The Metropolis-Hastings algorithm maps an irreducible proposal chain $Q$ to $\mathcal R(p)$
 
-\begin{equation}\label{eq:Metropolis-map}
+$$
 M[Q](y, x) = \min\left\{Q(y, x), \frac{p(y)}{p(x)}\,Q(x, y) \right\}
-\end{equation}
+$$ {#eq-Metropolis-map}
 
-for $y\not= x$ (the diagonal entries are fixed by column stochasticity (Eq. \ref{eq:leftstochastic})). The function $M: \mathcal S(\mathcal X) \to \mathcal R(p)$ is called *Metropolis map*. For a two-state system, the map is simply
+for $y\not= x$ (the diagonal entries are fixed by column stochasticity (Eq. @eq-leftstochastic)). The function $M: \mathcal S(\mathcal X) \to \mathcal R(p)$ is called *Metropolis map*. For a two-state system, the map is simply
 
 $$
 \begin{pmatrix}
@@ -509,17 +514,17 @@ fig.tight_layout()
 
 By construction, the off-diagonal entries in the Metropolis chain $M[Q]$ are *coordinate-wise decreasing*:
 
-\begin{equation}\label{eq:coordinatewise-decreasing}
+$$
 M[Q](y, x) \le Q(y, x)\,\,\,\text{for all}\,\, x, y \in \mathcal X \, .
-\end{equation}
+$$ {#eq-coordinatewise-decreasing}
 
 In the above figure, $Q$ is either shifted to the left along the $\alpha$ axis, i.e. towards smaller $P(x_2, x_1)$ values until $\mathcal{R}(p)$ is hit, or $Q$ is shifted downwards long the $\beta$ axis. 
 
 A suitable metric on $\mathcal S(\mathcal{X})$ is
 
-\begin{equation}\label{eq:metric}
+$$
 d(P, P') = \sum_{x\in\mathcal{X}} \sum_{y\not= x} p(x)\, \left|P(y, x) - P'(y, x)\right|
-\end{equation}
+$$ {#eq-metric}
 
 which is only zero, if $P'=P$. The following figure shows "circles" around some $Q\in\mathcal S(\mathcal X)$ which are of course not actual circles because $d(P,P')$ is a weighted L1 norm, so $d$-circles are diamonds.  
 
@@ -576,7 +581,7 @@ for Q in [(0.1, 0.8), (0.8, 0.2), (0.9, 0.5), (0.5, 0.5)][:4]:
 fig.tight_layout()
 ```
 
-Billera and Diaconis demonstrate that the Metropolis map minimizes the distance $d(Q,P)$ between the proposal chain $Q$ and all $P\in\mathcal{R}(p)$. Among all minimizers in the set of $p$-reversible chains, it picks the unique element that is coordinate-wise decreasing (Eq. \ref{eq:coordinatewise-decreasing}). It makes sense to demand that the mapping is coordinate-wise decreasing, because otherwise it will be more difficult to guarantee that the mapped chain is still in $\mathcal S(\mathcal X)$. 
+Billera and Diaconis demonstrate that the Metropolis map minimizes the distance $d(Q,P)$ between the proposal chain $Q$ and all $P\in\mathcal{R}(p)$. Among all minimizers in the set of $p$-reversible chains, it picks the unique element that is coordinate-wise decreasing (Eq. @eq-coordinatewise-decreasing). It makes sense to demand that the mapping is coordinate-wise decreasing, because otherwise it will be more difficult to guarantee that the mapped chain is still in $\mathcal S(\mathcal X)$. 
 
 ### Variations of Metropolis-Hastings
 

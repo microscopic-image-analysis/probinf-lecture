@@ -261,19 +261,19 @@ fig.tight_layout()
 
 Let $P_i$ be $N$ Markov chains that share the same stationary distribution $\pi$:
 
-\begin{equation}\label{eq:multiple_chains}
+$$
 P_i \pi = \pi, \,\,\, \mathbb{1}^T\!P_i = \mathbb{1}^T
-\end{equation}
+$$ {#eq-multiple_chains}
 
 The product of all chains, $P=\prod_i P_i$ (here $\prod_i$ symbolizes a *matrix product*), is also a Markov chain with the same stationary distribution:
 
-\begin{equation}\label{eq:product_chain}
+$$
 P\pi = \pi, \,\,\, \mathbb{1}^T\!P = \mathbb{1}^T
-\end{equation}
+$$ {#eq-product_chain}
 
 Therefore, the following algorithm will simulate $P$ and therefore eventually $\pi$:
 
-\begin{align}\label{eq:markov-sequence}
+\begin{align}\label{eq-markov-sequence}
 \begin{split}
   \tilde{x}^{(1)} &\sim P_1\bigl(\,\cdot\,, x^{(s)}\bigr) \\
   \tilde{x}^{(2)} &\sim P_2\bigl(\,\cdot\,, \tilde{x}^{(1)}\bigr) \\
@@ -288,33 +288,33 @@ Let's look at a special but important case. Assume that the sample space decompo
 
 By $x_{\setminus i}$ we denote the variable vector obtained by omitting the $i$-th variable (or group of variables):
 
-\begin{equation}\label{eq:without-group}
+$$
 x_{\setminus i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
-\end{equation}
+$$ {#eq-without-group}
 
 Then $x_{\setminus i}$ follows the marginal distribution:
 
-\begin{equation}\label{eq:without-group-marginal}
+$$
 p_{\setminus i}(x_{\setminus i}) = \int p(x_1, \ldots, x_N)\, d x_i
-\end{equation}
+$$ {#eq-without-group-marginal}
 
 The marginal distribution of $x_i$ is:
 
-\begin{equation}\label{eq:group-marginal}
+$$
 p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\setminus i}
-\end{equation}
+$$ {#eq-group-marginal}
 
 The conditional distribution of $x_i$ also readily available:
 
-\begin{equation}\label{eq:group-conditional}
+$$
 p_{i}(x_{i}|x_{\setminus i}) = \frac{p(x)}{p_{\setminus i}(x_{\setminus i})}
-\end{equation}
+$$ {#eq-group-conditional}
 
 Let us consider a sequence of $N$ Markov chains $P_i$ where each chain only updates $x_i$ and does not change $x_{\setminus i}$:
 
-\begin{equation}\label{eq:chain-group}
+$$
 Q_i(y, x) = q_i(y_i, x_i; x_{\setminus i})\, \delta(y_{\setminus i} - x_{\setminus i})  
-\end{equation}
+$$ {#eq-chain-group}
 
 where we introduced a product of delta distributions:
 
@@ -326,7 +326,7 @@ and $q_i(y_i, x_i; x_{\setminus i})$ is a Markov kernel on $\mathcal X_i \times 
 
 The Metropolis map of $Q_i(y, x)$ is
 
-\begin{align}\label{eq:coordinatewise-map}
+\begin{align}\label{eq-coordinatewise-map}
 \begin{split}
 M[Q_i](y, x) 
 &= \min\left\{Q_i(y, x), Q_i(x, y) \frac{p(y)}{p(x)} \right\} \\
@@ -337,7 +337,7 @@ M[Q_i](y, x)
 
 If we run the Metropolis-Hastings algorithm with $Q_i$, we simulate a Markov chain only on the conditional distribution of the $i$-th variable (or group of variables). This involves a Markov kernel $q_i$ on the corresponding subspace $\mathcal X_i$ that could, in principle, depend on all of the current variables. 
 
-This produces a Markov chain with the correct stationary distribution, but since $Q_i$ changes only the $i$-th variable, the resulting Markov chain is not ergodic. The trick is to update each parameter group successively using $Q_i$ in each subspace $\mathcal X_i$, and thereby produce a sequence of Metropolis maps, $M[Q_i]$, that share a common target distribution. Simulation of $M[Q_i]$ one after the other generates a simulation of the product chain, in a fashion analogous to equation (\ref{eq:markov-sequence}). This scheme is sometimes called *Metropolis-within-Gibbs*. 
+This produces a Markov chain with the correct stationary distribution, but since $Q_i$ changes only the $i$-th variable, the resulting Markov chain is not ergodic. The trick is to update each parameter group successively using $Q_i$ in each subspace $\mathcal X_i$, and thereby produce a sequence of Metropolis maps, $M[Q_i]$, that share a common target distribution. Simulation of $M[Q_i]$ one after the other generates a simulation of the product chain, in a fashion analogous to equation (\ref{eq-markov-sequence}). This scheme is sometimes called *Metropolis-within-Gibbs*. 
 
 Let's apply the coordinate-wise sampling scheme to the banana-shaped distribution using uniform proposals in each direction:
 
@@ -407,7 +407,7 @@ $$
 q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i | x_{\setminus i})
 $$
 
-The acceptance ratio in the Metropolis map $M[Q_i]$ (Eq. \ref{eq:coordinatewise-map}) simplifies to 
+The acceptance ratio in the Metropolis map $M[Q_i]$ (Eq. \ref{eq-coordinatewise-map}) simplifies to 
 
 $$
 \frac{q_i(x_i, y_i; x_{\setminus i})}{q_i(y_i, x_i; x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} =
@@ -420,7 +420,7 @@ That is, all proposals are accepted - Gibbs sampling is rejection-free.
 
 Let $p(x_1, \ldots, x_N)$ be the joint distribution of $N$ random variables or groups of random variables $x_i\in\mathcal X_i$ with conditional distributions $p_i(x_i | x_{\setminus i})$, then the following iterative algorithm simulates a Markov chain whose stationary distribution is $p(x_1, \ldots, x_N)$:
 
-\begin{align}\label{eq:gibbs-sampling}
+\begin{align}\label{eq-gibbs-sampling}
 \begin{split}
   x^{(s+1)}_1 &\sim p_1\bigl(\,\cdot\, | x^{(s)}_{\setminus 1}\bigr) \\
   x^{(s+1)}_2 &\sim p_2\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus 2}\bigr) \\
@@ -437,7 +437,7 @@ so ${x}^{(s,s+1)}_{\setminus N} = x^{(s+1)}_{\setminus N}$.
 
 #### Collapsed Gibbs Sampler
 
-A variant of the Gibbs sampler (Eq. \ref{eq:gibbs-sampling}) is the [*collapsed Gibbs sampler*](https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler) where some of the conditional distributions $p_i(x_i | x_{\setminus i})$ are replaced by a marginal distribution, e.g. $p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\setminus i}$. This scheme is equally valid and rejection-free. See also the original paper by [Jun S. Liu](https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829).
+A variant of the Gibbs sampler (Eq. \ref{eq-gibbs-sampling}) is the [*collapsed Gibbs sampler*](https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler) where some of the conditional distributions $p_i(x_i | x_{\setminus i})$ are replaced by a marginal distribution, e.g. $p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\setminus i}$. This scheme is equally valid and rejection-free. See also the original paper by [Jun S. Liu](https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829).
 
 #### Example: Sampling a bivariate Gaussian model
 
@@ -664,7 +664,7 @@ $$
 
 Why is this helpful? We can use Gibbs sampling to generate samples from $p(x, y)$:
 
-\begin{align}\label{eq:gibbs-auxiliary}
+\begin{align}\label{eq-gibbs-auxiliary}
 \begin{split}
 x^{(s+1)} &\sim p\bigl(x | y^{(s)}\bigr) \\
 y^{(s+1)} &\sim p\bigl(y | x^{(s+1)}\bigr) \\
@@ -685,12 +685,14 @@ with a normalization constant $Z(\nu)$ that depends on the degrees of freedom $\
 
 This integral can be written as a [scale-mixture of normals](https://www.jstor.org/stable/2984774?seq=1#metadata_info_tab_contents):
 
-\begin{eqnarray*}
-f(x ; \alpha, \beta) &=& \int \underbrace{\sqrt{\frac{s}{2\pi}}\, e^{-\frac{s}{2} x^2 }}_{\text{Gaussian}}\,\,\, \underbrace{\frac{\beta^\alpha}{\Gamma(\alpha)} s^{\alpha -1} e^{-\beta s}}_{\text{Gamma distribution}} ds \\
-&=& \frac{\beta^\alpha}{\Gamma(\alpha)\,\sqrt{2\pi}} \int s^{\frac{2\alpha + 1}{2} - 1}\,\, \exp\left\{-s(\beta + x^2/2)\right\} ds \\
-&=& \frac{\beta^\alpha}{\Gamma(\alpha)\,\sqrt{2\pi}} \frac{\Gamma(\alpha+1/2)}{\left(\beta + x^2/2\right)^{\frac{2\alpha+1}{2}}} \\
-&=& \frac{1}{\sqrt{2\pi\beta}} \frac{\Gamma(\alpha+1/2)}{\Gamma(\alpha)} \left(1 + x^2/2\beta\right)^{-(\frac{2\alpha+1}{2})} \\
-\end{eqnarray*}
+$$
+\begin{aligned}
+    f(x ; \alpha, \beta) &= \int \underbrace{\sqrt{\frac{s}{2\pi}}\, e^{-\frac{s}{2} x^2 }}_{\text{Gaussian}}\,\,\, \underbrace{\frac{\beta^\alpha}{\Gamma(\alpha)} s^{\alpha -1} e^{-\beta s}}_{\text{Gamma distribution}} ds \\
+    &= \frac{\beta^\alpha}{\Gamma(\alpha)\,\sqrt{2\pi}} \int s^{\frac{2\alpha + 1}{2} - 1}\,\, \exp\left\{-s(\beta + x^2/2)\right\} ds \\
+    &= \frac{\beta^\alpha}{\Gamma(\alpha)\,\sqrt{2\pi}} \frac{\Gamma(\alpha+1/2)}{\left(\beta + x^2/2\right)^{\frac{2\alpha+1}{2}}} \\
+    &= \frac{1}{\sqrt{2\pi\beta}} \frac{\Gamma(\alpha+1/2)}{\Gamma(\alpha)} \left(1 + x^2/2\beta\right)^{-(\frac{2\alpha+1}{2})}
+\end{aligned}
+$$
 
 So $f(x; \alpha, \beta)$ is identical to $p(x|\nu)$ for $\alpha=\nu/2$ and $\beta=\nu/2$.
 

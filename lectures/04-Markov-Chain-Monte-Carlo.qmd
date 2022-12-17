@@ -34,9 +34,9 @@ where $q(x)$ is a proposal or helper distribution.
 
 The idea of [__Markov chain Monte Carlo (MCMC)__](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) methods is to give up the *independence* of successive samples and generate sequences of states where $x^{(s)}$ depends on the previous sample $x^{(s-1)}$. Our hope is that also when introducing these correlations, the Monte Carlo approximation
 
-\begin{equation}\label{eq:MCapproximation}
+$$
 \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr) \approx \mathbb E_p[f]
-\end{equation}
+$$ {#eq-MCapproximation}
 
 is still valid. This is justified by our intuition that as long as we run the simulation long enough correlations between two states $x^{(s')}$ and $x^{(s)}$ will vanish with large $|s'-s|$, and the samples $x^{(s)}$ will approximately follow $p(x)$ for large $s$
 
@@ -48,9 +48,9 @@ Markov chains are models for dynamical systems with possibly uncertain transitio
 
 A (first order) [*Markov chain*](https://en.wikipedia.org/wiki/Markov_chain) is a *memoryless* stochastic process $\left(x^{(s)}\right)_{s\ge 0}$ that has the following [property](https://en.wikipedia.org/wiki/Markov_property)
 
-\begin{equation}\label{eq:MarkovChain}
+$$
 \Pr\bigl(x^{(s+1)} \mid x^{(s)}, \ldots, x^{(1)}\bigr) = \Pr\bigl(x^{(s+1)} \mid x^{(s)}\bigr)
-\end{equation}
+$$ {#eq-MarkovChain}
 
 with $x^{(s)} \in \mathcal X$. That is, the probability of finding the system in state $x^{(s+1)}$ only depends on the *last* state $x^{(s)}$, not on the previous states before the last state. In this sense, Markov chains have no memory. A Markov chain is uniquely characterized by 
 
@@ -74,44 +74,44 @@ For example the two-state Markov chain with transition probabilities $\Pr(x_2\mi
 
 Since the transition probability depends only on the last state, we can summarize all probabilities in a *transition matrix*
 
-\begin{equation}\label{eq:transition-matrix}
+$$
     P(x, y) = \Pr(x \mid y)
-\end{equation}
+$$ {#eq-transition-matrix}
 
 For continuous sample spaces, the transition matrix becomes a transition operator or [Markov kernel](https://en.wikipedia.org/wiki/Markov_kernel). For the above two-state system we have
 
-\begin{equation}\label{eq:twostate}
+$$
 P(x, y) = \begin{pmatrix}
 1 - \alpha & \beta \\
 \alpha & 1 - \beta \\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-twostate}
 
 where $\alpha, \beta \in [0, 1]$.
 
 In discrete sample spaces, $P(x, y)$ is the probability that we jump from state $y\in\mathcal X$ to state $x\in\mathcal X$. Because we are dealing with conditional probabilities, we have
 
-\begin{equation}\label{eq:transition-matrix2}
+$$
 \sum_{x\in\mathcal X} P(x, y) = 1, \,\,\, P(x, y) \ge 0\, .
-\end{equation}
+$$ {#eq-transition-matrix2}
 
 The first condition can be written in matrix-vector notation
 
-\begin{equation}\label{eq:leftstochastic}
+$$
 \mathbb 1^T\!P = \mathbb 1^T
-\end{equation}
+$$ {#eq-leftstochastic}
 
 where 
 
-\begin{equation}\label{eq:one}
+$$
 \mathbb 1 = \begin{pmatrix}
 1 \\
 \vdots\\
 1\\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-one}
 
-is a column vector whose elements are all one, and $P$ is the transition matrix. Non-negative square matrices that satisfy condition (\ref{eq:leftstochastic}) are called [*(left) stochastic*](https://en.wikipedia.org/wiki/Stochastic_matrix) matrices. The qualifier "left" stems from the fact that the *columns* of $P(x, y)$ are probability vectors, so multiplication with $\mathbb 1^T$ from the left produces one for each column. 
+is a column vector whose elements are all one, and $P$ is the transition matrix. Non-negative square matrices that satisfy condition (@eq-leftstochastic) are called [*(left) stochastic*](https://en.wikipedia.org/wiki/Stochastic_matrix) matrices. The qualifier "left" stems from the fact that the *columns* of $P(x, y)$ are probability vectors, so multiplication with $\mathbb 1^T$ from the left produces one for each column. 
 
 #### Left versus right stochastic matrices
 
@@ -188,16 +188,16 @@ $$
 
 The marginal distribution of the $(s+1)$-th state in a Markov chain follows the distribution
 
-\begin{equation}\label{eq:marginalMC}
+$$
 p^{(s+1)}(x) = \sum_{y\in\mathcal X} P(x, y)\, p^{(s)}(y)\, . 
-\end{equation}
+$$ {#eq-marginalMC}
 
 Repeating the same argument for $p^{(s)}$, we have
 
-\begin{equation}\label{eq:marginalMC2}
+$$
 p^{(s+1)}(x) = \sum_{y, z\in\mathcal X} P(x, y)\, P(y, z) \, p^{(s-1)}(z) = 
 \sum_{z\in\mathcal X} \left(\sum_{y\in\mathcal X} P(x, y)\, P(y, z) \right) \, p^{(s-1)}(z)\, . 
-\end{equation}
+$$ {#eq-marginalMC2}
 
 The expression in brackets, $\sum_{y\in\mathcal X} P(x, y)\, P(y, z)$, is the transition matrix for making two successive transitions. By generalizing the argument, we obtain the [Chapman-Kolmogorov equation](https://en.wikipedia.org/wiki/Chapman%E2%80%93Kolmogorov_equation).
 
@@ -217,9 +217,9 @@ $$
 
 The matrix power $P^s$ is the matrix analog of the power of scalar quantities: 
 
-\begin{equation}\label{eq:matrix_power}
+$$
 P^s = \underbrace{P \cdot P\cdots P}_{s\text{ terms}} 
-\end{equation}
+$$ {#eq-matrix_power}
 
 where the dot "$\cdot$" indicates matrix multiplication. It is straightforward to see that if $P$ is stochastic, then $P^s$ for $s\ge 1$ is also stochastic. The matrix power $P^s$ *propagates* the distribution of states by $s$ time steps.  
 
@@ -257,9 +257,9 @@ If we keep on taking powers of $P$, the resulting matrix will converge to a low-
 
 The states with $|\lambda |=1$ play a crucial role in the long term behavior of the Markov chain. The left stochasticity of $P$ is the requirement that $\mathbb 1$ is a left eigenvector with eigenvalue 1. Since left and right eigenvalues coincide, there is at least one *right* eigenvector $\pi$ with eigenvalue one:
 
-\begin{equation}\label{eq:stationary}
+$$
 P\pi = \pi
-\end{equation}
+$$ {#eq-stationary}
 
 If $\pi$ is normalized such that $\mathbb 1^T\!\pi=1$, then $\pi$ is a __stationary__ or __invariant__ distribution of $P$. 
 
@@ -303,11 +303,11 @@ This is also an example of an [*absorbing Markov chain*](https://en.wikipedia.or
 
 An alternative definition of an irreducible Markov chain goes as follows: For all pairs $x, y \in \mathcal X$ there exists $s(x,y)\in \mathbb N$ such that
 
-\begin{equation}\label{eq:irreducible}
+$$
 \Pr\bigl(x^{(s)}=x\mid x^{(0)} = y\bigr) = (P^s)(x, y) > 0
-\end{equation}
+$$ {#eq-irreducible}
 
-note that $s(x,y)$ is in general different for every pair of states $x, y \in\mathcal X$. The intuition behind this notion of irreducibility is that "all states can be reached from all other states". [Häggström](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.24.9739&rep=rep1&type=pdf) uses the following terminology: If two states satisfy the irreducibility condition (\ref{eq:irreducible}), then $x$ is said to *communicate* with $y$, i.e. $y$ can be reached from $x$ in a finite time, which is symbolized by $x\to y$. Two states $x$ and $y$ *intercommunicate*, if $x\to y$ and $y\to x$, which is denoted by $x\leftrightarrow y$ (so there exists a path from $x$ to $y$ with non-vanishing probability, and likewise a path from $y$ back to $x$). Using this terminology, a Markov chain is irreducible, if $x \leftrightarrow y$ for all $x, y \in \mathcal X$. This gives us also a hint for verifying irreducibility by checking if the *transition graph* of a Markov chain is [strongly connected](https://en.wikipedia.org/wiki/Strongly_connected_component).
+note that $s(x,y)$ is in general different for every pair of states $x, y \in\mathcal X$. The intuition behind this notion of irreducibility is that "all states can be reached from all other states". [Häggström](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.24.9739&rep=rep1&type=pdf) uses the following terminology: If two states satisfy the irreducibility condition (@eq-irreducible), then $x$ is said to *communicate* with $y$, i.e. $y$ can be reached from $x$ in a finite time, which is symbolized by $x\to y$. Two states $x$ and $y$ *intercommunicate*, if $x\to y$ and $y\to x$, which is denoted by $x\leftrightarrow y$ (so there exists a path from $x$ to $y$ with non-vanishing probability, and likewise a path from $y$ back to $x$). Using this terminology, a Markov chain is irreducible, if $x \leftrightarrow y$ for all $x, y \in \mathcal X$. This gives us also a hint for verifying irreducibility by checking if the *transition graph* of a Markov chain is [strongly connected](https://en.wikipedia.org/wiki/Strongly_connected_component).
 
 On the other hand, if a Markov chain is reducible, then the analysis of its long-term behavior can be reduced to the analysis of the long-term behavior of one or more Markov chains with smaller state space.
 
@@ -317,9 +317,9 @@ To illustrate the concept of irreducibility let us come back to the linear congr
 
 In lecture 2, we studied linear congruential generators based on the recurrence relation
 
-\begin{equation}\label{eq:LCG}
+$$
 x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m 
-\end{equation}
+$$ {#eq-LCG}
 
 with  
 
@@ -446,7 +446,7 @@ ax[2].set_ylabel(r'spectrum $|FT|$')
 fig.tight_layout()
 ```
 
-We can now analyze this LCG by using Markov chain methods. The recurrence relation (\ref{eq:LCG}) defines a Markov chain with deterministic transitions:
+We can now analyze this LCG by using Markov chain methods. The recurrence relation (@eq-LCG) defines a Markov chain with deterministic transitions:
 
 $$
 P(x, y) = \left\{\begin{array}{c l}
@@ -535,9 +535,9 @@ fig.tight_layout()
 
 The period of a state $x\in\mathcal X$ is defined as
 
-\begin{equation}\label{eq:period}
+$$
 d(x) = \text{gcd}\left\{s \ge 1 : P^s(x, x) > 0\right\} 
-\end{equation}
+$$ {#eq-period}
 
 where $\text{gcd}\{a_1, a_2, \ldots\}$ is the [greatest common divisor](https://en.wikipedia.org/wiki/Greatest_common_divisor) of the natural numbers $a_1, a_2, \ldots \in \mathbb N$. The period of a state $x$ is the greatest common divisor of the times that the chain can return (i.e. has positive probability of returning) to $x$, given that we start in $x$. 
 
@@ -568,56 +568,56 @@ For this Markov chain both states, $x_1$ and $x_2$, have a period of two, since 
 
 We have
 
-\begin{equation}\label{eq:twostate2}
+$$
 P(x, y) = \begin{pmatrix}
 1 - \alpha & \beta \\
 \alpha & 1 - \beta \\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-twostate2}
 
 with eigenvalues $1$ and $1-\alpha-\beta$ and corresponding (right) eigenvectors:
 
-\begin{equation}\label{eq:twostate-decomposition}
+$$
 \pi = \frac{1}{\alpha+\beta} \begin{pmatrix}
 \beta \\ \alpha
 \end{pmatrix}, \,\,\,
 \text{and}\,\,\,  \begin{pmatrix}
 1 \\ -1 \\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-twostate-decomposition}
 
 assuming $\alpha>0$ or $\beta>0$. 
 
 In case $\alpha=\beta=0$:
 
-\begin{equation}\label{eq:twostate3}
+$$
 P(x, y) = \begin{pmatrix}
 1  & 0 \\
 0 & 1  \\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-twostate3}
 
 all two state distributions are stationary with eigenvalue one. In particular, we have eigenvectors
 
-\begin{equation}\label{eq:decomposition2}
+$$
 \begin{pmatrix}
 1 \\ 0
 \end{pmatrix}, \,\,\,
 \begin{pmatrix}
 0 \\ 1 \\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-decomposition2}
 
 corresponding to two recurrent classes, and $P$ is reducible.
 
 In case $\alpha=\beta=1$:
 
-\begin{equation}\label{eq:twostate4}
+$$
 P(x, y) = \begin{pmatrix}
 0  & 1 \\
 1 & 0  \\
 \end{pmatrix}
-\end{equation}
+$$ {#eq-twostate4}
 
 the eigenvalues are $1$ and $-1$ with eigenvectors
 

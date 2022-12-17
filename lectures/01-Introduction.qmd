@@ -24,9 +24,9 @@ Being good Bayesians we are interested in the following computational tasks
 
 At its most fundamental level, [Bayesian inference](https://en.wikipedia.org/wiki/Bayesian_inference) involves applying the sum and product rule of probability theory  to learn a model from some information: 
 
-\begin{equation}\label{eq:bayes}
+$$
     \underbrace{\Pr(\theta|D, M)}_{Posterior}\,\, \underbrace{\Pr(D|M)}_{Evidence} = \underbrace{\Pr(D |\theta, M)}_{Likelihood}\,\, \underbrace{\Pr(\theta | M)}_{Prior}
-\end{equation}
+$$ {#eq-bayes}
 
 where $D$ are the data, $M$ is a model with parameters $\theta$. 
 
@@ -38,9 +38,9 @@ There are two main tasks in Bayesian inference:
 
 First task requires computations with the (unnormalized) posterior $\Pr(\theta|D,M)$ or $\Pr(D|\theta,M)\,\Pr(\theta|M)$. The second task involves computation of the model evidence:
 
-\begin{equation}\label{eq:evidence}
+$$
     \Pr(D|M) = \int \Pr(D|\theta, M)\, \Pr(\theta|M)\, d\theta 
-\end{equation}
+$$ {#eq-evidence}
 
 Other important integrals that need to be computed in Bayesian analysis are:
 
@@ -233,9 +233,10 @@ $$
 e.g. the model evidence used in Bayesian model comparison is $\Pr(D|M) = \mathbb E_{\Pr(\theta|M)}[\Pr(D|\theta,M)]$. 
 
 * The notation
-\begin{equation}\label{eq:sample_from}
+$$
 x \sim p(x)
-\end{equation}
+$$ {#eq-sample_from}
+
 means that $x$ follows the distribution $p$
 
 At $\beta = \frac{\log(1 + \sqrt 2)}{2} \approx 0.44$, something peculiar happens. The "attractive forces" that tend to align neighboring spins become so dominant that large regions form. Across these regions, all spins have a similar orientation. This is a *phase transition*. Similar phenomena occur also in learning large probabilistic models where the prior and the likelihood often favor distinct regions in parameter space. 
@@ -259,21 +260,21 @@ Figure from [McCracken: The Monte Carlo Method](https://www.jstor.org/stable/249
 
 The idea of the Monte Carlo method for probabilistic inference is simple: Instead of computing the integral/sum by systematically visiting all possible states in $\mathcal X$, we (randomly) pick those states that are likely to contribute strongly to the sum/integral:
 
-\begin{equation}\label{eq:sampling}
+$$
 \mathbb{E}_{p}[f] = \int_{\mathcal X} f(x)\, p(x)\,  dx \approx \hat f_S := \frac{1}{S} \sum_{s=1}^S f(x^{(s)})\,\,\,\text{with}\,\,\,  x^{(s)} \sim p(x)
-\end{equation}
+$$ {#eq-sampling}
 where $x^{(s)}$ are $S\in\mathbb N$ samples from $p(x)$ (the index $s$ enumerates all samples) and $\hat f_S$ is a *Monte Carlo estimate* or *Monte Carlo approximation* of $\mathbb E_p[f]$. Our hope is that with $S\to\infty$, the approximation becomes better and better. This is indeed the case, as we will see in a second. 
 
 ### Monte Carlo as density estimation
 
 The Monte Carlo approximation can also be viewed as a *density estimation* approach since the estimate $\hat f_S$ can be interpreted as the expectation under the approximate probability
-\begin{equation}\label{eq:approximate_pdf}
+$$
 \hat p_S(x) = \frac{1}{S} \sum_{s=1}^S \delta(x - x^{(s)})
-\end{equation}
+$$ {#eq-approximate_pdf}
 where $\delta(\cdot)$ is the [delta distribution](https://en.wikipedia.org/wiki/Dirac_delta_function): 
-\begin{equation}\label{eq:sampling2}
+$$
 \hat f_S := \frac{1}{S} \sum_{s=1}^S f(x^{(s)}) = \mathbb E_{\hat p_S}[f]
-\end{equation}
+$$ {#eq-sampling2}
 We approximate the true probability $p(x)$ with a Monte Carlo estimate $\hat p_S(x)$ obtained at $S$ samples $x^{(s)}$ where 
 
 $$
@@ -293,23 +294,25 @@ $$
 
 The Monte Carlo estimate $\hat f_S$ is a random quantity, because with each realization of $x^{(1)}, \ldots, x^{(S)}$ we obtain a different result. We can compute the first two moments of $\hat f_S$:
 
-\begin{equation}\label{eq:MCbias}
+$$
 \mathbb E_{p_S}[\hat f_S] = \frac{1}{S} \sum_{s=1}^S \mathbb{E}_p[f(x^{(s)})] = \mathbb{E}_p[f] =: \mu
-\end{equation}
+$$ {#eq-MCbias}
 That is, the Monte Carlo estimate of $\mathbb E_p[f]$ is __unbiased__.
 
 How accurate is the estimate on average (i.e. how close do we get to the true value if we run many replications of the sampling procedure)? To answer this question, we compute the variance
 
-\begin{eqnarray}\label{eq:MCvariance}
-\nonumber \text{var}[\hat f_S] 
-&=& \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-\nonumber &=& \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
-&=& \frac{1}{S} \text{var}[f] 
-\end{eqnarray}
+$$
+\begin{aligned}
+    \nonumber \text{var}[\hat f_S] 
+    &= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
+    \nonumber &= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+    &= \frac{1}{S} \text{var}[f] 
+\end{aligned}
+$$ {#eq-MCvariance}
 That is, Monte Carlo error bars shrink like $1/\sqrt{S}$:
-\begin{equation}\label{eq:MCerror}
+$$
 \sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
-\end{equation}
+$$ {#eq-MCerror}
 
 where the proportionality constant $\sigma(f)=\sqrt{\text{var}[f]}$ depends on the specific estimation problem. In practice, $\sigma(f)$ is not available (after all we are doing Monte Carlo because we cannot do the sum/integrals that are necessary to compute means and variances...). However, we can use Monte Carlo to estimate $\sigma(f)$.
 
@@ -317,17 +320,17 @@ where the proportionality constant $\sigma(f)=\sqrt{\text{var}[f]}$ depends on t
 
 So far, we studied the behavior of the Monte Carlo estimator for fixed number of samples $S$ and many repetitions. Let us now look at the limit $S\to\infty$. We have (almost surely)
 
-\begin{equation}\label{eq:slln}
+$$
 \hat f_S \overset{S\to\infty}{\longrightarrow} \mu = \mathbb E_p[f]
-\end{equation}
+$$ {#eq-slln}
 
 This result is known as the [*strong law of large numbers*](https://en.wikipedia.org/wiki/Law_of_large_numbers).
 
 If $\text{var}[f] < \infty$, then the [__Central limit theorem__ (CLT)](https://en.wikipedia.org/wiki/Central_limit_theorem), a fundamental theorem in Statistics, guarantees that Monte Carlo works:
 
-\begin{equation}\label{eq:CLT}
+$$
 \hat f_S \overset{S\to\infty}{\longrightarrow} \mathcal N\left(\mathbb E_p[f], \sigma(f)^2/S\right) 
-\end{equation}
+$$ {#eq-CLT}
 
 where $\mathcal N(\mu, \sigma^2)$ is the [Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution) with mean $\mu$ and variance $\sigma$. 
 
@@ -337,9 +340,9 @@ But these are only statistical, asymptotic guarantees for the convergence of Mon
 
 Let us use a simple Monte Carlo approach to estimate $\pi$. We have
 
-\begin{equation}\label{eq:pi}
+$$
 \pi = \int_{[-1,1]^2} \mathbb 1(x^2 + y^2 < 1)\, \, dx dy = \int_{\mathcal X} f(x, y)\, p(x, y)\, dxdy
-\end{equation}
+$$ {#eq-pi}
 
 where $\mathbb 1(\cdot)$ is the indicator function. In this example, the distribution $p(x,y)=1/4$ is the uniform distribution over the square $\mathcal X = [-1, 1]^2$ and $f(x, y) = 4\cdot\mathbb 1(x^2 + y^2 < 1)$. We have:
 
@@ -349,9 +352,9 @@ $$
 
 This integral can be approximated by:
 
-\begin{equation}\label{eq:pi_MC}
+$$
 \pi \approx \frac{1}{S} \sum_{s=1}^S f(x^{(s)}, y^{(s)})
-\end{equation}
+$$ {#eq-pi_MC}
 
 where $(x^{(s)}, y^{(s)})$ are picked randomly from the unit square. The approximate value of $\pi$ is just four times the fraction of sampling points that land in the unit disk.  
 

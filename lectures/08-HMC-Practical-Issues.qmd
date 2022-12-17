@@ -54,7 +54,7 @@ The crucial feature for making HMC work properly is the conservation of phase sp
 
 [Leapfrog integration](https://en.wikipedia.org/wiki/Leapfrog_integration) is a simple symplectic integration scheme that is often used as an integrator in HMC. The leapfrog integrator solves a finite-difference version of Hamilton's equations of motion:
 
-\begin{align}\label{eq:leapfrog}
+\begin{align}\label{eq-leapfrog}
 \begin{split}
 v(t+\epsilon/2) &= v(t) - (\epsilon/2) \nabla_x E(x(t)) \\
 x(t+\epsilon) &= x(t) + \epsilon v(t+\epsilon/2) \\
@@ -734,11 +734,11 @@ fig.tight_layout()
 
 The speed of convergence of a Markov chain $P$ with stationary distribution $\pi$ depends on how quickly contributions to the distance
 
-\begin{equation}\label{eq:distance}
+$$
 \left|p^{(S)} - \pi\right|
-\end{equation}
+$$ {#eq-distance}
 
-die out as $S\to\infty$. Distance (\ref{eq:distance}) is dominated by the second largest eigenvalue $\lambda_2$ of $P$. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly $|\lambda_2| < 1$. If $u_2, u_3, \ldots$ are the eigenvectors of $P$ with eigenvalues $1 > |\lambda_2| \ge |\lambda_3| >\ldots$, then we can write the initial distribution as
+die out as $S\to\infty$. Distance (@eq-distance) is dominated by the second largest eigenvalue $\lambda_2$ of $P$. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly $|\lambda_2| < 1$. If $u_2, u_3, \ldots$ are the eigenvectors of $P$ with eigenvalues $1 > |\lambda_2| \ge |\lambda_3| >\ldots$, then we can write the initial distribution as
 $$
 p^{(0)} = \pi + a_2 u_2 + a_3 u_3 + \ldots
 $$
@@ -831,34 +831,34 @@ $$
 $$
 and the difference can be substantial for small $s$, thereby inducing significant bias to the Monte Carlo estimator:
 
-\begin{equation}
+$$
 \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr).
-\end{equation}
+$$
 
 It is difficult to assess the reliability of MCMC approximations, because of the dependence of the samples $x^{(s)}$. The dependence usually adds variance to the estimator, when compared against simple Monte Carlo averages.
 
 To minimize biases stemming from a poor choice of the initial distribution $p^{(0)}$, it is common practice to discard the first samples $x^{(0)}, \ldots, x^{(B)}$ called *burn-in*. It is assumed that $x^{(B+1)}$ will approximately follow the target distribution $p$. The Monte Carlo approximation then becomes:
-\begin{equation}\label{eq:burnin}
+$$
 \frac{1}{S-B} \sum_{s=B+1}^S f\bigl(x^{(s)}\bigr)\, .
-\end{equation}
+$$ {#eq-burnin}
 Several statistics can be used to detect bias in MCMC simulations. However, they usually rely on rather strong assumptions, such as the asymptotic normality, or at least uni-modality of the target.
 
 ### Auto-correlation diagnostic
 
 The asymptotic variance of the MCMC estimator can be shown to converge against
-\begin{equation}\label{eq:variance}
+$$
 \text{var}\left[\frac{1}{S}\sum_s f\bigl(x^{(s)}\bigr) \right] \xrightarrow[S\to\infty]{} \frac{1}{S} \text{var}_p[f] (1 + 2 \sum_{s\ge 1} \rho_s)  
-\end{equation}
+$$ {#eq-variance}
 where $\rho_s$ are the *correlations* between the initial samples and the $s$-th samples
-\begin{equation}\label{eq:correlation}
+$$
 \rho_s = \text{corr}[f(x^{(0)}), f(x^{(s)})] \, .
-\end{equation}
+$$ {#eq-correlation}
 For uncorrelated samples $\rho_s=0$ and we are back to the standard variance of Monte Carlo estimators: $\text{var}[f]/S$. However, due to correlations the variance can be increased significantly (in principle, the variance can approach infinity for perfectly correlated samples). 
 
 Another way to look at this is that correlations decrease the *effective sample size* (ESS), which becomes
-\begin{equation}\label{eq:ess}
+$$
 S_{\text{eff}} = \frac{S}{1 + 2 \sum_{s\ge 1} \rho_s} = \frac{S}{\text{IACT}}
-\end{equation}
+$$ {#eq-ess}
 where $\text{IACT} = 1 + 2 \sum_{s\ge 1} \rho_s$ is the *integrated auto-correlation time*. 
 
 ```{python}
