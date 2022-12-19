@@ -292,7 +292,7 @@ in some appropriate norm $|\cdot|$.
 The joint distribution of all Monte Carlo samples is simply a product density, because all samples are generated *independently* of each other:
 $$
 p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
-$$
+$$ {#eq-MC-sample-independece}
 
 The Monte Carlo estimate $\hat f_S$ is a random quantity, because with each realization of $x^{(1)}, \ldots, x^{(S)}$ we obtain a different result. We can compute the first two moments of $\hat f_S$:
 
@@ -305,13 +305,17 @@ How accurate is the estimate on average (i.e. how close do we get to the true va
 
 $$
 \begin{aligned}
-    \nonumber \text{var}[\hat f_S] 
+    \text{var}_{p_S}[\hat f_S] 
+    &= \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] \\
+    &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} (f(x^{(s)} - \mu) (f(x^{s'}) - \mu))\bigr] \\
     &= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-    \nonumber &= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
-    &= \frac{1}{S} \text{var}[f] 
+    &= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+    &= \frac{1}{S} \text{var}_{p}[f] 
 \end{aligned}
 $$ {#eq-MCvariance}
-That is, Monte Carlo error bars shrink like $1/\sqrt{S}$:
+where we've made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. @eq-MC-sample-independece) in the fourth.
+
+The result shows that Monte Carlo error bars shrink like $1/\sqrt{S}$:
 $$
 \sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
 $$ {#eq-MCerror}
