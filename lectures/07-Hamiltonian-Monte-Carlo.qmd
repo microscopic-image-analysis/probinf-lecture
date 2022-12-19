@@ -39,7 +39,7 @@ $$
 
 Why is this helpful? We can use Gibbs sampling to generate samples from $p(x, y)$:
 
-\begin{align}\label{eq:gibbs-auxiliary2}
+\begin{align}\label{eq-gibbs-auxiliary2}
 \begin{split}
 x^{(s+1)} &\sim p\bigl(x | y^{(s)}\bigr) \\
 y^{(s+1)} &\sim p\bigl(y | x^{(s+1)}\bigr) \\
@@ -299,9 +299,9 @@ Another auxiliary variable method is [Hamiltonian Monte Carlo (HMC)](https://en.
 
 The idea of HMC is to exploit the following physical analogy: we interpret 
 
-\begin{equation}\label{eq:energy-hmc}
+$$
 E(x) = - \log p(x)
-\end{equation}
+$$ {#eq-energy-hmc}
 
 as a potential energy function of a physical system with degrees of freedom $x$. Typically, $x\in\mathbb{R}^D$.
 
@@ -313,15 +313,15 @@ $$
 
 and construct the joint distribution:
 
-\begin{equation}\label{eq:hmc-joint}
+$$
 p(x, v) = p(x)\, p(v) \propto \exp\left\{- E(x) - \|v\|^2 / 2 \right\}\, .
-\end{equation}
+$$ {#eq-hmc-joint}
 
 It seems that we didn't gain anything by introducing $v$ other than artificially blowing up the problem and writing the joint distribution in some fancy, pseudo-physical way. However, the major insight comes from the fact that if we stretch the physical analogy further, the joint distribution can be viewed as the [canonical ensemble](https://en.wikipedia.org/wiki/Canonical_ensemble) defined over [*phase space*](https://en.wikipedia.org/wiki/Phase_space):
 
-\begin{equation}\label{eq:hmc-hamiltonian}
+$$
 p(x, v) \propto \exp\left\{- H(x, v)\right\}\,\,\,\text{where}\,\,\,  H(x, v) := \underbrace{\tfrac{1}{2} \|v\|^2}_{\text{kinetic energy}} + \underbrace{E(x)}_{\text{potential energy}}\, .
-\end{equation}
+$$ {#eq-hmc-hamiltonian}
 
 Phase space is the joint space of positions $x$ and momenta (velocities) $v$ in our physical analogy, and the total energy is given by the sum of the kinetic and potential energy is called the [*Hamiltonian*](https://en.wikipedia.org/wiki/Hamiltonian_mechanics) of the system. 
 
@@ -329,7 +329,7 @@ Phase space is the joint space of positions $x$ and momenta (velocities) $v$ in 
 
 Classical systems with $D$ degrees of freedom evolve in time by the action of the Hamiltonian $H(x, v)$. Trajectories in phase space are given by the time evolution of velocities and positions, $v(t)$ and $x(t)$. The dynamics of the system is described by Hamilton's equations of motion (an elegant generalization of Newton dynamics):
 
-\begin{align}\label{eq:hmc-dynamics}
+\begin{align}\label{eq-hmc-dynamics}
 \begin{split}
 \dot{v} &= \frac{d}{dt} v = - \nabla_x H(x, v) \\
 \dot{x} &= \frac{d}{dt} x = + \nabla_v H(x, v) \\
@@ -338,7 +338,7 @@ Classical systems with $D$ degrees of freedom evolve in time by the action of th
 
 where $d/dt$ is the derivative with respect to time $t$ and abbreviated by a dot (as in $\dot{x}$), and $\nabla_x, \nabla_v$ are the gradients with respect to positions $x$ and momenta $v$. 
 
-The hallmark of Hamiltonian dynamics (Eq. \ref{eq:hmc-dynamics}) of an isolated classical system is that it conserves the total energy. This is clear from
+The hallmark of Hamiltonian dynamics (Eq. \ref{eq-hmc-dynamics}) of an isolated classical system is that it conserves the total energy. This is clear from
 
 $$
 \frac{d}{dt} H = (\nabla_x H(x, v))^T\dot{x} + (\nabla_v H(x, v))^T\dot{v} = (\nabla_x H)^T\!(\nabla_v H) - (\nabla_v H)^T\!(\nabla_x H) = 0
@@ -387,9 +387,9 @@ with the following dynamics:
 
 In matrix-vector form we have
 
-\begin{equation}\label{eq:oscillator}
+$$
 \frac{d}{dt} \begin{pmatrix} v\\ x\end{pmatrix} = \begin{pmatrix} 0 & -k \\ 1 & 0 \\ \end{pmatrix} \begin{pmatrix} v\\ x\end{pmatrix} = A \begin{pmatrix} v\\ x\end{pmatrix}\,\,\,\Rightarrow\,\,\, \begin{pmatrix} v(t)\\ x(t)\end{pmatrix} = \exp\{tA\} \begin{pmatrix} v_0\\ x_0\end{pmatrix}
-\end{equation}
+$$ {#eq-oscillator}
 
 where $\exp\{tA\}$ is a matrix exponential $\exp\{tA\} = \sum_n \frac{t^n}{n!} A^n$. The matrix powers have a simple structure: 
 
@@ -399,7 +399,7 @@ $$
 
 So the solution of the Hamilton equations is (with $\omega = \sqrt{k}$):
 
-\begin{eqnarray*}\label{eq:oscillator2}
+\begin{eqnarray*}\label{eq-oscillator2}
 \begin{pmatrix} v(t)\\ x(t)\end{pmatrix} &=& I \sum_{n} \frac{(-)^n}{(2n)!} (\omega t)^{2n} \begin{pmatrix} v_0\\ x_0\end{pmatrix} + \omega^{-1}A \sum_{n} \frac{(-)^n}{(2n+1)!} (\omega t)^{2n+1} \begin{pmatrix} v_0\\ x_0\end{pmatrix} \\
 &=& \biggl(I \cos(\omega t) + \omega^{-1}A \sin(\omega t)\biggr) \begin{pmatrix} v_0\\ x_0\end{pmatrix} \\
 &=& \begin{pmatrix} \cos(\omega t) & -\omega\sin(\omega t)\\ \sin(\omega t)/\omega  & \cos(\omega t) \\ \end{pmatrix} \begin{pmatrix} v_0\\ x_0\end{pmatrix} 

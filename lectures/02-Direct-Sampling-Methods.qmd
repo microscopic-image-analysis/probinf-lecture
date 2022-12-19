@@ -31,7 +31,7 @@ print(f'accuracy: {abs(4*val-np.pi)}')
 
 ## Do we beat the curse of dimensionality?
 
-Although Monte Carlo doesn't depend explicitly on the dimension of the sample space, it does so in practice. If we go back to our expression for the Monte Carlo error (Eq. \ref{eq:MCerror})
+Although Monte Carlo doesn't depend explicitly on the dimension of the sample space, it does so in practice. If we go back to our expression for the Monte Carlo error (Eq. @eq-MCerror)
 
 $$
 \sigma(\hat f_S) = \sigma(f) / \sqrt{S}
@@ -56,10 +56,12 @@ $$
 
 We can compute how the Monte Carlo error scales by evaluating the mean and variance of $f$:
 
-\begin{eqnarray*}
-\mathbb E[f] &=& V(D)\\
-\text{var}[f] &=& \mathbb E[f^2]  - V^2(D) = 2^D V(D) - V^2(D) = \bigl(2^D - V(D)\bigr)\, V(D) 
-\end{eqnarray*}
+$$
+\begin{aligned}
+    \mathbb E[f] &= V(D)\\
+    \text{var}[f] &= \mathbb E[f^2]  - V^2(D) = 2^D V(D) - V^2(D) = \bigl(2^D - V(D)\bigr)\, V(D) 
+\end{aligned}
+$$
 
 Therefore, the error of the above Monte Carlo procedure scales with $D$ as follows:
 
@@ -387,9 +389,9 @@ Assuming that we have a good source for pseudo random numbers, let us first look
 
 How can we use uniform random numbers from $[0, 1]$ to generate samples from $p$? For given $u\sim \mathcal U(0,1)$ pick state $i\in[N]$ such that
 
-\begin{equation}\label{eq:discrete_sampling}
+$$
     i = \min\bigl\{j \in\mathbb N\, :\, \sum_{k=1}^j p_k \ge u  \bigr\}
-\end{equation}
+$$ {#eq-discrete_sampling}
 
 Here and in the following $\mathcal U(0,1)$ denotes the uniform distribution over the unit interval, i.e. $x\sim U(0,1)$ has density $p(x) = \mathbb 1(0 < x < 1)$.  
 
@@ -400,7 +402,7 @@ $$
 $$
 
 
-Criterion (Eq. \ref{eq:discrete_sampling}) picks the interval with $u\in[c_{i-1}, c_{i})=:I_i$. The length of each interval $I_i$ is $c_i - c_{i-1} = p_i$, and equal to the chance of landing in $I_i$. Therefor the generated $x_i$ will follow $p$.   
+Criterion (Eq. @eq-discrete_sampling) picks the interval with $u\in[c_{i-1}, c_{i})=:I_i$. The length of each interval $I_i$ is $c_i - c_{i-1} = p_i$, and equal to the chance of landing in $I_i$. Therefor the generated $x_i$ will follow $p$.   
 
 ```{python}
 # illustration discrete sampling
@@ -426,9 +428,9 @@ fig.tight_layout()
 
 The Poisson distribution is a pmf over the sample space $\mathbb N$, i.e. $x=0, 1, 2, \ldots$ and defined as
 
-\begin{equation}\label{eq:poisson}
+$$
 p(x) = \frac{\lambda^x}{x!} e^{-\lambda}, \,\,\, \lambda > 0
-\end{equation}
+$$ {#eq-poisson}
 
 the parameter $\lambda$ is called *rate*. The mean and variance of $x$ are
 
@@ -500,9 +502,9 @@ Let's first look at the simplest version of sampling from a pdf where the sample
 
 Let $h$ be a *one-to-one mapping* between two one-dimensional sample spaces $h: \mathcal X \to \mathcal Y$, and $h^{-1}$ is the inverse function. If $x\sim p_x(x)$, what is the distribution $p_y(y)$ of $y=h(x)$? To answer this question let us compute the distribution $p_y$:
 
-\begin{equation}\label{eq:transform1d}
+$$
 p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{h'(h^{-1}(y))}
-\end{equation}
+$$ {#eq-transform1d}
 
 where we used the transformation property of the [delta distribution](https://en.wikipedia.org/wiki/Dirac_delta_function). The transformation rule guarantees that normalized pdfs transform into normalized pdfs. 
 
@@ -525,23 +527,23 @@ $$
 
 The [*inversion method*](https://en.wikipedia.org/wiki/Inverse_transform_sampling) is a simple variable transformation method. Let $p(x)$ be a pdf over a sample space $\mathcal X \subset \mathbb R$, then the [*cumulative distribution function* (cdf)](https://en.wikipedia.org/wiki/Cumulative_distribution_function) is:
 
-\begin{equation}\label{eq:cdf}
+$$
 P(y) = \Pr(x \le y) = \mathbb E_p[x \le y] = \int^y_{-\infty} p(x)\, dx
-\end{equation}
+$$ {#eq-cdf}
 
 this is the continuous analog of $c_i$ defined above in the section on sampling discrete models. By construction, $P(x) \in [0, 1]$ for $x \in\mathcal X$. $P(x)$ is continuous and strictly increasing and therefore invertible. Inverse transform sampling uses the following mathematical fact:
 
-\begin{equation}\label{eq:inversion_method}
+$$
 x = P^{-1}(u) \sim p(x)\,\,\,\text{for}\,\,\, u\sim\mathcal U(0,1) 
-\end{equation}
+$$ {#eq-inversion_method}
 
-That is, we can generate random samples from $p(x)$ by generating uniformly distributed random numbers in $[0, 1]$ and map them to $\mathcal X$ with the inverse of the cdf $P^{-1}$. To see that this is a valid sampling procedure, let us compute the distribution of $x=P^{-1}(u)$ using the transformation rule (Eq. \ref{eq:transform1d}): We have
+That is, we can generate random samples from $p(x)$ by generating uniformly distributed random numbers in $[0, 1]$ and map them to $\mathcal X$ with the inverse of the cdf $P^{-1}$. To see that this is a valid sampling procedure, let us compute the distribution of $x=P^{-1}(u)$ using the transformation rule (Eq. @eq-transform1d): We have
 
 $$
 \frac{d\, P^{-1}(u)}{d\, u} = \frac{1}{P'(P^{-1}(u))} = \frac{1}{p(P^{-1}(u))}
 $$
 
-Plugging this expression into (Eq. \ref{eq:transform1d}) yields
+Plugging this expression into (Eq. @eq-transform1d) yields
 
 $$
 p_x(x) = \frac{p_u(P(x))}{(P^{-1})'(P(x))} = \frac{1}{1 / p(x)} = p(x)
@@ -706,16 +708,18 @@ fig.tight_layout()
     
 ```
 
-In principle, the inverse transformation approach (Eq. \ref{eq:inversion_method}) generalizes to multiple dimensions (see, for example, Murray Rosenblatt: [Remarks on a Multivariate Transformation](https://www.jstor.org/stable/2236692?seq=1#metadata_info_tab_contents)):
+In principle, the inverse transformation approach (Eq. @eq-inversion_method) generalizes to multiple dimensions (see, for example, Murray Rosenblatt: [Remarks on a Multivariate Transformation](https://www.jstor.org/stable/2236692?seq=1#metadata_info_tab_contents)):
 
-\begin{eqnarray*}\label{eq:multivariate_transform}
+$$
 %
-P_1(x_1') &=& \Pr(x_1 < x_1') = \int \mathbb 1(x_1 \le x_1')\, p(x_1, \ldots, x_D)\, dx_1 \cdots dx_D \\
-%
-P_2(x_2'\mid{}x_1) &=& \Pr(x_2 < x_2' \mid{}x_1) = \int \mathbb 1(x_2 \le x_2')\, p(x_2, \ldots, x_D\mid{}x_1)\, dx_2 \cdots dx_D \\
- &\vdots&  \\
-P_D(x_D'\mid{}x_{D-1}, \ldots, x_{1}) &=& \Pr(x_D < x_D'\mid{}x_{D-1}, \ldots, x_{1}) = \int \mathbb 1(x_D \le x_D')\, p(x_D\mid{}x_{D-1}, \ldots, x_{1})\, dx_D \\
-\end{eqnarray*}
+\begin{aligned}
+    P_1(x_1') &= \Pr(x_1 < x_1') = \int \mathbb 1(x_1 \le x_1')\, p(x_1, \ldots, x_D)\, dx_1 \cdots dx_D \\
+    %
+    P_2(x_2'\mid{}x_1) &= \Pr(x_2 < x_2' \mid{}x_1) = \int \mathbb 1(x_2 \le x_2')\, p(x_2, \ldots, x_D\mid{}x_1)\, dx_2 \cdots dx_D \\
+    &\vdots  \\
+    P_D(x_D'\mid{}x_{D-1}, \ldots, x_{1}) &= \Pr(x_D < x_D'\mid{}x_{D-1}, \ldots, x_{1}) = \int \mathbb 1(x_D \le x_D')\, p(x_D\mid{}x_{D-1}, \ldots, x_{1})\, dx_D
+\end{aligned}
+$$ {#eq-multivariate_transform}
 
 However, only in very rare cases is it possible to compute the multivariate cumulative distribution function in higher dimensional spaces, let alone invert it in closed form. 
 

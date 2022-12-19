@@ -147,9 +147,9 @@ where $x, b \in \mathbb R^D$ and $A\in\mathbb R^{D\times D}$ is positive definit
 
 The [Erlang distribution](https://en.wikipedia.org/wiki/Erlang_distribution), a special version of the [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution), has the functional form
 
-\begin{equation}\label{eq:erlang}
+$$
     p(x|k, \lambda) = \frac{\lambda^k}{\Gamma(k)} x^{k - 1} e^{-\lambda x}, \, k \in \mathbb N, \, k> 0,\, \lambda > 0
-\end{equation}
+$$ {#eq-erlang}
 
 We can use exponentially distributed random variables $z_i \sim \lambda e^{-\lambda z_i}, i=1, \ldots, k$ to produce an Erlang variate. Define $z_i = x y_i$ with $y_i\in[0, 1]$ for $1 \le i \le k-1$ and $z_k = x \bigl(1-\sum_{i=1}^{k-1} y_i\bigr)$, then $x = \sum_i z_i$. The Jacobian of the parameter transform is
 
@@ -222,15 +222,15 @@ Direct sampling methods are specifically designed for particular target distribu
 
 [*Rejection sampling*](https://en.wikipedia.org/wiki/Rejection_sampling) is an early sampling approach that has been developed by von Neumann. The idea is to use a helper distribution $q$ from which we can sample easily in order to sample from a more complicated model $p$. To be a valid proposal distribution, $q$ must satisfy
 
-\begin{equation}\label{eq:rejection_proposal}
+$$
     p(x) \le M q(x)
-\end{equation}
+$$ {#eq-rejection_proposal}
 
 for a constant $M$ which implies $M\ge 1$, since $p$ and $q$ are normalized pdfs. Moreover, the support of $p$ should be contained in the support of the proposal distribution $q$. Let's define the ratio 
 
-\begin{equation}\label{eq:rejection_accprob}
-r(x) := \frac{p(x)}{M q(x)}
-\end{equation}
+$$
+    r(x) := \frac{p(x)}{M q(x)}
+$$ {#eq-rejection_accprob}
 
 which is smaller than or equal to 1 for all $x$ with $q(x)>0$, otherwise we set $r(x) = 1$. 
 
@@ -354,11 +354,11 @@ $$
 
 It is straight forward to compute this distribution. We have $p(x\mid{}a=1) = p(x, a=1)\, /\, p(a=1)$. We need to compute the marginal probability $p(a=1)$:
 
-\begin{equation}\label{eq:rs-acceptance}
+$$
 p(a=1) = \int p(x, a=1)\, dx = \int q(x)\, r(x)\, dx = \int q(x)\, \frac{p(x)}{Mq(x)}\, dx = \frac{1}{M}
-\end{equation}
+$$ {#eq-rs-acceptance}
 
-since $p$ is normalized. Equation (\ref{eq:rs-acceptance}) tells us that the average probability to propose an acceptable sample is $M^{-1}$. We can now compute the desired conditional distribution $p(x\mid{}a=1)$: 
+since $p$ is normalized. Equation (@eq-rs-acceptance) tells us that the average probability to propose an acceptable sample is $M^{-1}$. We can now compute the desired conditional distribution $p(x\mid{}a=1)$: 
 
 $$
 p(x\mid{}a=1) = \frac{p(x, a=1)}{p(a=1)} = M q(x)\, r(x) = M q(x)\, \frac{p(x)}{M q(x)} = p(x)\, .
@@ -511,10 +511,12 @@ Finding tight bounds in high dimensions is very difficult. Moreover, the volume 
 
 Often, it is not possible to normalize a probabilistic model. So we only know $p^*(x)$ and $q^*(x)$ with
 
-\begin{eqnarray*}
-p(x) &=& \frac{p^*(x)}{Z_p}\,\,\,\text{with}\,\,\, Z_p = \int_{\mathcal X} p^*(x)\, dx < \infty\\ 
-q(x) &=& \frac{q^*(x)}{Z_q}\,\,\,\text{with}\,\,\, Z_q = \int_{\mathcal X} q^*(x)\, dx < \infty\, . 
-\end{eqnarray*}
+$$
+\begin{aligned}
+    p(x) &= \frac{p^*(x)}{Z_p}\,\,\,\text{with}\,\,\, Z_p = \int_{\mathcal X} p^*(x)\, dx < \infty\\ 
+    q(x) &= \frac{q^*(x)}{Z_q}\,\,\,\text{with}\,\,\, Z_q = \int_{\mathcal X} q^*(x)\, dx < \infty\, . 
+\end{aligned}
+$$
 
 The condition that has to be satisfied is now
 
@@ -522,7 +524,7 @@ $$
 p^*(x) \le M q^*(x)\,\,\, \Rightarrow M \ge Z_p/Z_q\, .
 $$
 
-In analogy to Eq. (\ref{eq:rejection_accprob}), the acceptance probability changes to
+In analogy to Eq. (@eq-rejection_accprob), the acceptance probability changes to
 
 $$
 r(x) = \frac{p^*(x)}{M q^*(x)} \le 1
@@ -575,17 +577,17 @@ The algorithm produces random samples $x^{(s)}$ and (importance) weights $w^{(s)
 
 Expectation values are then approximated by
 
-\begin{equation}\label{eq:IS}
-\mathbb E_p[f] \approx \hat f_{\text{IS}} := \frac{1}{S} \sum_{s=1}^S w^{(s)} \, f(x^{(s)})
-\end{equation}
+$$
+    \mathbb E_p[f] \approx \hat f_{\text{IS}} := \frac{1}{S} \sum_{s=1}^S w^{(s)} \, f(x^{(s)})
+$$ {#eq-IS}
 
 The right hand side can be interpreted as the expectation of $f$ under the approximate density
 
-\begin{equation}\label{eq:is-approximation}
-\hat p_S(x) = \frac{1}{S} \sum_{s=1}^S w^{(s)} \delta\bigl(x - x^{(s)}\bigr)\, .
-\end{equation}
+$$
+    \hat p_S(x) = \frac{1}{S} \sum_{s=1}^S w^{(s)} \delta\bigl(x - x^{(s)}\bigr)\, .
+$$ {#eq-is-approximation}
 
-This is a generalization of the approximate density introduced earlier in Eq. (\ref{eq:approximate_pdf}). 
+This is a generalization of the approximate density introduced earlier in Eq. (@eq-approximate_pdf). 
 
 Let us again use a Gaussian target and a Cauchy proposal to illustrate the sampling algorithm:
 
@@ -636,7 +638,7 @@ fig.tight_layout()
 
 ### Properties of importance sampling
 
-The importance sampling estimator (Eq. \ref{eq:IS}) is unbiased: The $S$ samples follow the joint distribution $q_S(x^{(1)}, \ldots, x^{(S)}) = \prod_s q(x^{(s)})$, and the expectation of the importance sampling estimator is
+The importance sampling estimator (Eq. @eq-IS) is unbiased: The $S$ samples follow the joint distribution $q_S(x^{(1)}, \ldots, x^{(S)}) = \prod_s q(x^{(s)})$, and the expectation of the importance sampling estimator is
 
 $$
 \mathbb E_{q_S}[\hat f_{\text{IS}}] 
@@ -647,7 +649,7 @@ $$
 
 The law of large numbers guarantees that $\hat f_{\text{IS}} \to \mathbb E_p[f]$ for $S\to\infty$. 
 
-Since the importance sampling (IS) estimator $\hat f_{\text{IS}}$ is simply the Monte Carlo estimator for $w(x)f(x)$ and sampling distribution $q$, also the variance is readily available from Eq. (\ref{eq:MCvariance}): 
+Since the importance sampling (IS) estimator $\hat f_{\text{IS}}$ is simply the Monte Carlo estimator for $w(x)f(x)$ and sampling distribution $q$, also the variance is readily available from Eq. (@eq-MCvariance): 
 
 $$
 \text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \text{var}_q[wf] \, . 
@@ -659,9 +661,9 @@ $$
 \text{var}_q[wf] = \underbrace{\mathbb E_q[(wf)^2]}_{\mathbb E_p[wf^2]} - \bigl(\underbrace{\mathbb E_q[wf]}_{\mathbb E_p[f]}\bigr)^2 = \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2
 $$
 
-\begin{equation}\label{eq:ISvariance}
-\text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \biggl( \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2 \biggr)\, . 
-\end{equation}
+$$
+    \text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \biggl( \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2 \biggr)\, . 
+$$ {#eq-ISvariance}
 
 Like the error of the standard Monte Carlo approximation, the error of the IS estimator shrinks with $1/\sqrt{S}$. We can also minimize the variance of the IS estimator as a functional of the proposal distribution (subject to the constraint $\int q(x)\, dx = 1$), which can be achieved by minimizing the Lagrangian $\mathbb E_p[p/q\, f^2] + \lambda (1-\int q(x) dx)$ resulting in the optimal IS proposal:
 
@@ -710,25 +712,25 @@ $$
 
 The IS estimator for the ratio of normalizing constants is
 
-\begin{equation}\label{eq:ISratio}
-(\widehat{Z_p/Z_q})_{\text{IS}} = \frac{1}{S} \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})} \, .
-\end{equation}
+$$
+    (\widehat{Z_p/Z_q})_{\text{IS}} = \frac{1}{S} \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})} \, .
+$$ {#eq-ISratio}
 
-Plugging this estimator into standard IS estimator (Eq. \ref{eq:IS}) yields the *self-normalized* importance sampling (NIS) estimator
+Plugging this estimator into standard IS estimator (Eq. @eq-IS) yields the *self-normalized* importance sampling (NIS) estimator
 
-\begin{equation}\label{eq:ISselfnormalized}
+$$
 \hat f_{\text{NIS}} = \frac{\sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}\, f(x^{(s)})}{ \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}} = \frac{\sum_{s=1}^S w^{(s)}\, f(x^{(s)})}{ \sum_{s=1}^S w^{(s)}}
-\end{equation}
+$$ {#eq-ISselfnormalized}
 
 In contrast to $\hat f_{\text{IS}}$, the self-noramlized IS estimator $\hat f_{\text{NIS}}$ is biased, but strongly consistent, meaning that for $S\to\infty$ the NIS estimator converges to the correct estimate: $\hat f_{\text{NIS}} \to \mathbb E_p[f]$. The asymptotic variance of the estimator can be approximated by
 
-\begin{equation}\label{eq:NISvar}
+$$
 \text{var}_{\text{as}}[\hat f_{\text{NIS}}] =  \frac{\frac{1}{S} \sum_s [w^{(s)}]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}}\bigr)^2}{\bigl[\frac{1}{S} \sum_s w^{(s)}\bigr]^2}\, .   
-\end{equation}
+$$ {#eq-NISvar}
 
 ### Effective sample size
 
-The [effective sampling size (ESS)](https://en.wikipedia.org/wiki/Effective_sample_size) is the number of *independent* samples $S_{\text{eff}}$ that would result in the same variance as the NIS estimator (Eq. \ref{eq:NISvar}). To compute ESS, we match the asymptotic variance of $\hat f_{\text{NIS}}$ with the variance resulting from $S_{\text{eff}}$:    
+The [effective sampling size (ESS)](https://en.wikipedia.org/wiki/Effective_sample_size) is the number of *independent* samples $S_{\text{eff}}$ that would result in the same variance as the NIS estimator (Eq. @eq-NISvar). To compute ESS, we match the asymptotic variance of $\hat f_{\text{NIS}}$ with the variance resulting from $S_{\text{eff}}$:    
 
 $$
 \frac{1}{S} \text{var}_{\text{as}}[\hat f_{\text{NIS}}] = \frac{\sum_s \bigl[w^{(s)}\bigr]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}} \bigr)^2}{\bigl[\sum_s w^{(s)}\bigr]^2} = \frac{\sigma^2}{S_{\text{eff}}}
@@ -736,9 +738,9 @@ $$
 
 where $\sigma^2 = \text{var}_p[f]$. For $f(x^{(s)}) - \hat f_{\text{NIS}} \approx \sigma$, we obtain:
 
-\begin{equation}\label{eq:ESS}
+$$
 S_{\text{eff}} = \frac{\bigl[\sum_s w^{(s)}\bigr]^2}{\sum_s \bigr[w^{(s)}\bigl]^2}
-\end{equation}
+$$ {#eq-ESS}
 
 The two extreme cases are:
 
