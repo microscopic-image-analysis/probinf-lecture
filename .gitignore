@@ -6,4 +6,5 @@
 lecture_files
 *.html
 lectures/*_files
+exercises/*_files
 /.quarto/
