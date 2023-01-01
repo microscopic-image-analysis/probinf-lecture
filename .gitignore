@@ -5,6 +5,7 @@
 # quarto output
 lecture_files
 *.html
+*.pdf
 lectures/*_files
 exercises/*_files
 /.quarto/
