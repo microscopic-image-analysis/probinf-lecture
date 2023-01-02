@@ -21,7 +21,7 @@ Are the random floating point numbers distributed uniformly in $I$?
 * Think about it
 * Then, generate many floating point numbers in this way, and visualize their empirical distribution via a [Histogram](https://en.wikipedia.org/wiki/Histogram) of the values
     * Hint: If you've thought about the bit representation of IEEE-754 floating points, you've figured there are some special values like `NaN` or `±Inf`. Drop such values before creating the histogram
-    * Hint2: If you inted to use `matplotlib`'s `hist()` function, be aware that it doesn't like 16-bit floats. Convert the values to 32-bit (or 64-bit) floats before calling `hist()`.
+    * Hint2: If you intend to use `matplotlib`'s `hist()` function, be aware that it doesn't like 16-bit floats. Convert the values to 32-bit (or 64-bit) floats before calling `hist()`.
 
 
 ## b)
