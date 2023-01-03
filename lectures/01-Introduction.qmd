@@ -49,12 +49,12 @@ $$
 \Pr(\theta_1|D,M) = \int \Pr(\theta_1, \theta_2|D, M)\, d{\theta_2}
 $$
 
-* Getting rid of nuisance parameters:
+* Getting rid of [nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter):
 $$
 \Pr(D|\theta_1, M) = \int \Pr(D, \theta_2 | \theta_1, M) \, d{\theta_2}
 $$
 
-* Getting rid of hyperparameters:
+* Getting rid of [hyperparameters](https://en.wikipedia.org/wiki/Hyperparameter):
 $$
 \Pr(\theta|D, M) \propto \int \Pr(D|\theta, M)\, \Pr(\theta|\alpha, M)\, \Pr(\alpha|M)\, d{\alpha}
 $$
@@ -219,6 +219,7 @@ for a, beta, x in zip(ax, betas, X):
 fig.tight_layout()
 ```
 
+::: {.callout-note}
 ## Notation and conventions
 
 * Most of the time I will consider a _probability density function_ (pdf) or _probability mass function_ (pmf) $p(x)$ where $x$ could be a parameter vector of a probabilistic model (e.g. in case we want to do computations with the posterior) or the observations from which we want to learn a model. For continuous sample spaces $\mathcal X$, we are dealing with a __pdf__. In case of a discrete sample space $\mathcal X$ (finite or countably infinite), $p(x)$ is a __pmf__. 
@@ -238,6 +239,7 @@ x \sim p(x)
 $$ {#eq-sample_from}
 
 means that $x$ follows the distribution $p$
+:::
 
 At $\beta = \frac{\log(1 + \sqrt 2)}{2} \approx 0.44$, something peculiar happens. The "attractive forces" that tend to align neighboring spins become so dominant that large regions form. Across these regions, all spins have a similar orientation. This is a *phase transition*. Similar phenomena occur also in learning large probabilistic models where the prior and the likelihood often favor distinct regions in parameter space. 
 
@@ -290,7 +292,7 @@ in some appropriate norm $|\cdot|$.
 The joint distribution of all Monte Carlo samples is simply a product density, because all samples are generated *independently* of each other:
 $$
 p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
-$$
+$$ {#eq-MC-sample-independece}
 
 The Monte Carlo estimate $\hat f_S$ is a random quantity, because with each realization of $x^{(1)}, \ldots, x^{(S)}$ we obtain a different result. We can compute the first two moments of $\hat f_S$:
 
@@ -303,13 +305,17 @@ How accurate is the estimate on average (i.e. how close do we get to the true va
 
 $$
 \begin{aligned}
-    \nonumber \text{var}[\hat f_S] 
+    \text{var}_{p_S}[\hat f_S] 
+    &= \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] \\
+    &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} (f(x^{(s)} - \mu) (f(x^{s'}) - \mu))\bigr] \\
     &= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-    \nonumber &= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
-    &= \frac{1}{S} \text{var}[f] 
+    &= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+    &= \frac{1}{S} \text{var}_{p}[f] 
 \end{aligned}
 $$ {#eq-MCvariance}
-That is, Monte Carlo error bars shrink like $1/\sqrt{S}$:
+where we've made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. @eq-MC-sample-independece) in the fourth.
+
+The result shows that Monte Carlo error bars shrink like $1/\sqrt{S}$:
 $$
 \sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
 $$ {#eq-MCerror}

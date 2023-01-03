@@ -1,2 +1,5 @@
 toc: true
 toc-depth: 2
+
+editor:
+  render-on-save: true
