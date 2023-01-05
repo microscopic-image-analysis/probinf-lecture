@@ -25,7 +25,7 @@ Being good Bayesians we are interested in the following computational tasks
 At its most fundamental level, [Bayesian inference](https://en.wikipedia.org/wiki/Bayesian_inference) involves applying the sum and product rule of probability theory  to learn a model from some information: 
 
 $$
-    \underbrace{\Pr(\theta|D, M)}_{Posterior}\,\, \underbrace{\Pr(D|M)}_{Evidence} = \underbrace{\Pr(D |\theta, M)}_{Likelihood}\,\, \underbrace{\Pr(\theta | M)}_{Prior}
+    \underbrace{\Pr(\theta\mid D, M)}_{Posterior}\,\, \underbrace{\Pr(D\mid M)}_{Evidence} = \underbrace{\Pr(D\mid \theta, M)}_{Likelihood}\,\, \underbrace{\Pr(\theta\mid M)}_{Prior}
 $$ {#eq-bayes}
 
 where $D$ are the data, $M$ is a model with parameters $\theta$. 
@@ -36,32 +36,32 @@ There are two main tasks in Bayesian inference:
 
 2. comparison of model $M$ to alternative model $M'$. 
 
-First task requires computations with the (unnormalized) posterior $\Pr(\theta|D,M)$ or $\Pr(D|\theta,M)\,\Pr(\theta|M)$. The second task involves computation of the model evidence:
+First task requires computations with the (unnormalized) posterior $\Pr(\theta\mid{}D,M)$ or $\Pr(D\mid{}\theta,M)\,\Pr(\theta\mid{}M)$. The second task involves computation of the model evidence:
 
 $$
-    \Pr(D|M) = \int \Pr(D|\theta, M)\, \Pr(\theta|M)\, d\theta 
+    \Pr(D\mid{}M) = \int \Pr(D\mid{}\theta, M)\, \Pr(\theta\mid{}M)\, d\theta 
 $$ {#eq-evidence}
 
 Other important integrals that need to be computed in Bayesian analysis are:
 
 * Marginal posterior:
 $$ 
-\Pr(\theta_1|D,M) = \int \Pr(\theta_1, \theta_2|D, M)\, d{\theta_2}
+\Pr(\theta_1\mid{}D,M) = \int \Pr(\theta_1, \theta_2\mid{}D, M)\, d{\theta_2}
 $$
 
 * Getting rid of [nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter):
 $$
-\Pr(D|\theta_1, M) = \int \Pr(D, \theta_2 | \theta_1, M) \, d{\theta_2}
+\Pr(D\mid{}\theta_1, M) = \int \Pr(D, \theta_2 \mid{} \theta_1, M) \, d{\theta_2}
 $$
 
 * Getting rid of [hyperparameters](https://en.wikipedia.org/wiki/Hyperparameter):
 $$
-\Pr(\theta|D, M) \propto \int \Pr(D|\theta, M)\, \Pr(\theta|\alpha, M)\, \Pr(\alpha|M)\, d{\alpha}
+\Pr(\theta\mid{}D, M) \propto \int \Pr(D\mid{}\theta, M)\, \Pr(\theta\mid{}\alpha, M)\, \Pr(\alpha\mid{}M)\, d{\alpha}
 $$
 
 * Evaluation of predictive distributions:
 $$
-\Pr(y|D,M) = \int \Pr(y|\theta, M)\, \Pr(\theta | D, M)\, d{\theta}
+\Pr(y\mid{}D,M) = \int \Pr(y\mid{}\theta, M)\, \Pr(\theta \mid{} D, M)\, d{\theta}
 $$
 
 ### Use of Monte Carlo methods in machine learning
@@ -72,18 +72,18 @@ $$
 R(f) = \sum_{n=1}^N \ell(y_n, f(x_n))
 $$
 
-where $\ell(\cdot, \cdot)$ is a loss function that assesses the discrepancy between the observation $y_n$ and the prediction $f(x_n)$ based on a (non-parametric) model $f(x)$. For large $N$, evaluation of $R(f)$ can be very costly. A simple strategy to overcome this problem, is to train a surrogate of the risk obtained by *randomly* selecting a small subset from the data, a *mini-batch* $B$, and use 
+where $\ell(\cdot, \cdot)$ is a loss function that assesses the discrepancy between the observation $y_n$ and the prediction $f(x_n)$ based on a (non-parametric) model $f(x)$. For large $N$, evaluation of $R(f)$ can be very costly. A simple strategy to overcome this problem is to train a surrogate of the risk obtained by *randomly* selecting a small subset from the data, a *mini-batch* $B$, and use 
 
 $$
 \hat R_B(f) = \frac{N}{|B|} \sum_{n\in B} \ell(y_n, f(x_n))
 $$
 
-as a cost function for training $f(x)$. [Stochastic gradient descent](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) follows the gradient of the surrogate rather than the full empirical risk, for example, when training deep neural nets
+as a cost function for training $f(x)$. [Stochastic gradient descent](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) follows the gradient of the surrogate rather than the full empirical risk, for example, when training deep neural nets. 
 
 Another application is learning of *intractable models* in representation learning (unsupervised learning). Many important models such as [Boltzmann machines](https://en.wikipedia.org/wiki/Boltzmann_machine) or [restrictive Boltzmann machines](https://en.wikipedia.org/wiki/Restricted_Boltzmann_machine) are members of the exponential family involving a vector of features $f(y)$: 
 
 $$
-\Pr(y|\theta) = \frac{1}{Z(\theta)} \exp\bigl\{\theta^T\!\!f(y)\bigr\}\,\,\,\text{with}\,\,\, Z(\theta) = \int \exp\bigl\{\theta^T\!\!f(y)\bigr\} dy. 
+\Pr(y\mid{}\theta) = \frac{1}{Z(\theta)} \exp\bigl\{\theta^T\!\!f(y)\bigr\}\,\,\,\text{with}\,\,\, Z(\theta) = \int \exp\bigl\{\theta^T\!\!f(y)\bigr\} dy. 
 $$
 
 The normalizing constant $Z(\theta)$ is called the *partition function* (by borrowing the terminology from [Statistical Physics](https://en.wikipedia.org/wiki/Partition_function_(statistical_mechanics))). $Z(\theta)$ is often *intractable*, meaning that we don't have a closed form expression for evaluating $Z(\theta)$. Computation of $Z(\theta)$ is formally analogous to computing the model evidence in Bayesian inference.  
@@ -91,13 +91,13 @@ The normalizing constant $Z(\theta)$ is called the *partition function* (by borr
 The log likelihood of observing $y$ is 
 
 $$
-\log \Pr(y|\theta) = \theta^T\!\!f(y) - \log Z(\theta)
+\log \Pr(y\mid{}\theta) = \theta^T\!\!f(y) - \log Z(\theta)
 $$
 
 and maximized by following its gradient
 
 $$
-\nabla_\theta \log \Pr(y|\theta) = f(y) - \mathbb E_{\Pr(y|\theta)}[f]\,\,\,\text{where}\,\,\,\mathbb E_{\Pr(y|\theta)}[f] = \int f(y) \Pr(y|\theta)\, dy = \sum_{y \in \mathcal X} f(y)\, \Pr(y | \theta)
+\nabla_\theta \log \Pr(y\mid{}\theta) = f(y) - \mathbb E_{\Pr(y\mid{}\theta)}[f]\,\,\,\text{where}\,\,\,\mathbb E_{\Pr(y\mid{}\theta)}[f] = \int f(y) \Pr(y\mid{}\theta)\, dy = \sum_{y \in \mathcal X} f(y)\, \Pr(y \mid{} \theta)
 $$
 
 If computation of $Z(\theta)$ is challenging, then also the expectation of the features $\mathbb E[f]$ is oftentimes not available in analytically closed form. In this case, one often resorts to a Monte Carlo approximation of $\mathbb E[f]$, for example, in the [*contrastive divergence*](http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf) approach by Geoffrey Hinton. 
@@ -224,21 +224,21 @@ fig.tight_layout()
 
 * Most of the time I will consider a _probability density function_ (pdf) or _probability mass function_ (pmf) $p(x)$ where $x$ could be a parameter vector of a probabilistic model (e.g. in case we want to do computations with the posterior) or the observations from which we want to learn a model. For continuous sample spaces $\mathcal X$, we are dealing with a __pdf__. In case of a discrete sample space $\mathcal X$ (finite or countably infinite), $p(x)$ is a __pmf__. 
 
-* It is generally hard to compute normalized probabilities, but also not really necessary for many sampling algorithms. Therefore, often $p(x)$ is just a nonnegative function, and we assume that the integral $\int_{\mathcal X} p(x)dx < \infty$ or sum $\sum_{x\in\mathcal X} p(x) < \infty$ is finite
+* It is generally hard to compute normalized probabilities, but also not really necessary for many sampling algorithms. Therefore, often $p(x)$ is just a nonnegative function, and we assume that the integral $\int_{\mathcal X} p(x)dx < \infty$ or sum $\sum_{x\in\mathcal X} p(x) < \infty$ is finite. 
 
 * Often, the computation that we need to carry out can be expressed as the __expectation__ of some quantity under a probability. We will denote expectations by
 
-$$
-\mathbb{E}_{p}[f] = \int_{\mathcal X} f(x)\, p(x)\,  dx
-$$
-e.g. the model evidence used in Bayesian model comparison is $\Pr(D|M) = \mathbb E_{\Pr(\theta|M)}[\Pr(D|\theta,M)]$. 
+  $$
+  \mathbb{E}_{p}[f] = \int_{\mathcal X} f(x)\, p(x)\,  dx
+  $$
+  e.g. the model evidence used in Bayesian model comparison is $\Pr(D\mid{}M) = \mathbb E_{\Pr(\theta\mid{}M)}[\Pr(D\mid{}\theta,M)]$. 
 
 * The notation
 $$
 x \sim p(x)
 $$ {#eq-sample_from}
 
-means that $x$ follows the distribution $p$
+   means that $x$ follows the distribution $p$
 :::
 
 At $\beta = \frac{\log(1 + \sqrt 2)}{2} \approx 0.44$, something peculiar happens. The "attractive forces" that tend to align neighboring spins become so dominant that large regions form. Across these regions, all spins have a similar orientation. This is a *phase transition*. Similar phenomena occur also in learning large probabilistic models where the prior and the likelihood often favor distinct regions in parameter space. 
@@ -309,11 +309,16 @@ $$
     &= \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] \\
     &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} (f(x^{(s)} - \mu) (f(x^{s'}) - \mu))\bigr] \\
     &= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-    &= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+	&= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')}) - \mu(f(x^{(s)}) + f(x^{(s')})) + \mu^2)\bigr] \\
+	&= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')})\bigr] - \mu^2 \\
+	&= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p_S}\bigl[\bigl(f(x^{(s)})\bigr)^2\bigr] + \frac{1}{S^2} \sum_{s\not= s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')})\bigr] - \mu^2 \\
+	&= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p}\bigl[\bigl(f(x^{(s)})\bigr)^2\bigr] + \frac{S(S-1)}{S^2} \mu^2 - \mu^2 \\
+	&= \frac{1}{S} \mathbb{E}_{p}\bigl[f^2\bigr] - \frac{1}{S} \mu^2 \\
+	&= \frac{1}{S} \mathbb{E}_{p}\bigl[(f - \mu)^2\bigr] \\
     &= \frac{1}{S} \text{var}_{p}[f] 
 \end{aligned}
 $$ {#eq-MCvariance}
-where we've made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. @eq-MC-sample-independece) in the fourth.
+where we've made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. @eq-MC-sample-independece) in the seventh.
 
 The result shows that Monte Carlo error bars shrink like $1/\sqrt{S}$:
 $$
@@ -429,7 +434,7 @@ estimates = np.array([list(map(estimate_pi, S)) for _ in range(n_rep)])
 ```{python}
 mean_pi = estimates.mean(0)
 std_pi = estimates.std(0)
-var = np.pi*(4.-np.pi)
+var = np.pi * (4.0 - np.pi)
 
 fig, ax = plt.subplots(1, 1, figsize=(8, 5), subplot_kw=kw)
 ax.fill_between(S, mean_pi - np.pi + std_pi, mean_pi - np.pi - std_pi,
