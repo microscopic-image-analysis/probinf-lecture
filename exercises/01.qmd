@@ -24,12 +24,63 @@ Are the random floating point numbers distributed uniformly in $I$?
     * Hint2: If you intend to use `matplotlib`'s `hist()` function, be aware that it doesn't like 16-bit floats. Convert the values to 32-bit (or 64-bit) floats before calling `hist()`.
 
 
+```{python}
+N = 1_000_000
+
+# use numpy's default Random Number Generator:
+rng = np.random.default_rng(42)
+
+# generate random sequence of 2 * N bytes (= 16 * N bits)
+b = rng.bytes(2 * N)
+
+def float_from_bits(b, dtype=np.float16):
+    return np.frombuffer(b, dtype=dtype)
+
+# interpret the random bits as a sequence (array) of floating point numbers
+x = float_from_bits(b)
+```
+
+```{python}
+import matplotlib.pyplot as plt
+
+# drop NaNs and Infs, convert to 32-float (to please matplotlib), and plot histogram
+plt.hist(x[np.isfinite(x)].astype(np.float32))
+```
+
 ## b)
 
 (Pseudo-) random number libraries usually offer random floating point numbers from the interval $[0, 1)$.
 
 * Sample random floating point numbers in the $[0, 1)$ interval and print their bit representation. What do you observe?
 * How can we change our procedure in order to get uniformly distributed floating point numbers from our random bit stream?
+
+```{python}
+np.binary_repr(np.float16(rng.random()).view(np.uint16))
+```
+
+
+![Format of half-precision floats](images/Half-Precision-Format.png)
+
+```{python}
+def float_01_from_bits(b, dtype=np.float16):
+    # unsigned integer type with same number of bits:
+    int_type = np.dtype(f"u{np.finfo(dtype).bits // 8}")
+    # interpret data as array of above type:
+    arr = np.frombuffer(b, dtype=int_type)
+    # set first 6 bits to zero, keep last 10 random bits:
+    arr = np.bitwise_and(arr, 0b0000001111111111)
+    # set sign bit to zero, and exponent bits to 15 (which corresponds to an exponent of 0)
+    arr = np.bitwise_or(arr, 0b0011110000000000)
+    # now we have the exponent fixed to 2^0 = 1
+    # and a fully random significand.
+    # This actually gives us a number between 1 and 2, so we subtract 1 to end up with a float between 0 and 1
+    return arr.view(dtype) - 1
+```
+
+```{python}
+plt.hist(float_01_from_bits(b).astype(np.float32))
+```
+
 
 # Problem 2: Sampling from a discrete model
 
@@ -49,6 +100,170 @@ v = np.array([[1,1,1], [1,1,0], [1,0,1], [1,0,0], [0,1,1], [0,1,0], [0,0,1], [0,
 * Write a function that draws samples from that probability distribution
 * Use the samples to create a histogram of $p(A | C = 1)$
 
+```{python}
+def sample_from_table(p, v, n_samples, rng=None):
+    assert len(p) == len(v)
+    rng = rng or np.random.default_rng()
+
+    c = np.cumsum(p)
+    u = rng.random(n_samples)
+    idxs = np.searchsorted(c, u)
+    return v[idxs]
+```
+
+```{python}
+samples = sample_from_table(p, v, 10_000)
+
+condition = samples[:, 2] == 1  # C = 1
+
+bins = np.arange(-0.5, 2.5, 1)
+bins, hist = np.unique(samples[condition, 0], return_counts=True)  # histogram only A
+hist = hist / hist.sum()
+
+plt.bar(bins, hist)
+plt.xlabel("A")
+plt.ylabel("P(A|C=1)")
+plt.gca().set_xticks((0, 1))
+```
+
+
 # Problem 3: Quadrature vs Monte Carlo integration
 
 Using Python, evaluate the integral $\int_0^1 \sin^2(1/x) dx$ by both, a deterministic approach such as quadrature (see `scipy.integrate`) and a Monte Carlo method.
+
+```{python}
+x = np.arange(0.04, 1, 0.0001)
+plt.plot(x, np.sin(1/x)**2)
+```
+
+[Wolfram Alpha gives](https://www.wolframalpha.com/input?i=%5Cint_0%5E1+%5Csin%5E2%281%2Fx%29+dx):
+
+```{python}
+I = 0.6734567682657729641533856581915435961330016628968256955760409764
+```
+
+### Direct numeric integration via quadrature
+
+```{python}
+from scipy.integrate import quad
+
+def f(x):
+    return np.square(np.sin(1 / x))
+```
+
+```{python}
+quad?
+```
+
+```{python}
+I_quad, I_quad_err = quad(f, 0, 1, full_output=False)
+```
+
+```{python}
+I_quad
+```
+
+```{python}
+I - I_quad
+```
+
+
+### Direct Naive Monte Carlo integration
+$$
+I = \int_0^1 f(x) dx =  \int_0^1 \mathcal{U} f(x) dx = \mathbb{E}_{\mathcal{U}} [f],
+$$
+where $\mathcal{U}$ is the uniform distribution over the interval $[0, 1]$.
+
+This can be approximated as
+$$
+I \approx \frac{1}{N}\sum_i f(x_i), \qquad x_i \sim \mathcal{U}
+$$
+```{python}
+def mc(N, rng=None):
+    rng = rng or np.random.default_rng()
+    # N random numbers between 0 and 1
+    x = rng.uniform(0, 1, N)
+    # evaluate f at all x and return mean
+    return np.mean(f(x))
+```
+
+```{python}
+mc(10_000)
+```
+
+```{python}
+def mean_abs_mc_error(N, n_trials=1_000, rng=None):
+    return np.mean(np.abs(np.array([mc(N, rng) for _ in range(n_trials)]) - I))
+```
+
+```{python}
+mean_abs_mc_error(10_000)
+```
+
+
+### Integration after substitution
+
+We can make the substitution $u = 1/x$ and rewrite the integral in terms of $u$. Since $\frac{du}{dx} = -\frac{1}{x^2}$:
+
+$$
+\begin{aligned}
+I &= \int_0^1 \sin^2(1/x) dx = \int_{u(0)}^{u(1)} -\frac{\sin^2(u)}{u^2} du \\
+  &= \int_\infty^1 -\Bigl(\frac{\sin(u)}{u}\Bigr)^2 du = \int_1^\infty \Bigl(\frac{\sin(u)}{u}\Bigr)^2 du \\
+  &= \int_1^\infty \text{sinc}^2(u) du
+\end{aligned}
+$$
+
+```{python}
+np.sinc?
+```
+
+
+```{python}
+def g(x):
+    return np.square(np.sinc(x / np.pi))
+```
+
+```{python}
+I_quad_subst, I_quad_subst_err = quad(g, 1, np.inf)
+```
+
+```{python}
+I_quad_subst
+```
+
+Using the fact that $\int_0^\infty (\sin(x)/x)^2 dx = \pi/2$:
+```{python}
+I_quad_subst_2, I_quad_subst_2_err = quad(g, 0, 1)
+I_quad_subst_2 = 0.5 * np.pi - I_quad_subst_2
+```
+
+```{python}
+I_quad_subst_2, I_quad_subst_2_err
+```
+
+### Monte Carlo integration using non-uniform distribution
+
+We've seen that we can write the integral as
+$$
+I = \int_1^\infty \frac{\sin^2}{x^2} dx
+$$
+
+This can be approximated via the Monte Carlo method as
+
+$$
+I \approx \frac{1}{N} \sum_i sin^2(x_i), \qquad x_i \sim \mathcal{P_1^1},
+$$
+where $\mathcal{P_1^1}$ is the  (Type I) [Pareto Distribution](https://en.wikipedia.org/wiki/Pareto_distribution) with pdf $1/x^2$.
+
+```{python}
+def mc2(N, rng=None):
+    rng = rng or np.random.default_rng()
+    # N random numbers between 0 and 1
+    x = 1 + rng.pareto(1, size=N)
+    # evaluate g at all x and return mean
+    return np.mean(np.square(np.sin(x)))
+```
+
+```{python}
+mc2(10_000)
+```
