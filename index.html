@@ -433,7 +433,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="bayesian-inference">Bayesian inference</h3>
 <p>At its most fundamental level, <a href="https://en.wikipedia.org/wiki/Bayesian_inference">Bayesian inference</a> involves applying the sum and product rule of probability theory to learn a model from some information:</p>
 <p><span id="eq-bayes"><span class="math display">\[
-    \underbrace{\Pr(\theta|D, M)}_{Posterior}\,\, \underbrace{\Pr(D|M)}_{Evidence} = \underbrace{\Pr(D |\theta, M)}_{Likelihood}\,\, \underbrace{\Pr(\theta | M)}_{Prior}
+    \underbrace{\Pr(\theta\mid D, M)}_{Posterior}\,\, \underbrace{\Pr(D\mid M)}_{Evidence} = \underbrace{\Pr(D\mid \theta, M)}_{Likelihood}\,\, \underbrace{\Pr(\theta\mid M)}_{Prior}
 \tag{1}\]</span></span></p>
 <p>where <span class="math inline">\(D\)</span> are the data, <span class="math inline">\(M\)</span> is a model with parameters <span class="math inline">\(\theta\)</span>.</p>
 <p>There are two main tasks in Bayesian inference:</p>
@@ -441,23 +441,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><p>estimation of the model parameters <span class="math inline">\(\theta\)</span>,</p></li>
 <li><p>comparison of model <span class="math inline">\(M\)</span> to alternative model <span class="math inline">\(M'\)</span>.</p></li>
 </ol>
-<p>First task requires computations with the (unnormalized) posterior <span class="math inline">\(\Pr(\theta|D,M)\)</span> or <span class="math inline">\(\Pr(D|\theta,M)\,\Pr(\theta|M)\)</span>. The second task involves computation of the model evidence:</p>
+<p>First task requires computations with the (unnormalized) posterior <span class="math inline">\(\Pr(\theta\mid{}D,M)\)</span> or <span class="math inline">\(\Pr(D\mid{}\theta,M)\,\Pr(\theta\mid{}M)\)</span>. The second task involves computation of the model evidence:</p>
 <p><span id="eq-evidence"><span class="math display">\[
-    \Pr(D|M) = \int \Pr(D|\theta, M)\, \Pr(\theta|M)\, d\theta
+    \Pr(D\mid{}M) = \int \Pr(D\mid{}\theta, M)\, \Pr(\theta\mid{}M)\, d\theta
 \tag{2}\]</span></span></p>
 <p>Other important integrals that need to be computed in Bayesian analysis are:</p>
 <ul>
 <li><p>Marginal posterior: <span class="math display">\[
-\Pr(\theta_1|D,M) = \int \Pr(\theta_1, \theta_2|D, M)\, d{\theta_2}
+\Pr(\theta_1\mid{}D,M) = \int \Pr(\theta_1, \theta_2\mid{}D, M)\, d{\theta_2}
 \]</span></p></li>
 <li><p>Getting rid of <a href="https://en.wikipedia.org/wiki/Nuisance_parameter">nuisance parameters</a>: <span class="math display">\[
-\Pr(D|\theta_1, M) = \int \Pr(D, \theta_2 | \theta_1, M) \, d{\theta_2}
+\Pr(D\mid{}\theta_1, M) = \int \Pr(D, \theta_2 \mid{} \theta_1, M) \, d{\theta_2}
 \]</span></p></li>
 <li><p>Getting rid of <a href="https://en.wikipedia.org/wiki/Hyperparameter">hyperparameters</a>: <span class="math display">\[
-\Pr(\theta|D, M) \propto \int \Pr(D|\theta, M)\, \Pr(\theta|\alpha, M)\, \Pr(\alpha|M)\, d{\alpha}
+\Pr(\theta\mid{}D, M) \propto \int \Pr(D\mid{}\theta, M)\, \Pr(\theta\mid{}\alpha, M)\, \Pr(\alpha\mid{}M)\, d{\alpha}
 \]</span></p></li>
 <li><p>Evaluation of predictive distributions: <span class="math display">\[
-\Pr(y|D,M) = \int \Pr(y|\theta, M)\, \Pr(\theta | D, M)\, d{\theta}
+\Pr(y\mid{}D,M) = \int \Pr(y\mid{}\theta, M)\, \Pr(\theta \mid{} D, M)\, d{\theta}
 \]</span></p></li>
 </ul>
 </section>
@@ -467,23 +467,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><span class="math display">\[
 R(f) = \sum_{n=1}^N \ell(y_n, f(x_n))
 \]</span></p>
-<p>where <span class="math inline">\(\ell(\cdot, \cdot)\)</span> is a loss function that assesses the discrepancy between the observation <span class="math inline">\(y_n\)</span> and the prediction <span class="math inline">\(f(x_n)\)</span> based on a (non-parametric) model <span class="math inline">\(f(x)\)</span>. For large <span class="math inline">\(N\)</span>, evaluation of <span class="math inline">\(R(f)\)</span> can be very costly. A simple strategy to overcome this problem, is to train a surrogate of the risk obtained by <em>randomly</em> selecting a small subset from the data, a <em>mini-batch</em> <span class="math inline">\(B\)</span>, and use</p>
+<p>where <span class="math inline">\(\ell(\cdot, \cdot)\)</span> is a loss function that assesses the discrepancy between the observation <span class="math inline">\(y_n\)</span> and the prediction <span class="math inline">\(f(x_n)\)</span> based on a (non-parametric) model <span class="math inline">\(f(x)\)</span>. For large <span class="math inline">\(N\)</span>, evaluation of <span class="math inline">\(R(f)\)</span> can be very costly. A simple strategy to overcome this problem is to train a surrogate of the risk obtained by <em>randomly</em> selecting a small subset from the data, a <em>mini-batch</em> <span class="math inline">\(B\)</span>, and use</p>
 <p><span class="math display">\[
 \hat R_B(f) = \frac{N}{|B|} \sum_{n\in B} \ell(y_n, f(x_n))
 \]</span></p>
-<p>as a cost function for training <span class="math inline">\(f(x)\)</span>. <a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">Stochastic gradient descent</a> follows the gradient of the surrogate rather than the full empirical risk, for example, when training deep neural nets</p>
+<p>as a cost function for training <span class="math inline">\(f(x)\)</span>. <a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">Stochastic gradient descent</a> follows the gradient of the surrogate rather than the full empirical risk, for example, when training deep neural nets.</p>
 <p>Another application is learning of <em>intractable models</em> in representation learning (unsupervised learning). Many important models such as <a href="https://en.wikipedia.org/wiki/Boltzmann_machine">Boltzmann machines</a> or <a href="https://en.wikipedia.org/wiki/Restricted_Boltzmann_machine">restrictive Boltzmann machines</a> are members of the exponential family involving a vector of features <span class="math inline">\(f(y)\)</span>:</p>
 <p><span class="math display">\[
-\Pr(y|\theta) = \frac{1}{Z(\theta)} \exp\bigl\{\theta^T\!\!f(y)\bigr\}\,\,\,\text{with}\,\,\, Z(\theta) = \int \exp\bigl\{\theta^T\!\!f(y)\bigr\} dy.
+\Pr(y\mid{}\theta) = \frac{1}{Z(\theta)} \exp\bigl\{\theta^T\!\!f(y)\bigr\}\,\,\,\text{with}\,\,\, Z(\theta) = \int \exp\bigl\{\theta^T\!\!f(y)\bigr\} dy.
 \]</span></p>
 <p>The normalizing constant <span class="math inline">\(Z(\theta)\)</span> is called the <em>partition function</em> (by borrowing the terminology from <a href="https://en.wikipedia.org/wiki/Partition_function_(statistical_mechanics)">Statistical Physics</a>). <span class="math inline">\(Z(\theta)\)</span> is often <em>intractable</em>, meaning that we don’t have a closed form expression for evaluating <span class="math inline">\(Z(\theta)\)</span>. Computation of <span class="math inline">\(Z(\theta)\)</span> is formally analogous to computing the model evidence in Bayesian inference.</p>
 <p>The log likelihood of observing <span class="math inline">\(y\)</span> is</p>
 <p><span class="math display">\[
-\log \Pr(y|\theta) = \theta^T\!\!f(y) - \log Z(\theta)
+\log \Pr(y\mid{}\theta) = \theta^T\!\!f(y) - \log Z(\theta)
 \]</span></p>
 <p>and maximized by following its gradient</p>
 <p><span class="math display">\[
-\nabla_\theta \log \Pr(y|\theta) = f(y) - \mathbb E_{\Pr(y|\theta)}[f]\,\,\,\text{where}\,\,\,\mathbb E_{\Pr(y|\theta)}[f] = \int f(y) \Pr(y|\theta)\, dy = \sum_{y \in \mathcal X} f(y)\, \Pr(y | \theta)
+\nabla_\theta \log \Pr(y\mid{}\theta) = f(y) - \mathbb E_{\Pr(y\mid{}\theta)}[f]\,\,\,\text{where}\,\,\,\mathbb E_{\Pr(y\mid{}\theta)}[f] = \int f(y) \Pr(y\mid{}\theta)\, dy = \sum_{y \in \mathcal X} f(y)\, \Pr(y \mid{} \theta)
 \]</span></p>
 <p>If computation of <span class="math inline">\(Z(\theta)\)</span> is challenging, then also the expectation of the features <span class="math inline">\(\mathbb E[f]\)</span> is oftentimes not available in analytically closed form. In this case, one often resorts to a Monte Carlo approximation of <span class="math inline">\(\mathbb E[f]\)</span>, for example, in the <a href="http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf"><em>contrastive divergence</em></a> approach by Geoffrey Hinton.</p>
 </section>
@@ -616,18 +616,16 @@ Notation and conventions
 <div class="callout-body-container callout-body">
 <ul>
 <li><p>Most of the time I will consider a <em>probability density function</em> (pdf) or <em>probability mass function</em> (pmf) <span class="math inline">\(p(x)\)</span> where <span class="math inline">\(x\)</span> could be a parameter vector of a probabilistic model (e.g.&nbsp;in case we want to do computations with the posterior) or the observations from which we want to learn a model. For continuous sample spaces <span class="math inline">\(\mathcal X\)</span>, we are dealing with a <strong>pdf</strong>. In case of a discrete sample space <span class="math inline">\(\mathcal X\)</span> (finite or countably infinite), <span class="math inline">\(p(x)\)</span> is a <strong>pmf</strong>.</p></li>
-<li><p>It is generally hard to compute normalized probabilities, but also not really necessary for many sampling algorithms. Therefore, often <span class="math inline">\(p(x)\)</span> is just a nonnegative function, and we assume that the integral <span class="math inline">\(\int_{\mathcal X} p(x)dx &lt; \infty\)</span> or sum <span class="math inline">\(\sum_{x\in\mathcal X} p(x) &lt; \infty\)</span> is finite</p></li>
-<li><p>Often, the computation that we need to carry out can be expressed as the <strong>expectation</strong> of some quantity under a probability. We will denote expectations by</p></li>
-</ul>
+<li><p>It is generally hard to compute normalized probabilities, but also not really necessary for many sampling algorithms. Therefore, often <span class="math inline">\(p(x)\)</span> is just a nonnegative function, and we assume that the integral <span class="math inline">\(\int_{\mathcal X} p(x)dx &lt; \infty\)</span> or sum <span class="math inline">\(\sum_{x\in\mathcal X} p(x) &lt; \infty\)</span> is finite.</p></li>
+<li><p>Often, the computation that we need to carry out can be expressed as the <strong>expectation</strong> of some quantity under a probability. We will denote expectations by</p>
 <p><span class="math display">\[
 \mathbb{E}_{p}[f] = \int_{\mathcal X} f(x)\, p(x)\,  dx
-\]</span> e.g.&nbsp;the model evidence used in Bayesian model comparison is <span class="math inline">\(\Pr(D|M) = \mathbb E_{\Pr(\theta|M)}[\Pr(D|\theta,M)]\)</span>.</p>
-<ul>
-<li>The notation <span id="eq-sample_from"><span class="math display">\[
+\]</span> e.g.&nbsp;the model evidence used in Bayesian model comparison is <span class="math inline">\(\Pr(D\mid{}M) = \mathbb E_{\Pr(\theta\mid{}M)}[\Pr(D\mid{}\theta,M)]\)</span>.</p></li>
+<li><p>The notation <span id="eq-sample_from"><span class="math display">\[
 x \sim p(x)
-\tag{3}\]</span></span></li>
+\tag{3}\]</span></span></p>
+<p>means that <span class="math inline">\(x\)</span> follows the distribution <span class="math inline">\(p\)</span></p></li>
 </ul>
-<p>means that <span class="math inline">\(x\)</span> follows the distribution <span class="math inline">\(p\)</span></p>
 </div>
 </div>
 <p>At <span class="math inline">\(\beta = \frac{\log(1 + \sqrt 2)}{2} \approx 0.44\)</span>, something peculiar happens. The “attractive forces” that tend to align neighboring spins become so dominant that large regions form. Across these regions, all spins have a similar orientation. This is a <em>phase transition</em>. Similar phenomena occur also in learning large probabilistic models where the prior and the likelihood often favor distinct regions in parameter space.</p>
@@ -683,10 +681,15 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
     &amp;= \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] \\
     &amp;= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} (f(x^{(s)} - \mu) (f(x^{s'}) - \mu))\bigr] \\
     &amp;= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-    &amp;= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+    &amp;= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')}) - \mu(f(x^{(s)}) + f(x^{(s')})) + \mu^2)\bigr] \\
+    &amp;= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')})\bigr] - \mu^2 \\
+    &amp;= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p_S}\bigl[\bigl(f(x^{(s)})\bigr)^2\bigr] + \frac{1}{S^2} \sum_{s\not= s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')})\bigr] - \mu^2 \\
+    &amp;= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p}\bigl[\bigl(f(x^{(s)})\bigr)^2\bigr] + \frac{S(S-1)}{S^2} \mu^2 - \mu^2 \\
+    &amp;= \frac{1}{S} \mathbb{E}_{p}\bigl[f^2\bigr] - \frac{1}{S} \mu^2 \\
+    &amp;= \frac{1}{S} \mathbb{E}_{p}\bigl[(f - \mu)^2\bigr] \\
     &amp;= \frac{1}{S} \text{var}_{p}[f]
 \end{aligned}
-\tag{9}\]</span></span> where we’ve made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. <a href="#eq-MC-sample-independece">Equation&nbsp;7</a>) in the fourth.</p>
+\tag{9}\]</span></span> where we’ve made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. <a href="#eq-MC-sample-independece">Equation&nbsp;7</a>) in the seventh.</p>
 <p>The result shows that Monte Carlo error bars shrink like <span class="math inline">\(1/\sqrt{S}\)</span>: <span id="eq-MCerror"><span class="math display">\[
 \sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
 \tag{10}\]</span></span></p>
@@ -775,16 +778,16 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(np.transpose([S, estimates]), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([[1.00000000e+03, 2.99200000e+00],
-       [2.15443500e+03, 3.13600000e+00],
-       [4.64158900e+03, 3.12200000e+00],
-       [1.00000000e+04, 3.15400000e+00],
-       [2.15443470e+04, 3.14300000e+00],
-       [4.64158880e+04, 3.14400000e+00],
-       [1.00000000e+05, 3.14100000e+00],
-       [2.15443469e+05, 3.14800000e+00],
-       [4.64158883e+05, 3.13700000e+00],
-       [1.00000000e+06, 3.13700000e+00]])</code></pre>
+<pre><code>array([[1.00000000e+03, 3.09600000e+00],
+       [2.15443500e+03, 3.14900000e+00],
+       [4.64158900e+03, 3.14100000e+00],
+       [1.00000000e+04, 3.15700000e+00],
+       [2.15443470e+04, 3.13500000e+00],
+       [4.64158880e+04, 3.13900000e+00],
+       [1.00000000e+05, 3.13700000e+00],
+       [2.15443469e+05, 3.14200000e+00],
+       [4.64158883e+05, 3.14500000e+00],
+       [1.00000000e+06, 3.14300000e+00]])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-7-output-2.png" width="949" height="468"></p>
@@ -798,7 +801,7 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mean_pi <span class="op">=</span> estimates.mean(<span class="dv">0</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>std_pi <span class="op">=</span> estimates.std(<span class="dv">0</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>var <span class="op">=</span> np.pi<span class="op">*</span>(<span class="fl">4.</span><span class="op">-</span>np.pi)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>var <span class="op">=</span> np.pi <span class="op">*</span> (<span class="fl">4.0</span> <span class="op">-</span> np.pi)</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>), subplot_kw<span class="op">=</span>kw)</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>ax.fill_between(S, mean_pi <span class="op">-</span> np.pi <span class="op">+</span> std_pi, mean_pi <span class="op">-</span> np.pi <span class="op">-</span> std_pi,</span>
@@ -3602,14 +3605,14 @@ p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
 <span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 96.6% (stepsize = 1.00e-01)
-acceptance rate: 80.3% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 96.8% (stepsize = 1.00e-01)
+acceptance rate: 80.4% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.0% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.2% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="826"></p>
+<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="825"></p>
 </div>
 </div>
 </section>
@@ -3774,14 +3777,14 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb58-75"><a href="#cb58-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb58-76"><a href="#cb58-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 97.1% (stepsize = 1.00e-01)
-acceptance rate: 80.2% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 97.0% (stepsize = 1.00e-01)
+acceptance rate: 79.8% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.3% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 15.7% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1119" height="826"></p>
+<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1114" height="824"></p>
 </div>
 </div>
 <p>In the next example, we run the MH algorithm on a continuous pdf in two dimensions.</p>
@@ -3882,7 +3885,7 @@ acceptance rate: 80.2% (stepsize = 1.00e+00)</code></pre>
 <span id="cb61-94"><a href="#cb61-94" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb61-95"><a href="#cb61-95" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1088" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1114" height="346"></p>
 </div>
 </div>
 </section>
@@ -4002,7 +4005,7 @@ M[Q_i](y, x)
 <span id="cb62-54"><a href="#cb62-54" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb62-55"><a href="#cb62-55" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1088" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1114" height="346"></p>
 </div>
 </div>
 </section>
@@ -4607,7 +4610,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].imshow(x_SW.reshape(L, L))</span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_2066/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
+<pre><code>/tmp/ipykernel_2013/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
   plt.rc('image', interpolation=None, cmap='gray')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -5282,7 +5285,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb86-47"><a href="#cb86-47" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, py, color<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
 <span id="cb86-48"><a href="#cb86-48" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance_rate: 90.60% (HMC), 62.88% (Metropolis)</code></pre>
+<pre><code>acceptance_rate: 91.30% (HMC), 62.99% (Metropolis)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-72-output-2.png" width="837" height="550"></p>
@@ -5354,10 +5357,10 @@ modified Euler: det(trafo) = 1.000
 <span id="cb89-49"><a href="#cb89-49" aria-hidden="true" tabindex="-1"></a>samples_metro <span class="op">=</span> np.array(<span class="bu">list</span>(metro))[::n_leapfrog]</span>
 <span id="cb89-50"><a href="#cb89-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(metro.acceptance_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.886</code></pre>
+<pre><code>0.8705</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.24950666666666665</code></pre>
+<pre><code>0.25010666666666664</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="74">
@@ -5380,7 +5383,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb92-17"><a href="#cb92-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_ylabel(<span class="vs">r'$\sigma_i$'</span>)</span>
 <span id="cb92-18"><a href="#cb92-18" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="838" height="834"></p>
+<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="839" height="834"></p>
 </div>
 </div>
 <p>A practical issue in applications of HMC is that the algorithm requires the gradient of minus log <span class="math inline">\(p(x)\)</span>. For some models it is far from straightforward to implement the gradient. Moreover, the gradient evaluations are on top of the evaluations of <span class="math inline">\(\log p(x)\)</span>, which are typical for MCMC approaches based on Metropolis-Hastings. Some remedy is provided by the possibility to use <a href="https://en.wikipedia.org/wiki/Automatic_differentiation"><em>automatic differentiation</em></a> to compute the gradient without implementing it explicitly. This strategy is used, for example, in the <a href="https://en.wikipedia.org/wiki/Stan_(software)">STAN</a> software for statistical inference or in probabilistic programming packages such as <a href="https://www.tensorflow.org/probability">tensorflow probability</a>, <a href="https://docs.pymc.io/">PyMC 3</a>, or <a href="https://pyro.ai/">pyro</a>.</p>
