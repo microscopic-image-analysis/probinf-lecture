@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.280">
+<meta name="generator" content="quarto-1.2.313">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -450,10 +450,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><p>Marginal posterior: <span class="math display">\[
 \Pr(\theta_1|D,M) = \int \Pr(\theta_1, \theta_2|D, M)\, d{\theta_2}
 \]</span></p></li>
-<li><p>Getting rid of nuisance parameters: <span class="math display">\[
+<li><p>Getting rid of <a href="https://en.wikipedia.org/wiki/Nuisance_parameter">nuisance parameters</a>: <span class="math display">\[
 \Pr(D|\theta_1, M) = \int \Pr(D, \theta_2 | \theta_1, M) \, d{\theta_2}
 \]</span></p></li>
-<li><p>Getting rid of hyperparameters: <span class="math display">\[
+<li><p>Getting rid of <a href="https://en.wikipedia.org/wiki/Hyperparameter">hyperparameters</a>: <span class="math display">\[
 \Pr(\theta|D, M) \propto \int \Pr(D|\theta, M)\, \Pr(\theta|\alpha, M)\, \Pr(\alpha|M)\, d{\alpha}
 \]</span></p></li>
 <li><p>Evaluation of predictive distributions: <span class="math display">\[
@@ -604,10 +604,16 @@ Z(\beta) = \sum_{i\sim j} \exp\bigl\{-\beta\, E(x) \bigr\}
 <p><img src="lecture_files/figure-html/cell-4-output-1.png" width="984" height="565"></p>
 </div>
 </div>
-</section>
-</section>
-<section id="notation-and-conventions" class="level2">
-<h2 class="anchored" data-anchor-id="notation-and-conventions">Notation and conventions</h2>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Notation and conventions
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <ul>
 <li><p>Most of the time I will consider a <em>probability density function</em> (pdf) or <em>probability mass function</em> (pmf) <span class="math inline">\(p(x)\)</span> where <span class="math inline">\(x\)</span> could be a parameter vector of a probabilistic model (e.g.&nbsp;in case we want to do computations with the posterior) or the observations from which we want to learn a model. For continuous sample spaces <span class="math inline">\(\mathcal X\)</span>, we are dealing with a <strong>pdf</strong>. In case of a discrete sample space <span class="math inline">\(\mathcal X\)</span> (finite or countably infinite), <span class="math inline">\(p(x)\)</span> is a <strong>pmf</strong>.</p></li>
 <li><p>It is generally hard to compute normalized probabilities, but also not really necessary for many sampling algorithms. Therefore, often <span class="math inline">\(p(x)\)</span> is just a nonnegative function, and we assume that the integral <span class="math inline">\(\int_{\mathcal X} p(x)dx &lt; \infty\)</span> or sum <span class="math inline">\(\sum_{x\in\mathcal X} p(x) &lt; \infty\)</span> is finite</p></li>
@@ -622,11 +628,14 @@ x \sim p(x)
 \tag{3}\]</span></span></li>
 </ul>
 <p>means that <span class="math inline">\(x\)</span> follows the distribution <span class="math inline">\(p\)</span></p>
+</div>
+</div>
 <p>At <span class="math inline">\(\beta = \frac{\log(1 + \sqrt 2)}{2} \approx 0.44\)</span>, something peculiar happens. The “attractive forces” that tend to align neighboring spins become so dominant that large regions form. Across these regions, all spins have a similar orientation. This is a <em>phase transition</em>. Similar phenomena occur also in learning large probabilistic models where the prior and the likelihood often favor distinct regions in parameter space.</p>
 <p>In graphical models such as the Ising model all computations are finite but have an exponential complexity. For a square lattice of length <span class="math inline">\(L\)</span> there are <span class="math inline">\(2^{L^2}\)</span> possible states. Visiting all states is not an option even for small to moderate lattice sizes such as <span class="math inline">\(L=32\)</span>. In this case, we have <span class="math inline">\(2^{1024}\)</span> states. Compare this to the number of atoms in the universe which is estimated to be approx. <span class="math inline">\(2^{266}\)</span>. As an aside, according to <a href="https://en.wikipedia.org/wiki/Eddington_number">Eddington</a> the number of electrons in the universe is in fact</p>
 <p><span class="math inline">\(15747724136275002577605653961181555468044717914527116709366231425076185631031296 \approx 2^{263}\)</span></p>
 <p>Anyways, if each atom were a computing device and running since the Bing Bang, i.e.&nbsp;for <span class="math inline">\(13.5 \text{ billion years} \approx 2^{59} s\)</span>, at a rate of <span class="math inline">\(3.3 \text{Gz} =2^{32}\)</span> Hz, then we could have visited <span class="math inline">\(2^{357}\)</span> states. This is only a vanishingly small fraction of the entire state space of the <span class="math inline">\(32\times 32\)</span> Ising model. We would have to wait for <span class="math inline">\(2^{667} \simeq 10^{201}\)</span> universe life times until we had visited all possible states.</p>
 <p>For a thorough discussion read the Chap. 29 in David MacKay’s book <a href="http://www.inference.org.uk/itprnn/book.pdf">Information Theory, Inference, and Learning Algorithms</a>.</p>
+</section>
 </section>
 <section id="monte-carlo-methods" class="level2">
 <h2 class="anchored" data-anchor-id="monte-carlo-methods">Monte Carlo methods</h2>
@@ -660,24 +669,27 @@ x \sim p(x)
 <h3 class="anchored" data-anchor-id="why-does-it-work">Why does it work?</h3>
 <section id="unbiasedness" class="level4">
 <h4 class="anchored" data-anchor-id="unbiasedness">Unbiasedness</h4>
-<p>The joint distribution of all Monte Carlo samples is simply a product density, because all samples are generated <em>independently</em> of each other: <span class="math display">\[
+<p>The joint distribution of all Monte Carlo samples is simply a product density, because all samples are generated <em>independently</em> of each other: <span id="eq-MC-sample-independece"><span class="math display">\[
 p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
-\]</span></p>
+\tag{7}\]</span></span></p>
 <p>The Monte Carlo estimate <span class="math inline">\(\hat f_S\)</span> is a random quantity, because with each realization of <span class="math inline">\(x^{(1)}, \ldots, x^{(S)}\)</span> we obtain a different result. We can compute the first two moments of <span class="math inline">\(\hat f_S\)</span>:</p>
 <p><span id="eq-MCbias"><span class="math display">\[
 \mathbb E_{p_S}[\hat f_S] = \frac{1}{S} \sum_{s=1}^S \mathbb{E}_p[f(x^{(s)})] = \mathbb{E}_p[f] =: \mu
-\tag{7}\]</span></span> That is, the Monte Carlo estimate of <span class="math inline">\(\mathbb E_p[f]\)</span> is <strong>unbiased</strong>.</p>
+\tag{8}\]</span></span> That is, the Monte Carlo estimate of <span class="math inline">\(\mathbb E_p[f]\)</span> is <strong>unbiased</strong>.</p>
 <p>How accurate is the estimate on average (i.e.&nbsp;how close do we get to the true value if we run many replications of the sampling procedure)? To answer this question, we compute the variance</p>
 <p><span id="eq-MCvariance"><span class="math display">\[
 \begin{aligned}
-    \nonumber \text{var}[\hat f_S]
+    \text{var}_{p_S}[\hat f_S]
+    &amp;= \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] \\
+    &amp;= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} (f(x^{(s)} - \mu) (f(x^{s'}) - \mu))\bigr] \\
     &amp;= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-    \nonumber &amp;= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
-    &amp;= \frac{1}{S} \text{var}[f]
+    &amp;= \frac{1}{S^2} \sum_{s,s'} \delta_{s,s'}\, \mathbb{E}_{p}\bigl[(f(x^{(s)}) - \mu)^2\bigr] \\
+    &amp;= \frac{1}{S} \text{var}_{p}[f]
 \end{aligned}
-\tag{8}\]</span></span> That is, Monte Carlo error bars shrink like <span class="math inline">\(1/\sqrt{S}\)</span>: <span id="eq-MCerror"><span class="math display">\[
+\tag{9}\]</span></span> where we’ve made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. <a href="#eq-MC-sample-independece">Equation&nbsp;7</a>) in the fourth.</p>
+<p>The result shows that Monte Carlo error bars shrink like <span class="math inline">\(1/\sqrt{S}\)</span>: <span id="eq-MCerror"><span class="math display">\[
 \sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
-\tag{9}\]</span></span></p>
+\tag{10}\]</span></span></p>
 <p>where the proportionality constant <span class="math inline">\(\sigma(f)=\sqrt{\text{var}[f]}\)</span> depends on the specific estimation problem. In practice, <span class="math inline">\(\sigma(f)\)</span> is not available (after all we are doing Monte Carlo because we cannot do the sum/integrals that are necessary to compute means and variances…). However, we can use Monte Carlo to estimate <span class="math inline">\(\sigma(f)\)</span>.</p>
 </section>
 <section id="asymptotic-guarantees" class="level4">
@@ -685,12 +697,12 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <p>So far, we studied the behavior of the Monte Carlo estimator for fixed number of samples <span class="math inline">\(S\)</span> and many repetitions. Let us now look at the limit <span class="math inline">\(S\to\infty\)</span>. We have (almost surely)</p>
 <p><span id="eq-slln"><span class="math display">\[
 \hat f_S \overset{S\to\infty}{\longrightarrow} \mu = \mathbb E_p[f]
-\tag{10}\]</span></span></p>
+\tag{11}\]</span></span></p>
 <p>This result is known as the <a href="https://en.wikipedia.org/wiki/Law_of_large_numbers"><em>strong law of large numbers</em></a>.</p>
 <p>If <span class="math inline">\(\text{var}[f] &lt; \infty\)</span>, then the <a href="https://en.wikipedia.org/wiki/Central_limit_theorem"><strong>Central limit theorem</strong> (CLT)</a>, a fundamental theorem in Statistics, guarantees that Monte Carlo works:</p>
 <p><span id="eq-CLT"><span class="math display">\[
 \hat f_S \overset{S\to\infty}{\longrightarrow} \mathcal N\left(\mathbb E_p[f], \sigma(f)^2/S\right)
-\tag{11}\]</span></span></p>
+\tag{12}\]</span></span></p>
 <p>where <span class="math inline">\(\mathcal N(\mu, \sigma^2)\)</span> is the <a href="https://en.wikipedia.org/wiki/Normal_distribution">Normal distribution</a> with mean <span class="math inline">\(\mu\)</span> and variance <span class="math inline">\(\sigma\)</span>.</p>
 <p>But these are only statistical, asymptotic guarantees for the convergence of Monte Carlo methods.</p>
 </section>
@@ -700,7 +712,7 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <p>Let us use a simple Monte Carlo approach to estimate <span class="math inline">\(\pi\)</span>. We have</p>
 <p><span id="eq-pi"><span class="math display">\[
 \pi = \int_{[-1,1]^2} \mathbb 1(x^2 + y^2 &lt; 1)\, \, dx dy = \int_{\mathcal X} f(x, y)\, p(x, y)\, dxdy
-\tag{12}\]</span></span></p>
+\tag{13}\]</span></span></p>
 <p>where <span class="math inline">\(\mathbb 1(\cdot)\)</span> is the indicator function. In this example, the distribution <span class="math inline">\(p(x,y)=1/4\)</span> is the uniform distribution over the square <span class="math inline">\(\mathcal X = [-1, 1]^2\)</span> and <span class="math inline">\(f(x, y) = 4\cdot\mathbb 1(x^2 + y^2 &lt; 1)\)</span>. We have:</p>
 <p><span class="math display">\[
 \mathbb E[f] = \pi\,\,\,\text{and}\,\,\,\text{var}[f] = (4-\pi)\, \pi
@@ -708,7 +720,7 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <p>This integral can be approximated by:</p>
 <p><span id="eq-pi_MC"><span class="math display">\[
 \pi \approx \frac{1}{S} \sum_{s=1}^S f(x^{(s)}, y^{(s)})
-\tag{13}\]</span></span></p>
+\tag{14}\]</span></span></p>
 <p>where <span class="math inline">\((x^{(s)}, y^{(s)})\)</span> are picked randomly from the unit square. The approximate value of <span class="math inline">\(\pi\)</span> is just four times the fraction of sampling points that land in the unit disk.</p>
 <p>Let’s code it in Python:</p>
 <div class="cell" data-execution_count="4">
@@ -763,16 +775,16 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(np.transpose([S, estimates]), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([[1.00000000e+03, 3.17200000e+00],
-       [2.15443500e+03, 3.16100000e+00],
-       [4.64158900e+03, 3.12700000e+00],
-       [1.00000000e+04, 3.13700000e+00],
-       [2.15443470e+04, 3.14800000e+00],
-       [4.64158880e+04, 3.13600000e+00],
-       [1.00000000e+05, 3.13500000e+00],
-       [2.15443469e+05, 3.13600000e+00],
-       [4.64158883e+05, 3.14400000e+00],
-       [1.00000000e+06, 3.14400000e+00]])</code></pre>
+<pre><code>array([[1.00000000e+03, 2.99200000e+00],
+       [2.15443500e+03, 3.13600000e+00],
+       [4.64158900e+03, 3.12200000e+00],
+       [1.00000000e+04, 3.15400000e+00],
+       [2.15443470e+04, 3.14300000e+00],
+       [4.64158880e+04, 3.14400000e+00],
+       [1.00000000e+05, 3.14100000e+00],
+       [2.15443469e+05, 3.14800000e+00],
+       [4.64158883e+05, 3.13700000e+00],
+       [1.00000000e+06, 3.13700000e+00]])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-7-output-2.png" width="949" height="468"></p>
@@ -840,7 +852,7 @@ accuracy: 8.881784197001252e-16</code></pre>
 </section>
 <section id="do-we-beat-the-curse-of-dimensionality" class="level2">
 <h2 class="anchored" data-anchor-id="do-we-beat-the-curse-of-dimensionality">Do we beat the curse of dimensionality?</h2>
-<p>Although Monte Carlo doesn’t depend explicitly on the dimension of the sample space, it does so in practice. If we go back to our expression for the Monte Carlo error (Eq. <a href="#eq-MCerror">Equation&nbsp;9</a>)</p>
+<p>Although Monte Carlo doesn’t depend explicitly on the dimension of the sample space, it does so in practice. If we go back to our expression for the Monte Carlo error (Eq. <a href="#eq-MCerror">Equation&nbsp;10</a>)</p>
 <p><span class="math display">\[
 \sigma(\hat f_S) = \sigma(f) / \sqrt{S}
 \]</span></p>
@@ -1177,13 +1189,13 @@ x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m
 <p>How can we use uniform random numbers from <span class="math inline">\([0, 1]\)</span> to generate samples from <span class="math inline">\(p\)</span>? For given <span class="math inline">\(u\sim \mathcal U(0,1)\)</span> pick state <span class="math inline">\(i\in[N]\)</span> such that</p>
 <p><span id="eq-discrete_sampling"><span class="math display">\[
     i = \min\bigl\{j \in\mathbb N\, :\, \sum_{k=1}^j p_k \ge u  \bigr\}
-\tag{14}\]</span></span></p>
+\tag{15}\]</span></span></p>
 <p>Here and in the following <span class="math inline">\(\mathcal U(0,1)\)</span> denotes the uniform distribution over the unit interval, i.e.&nbsp;<span class="math inline">\(x\sim U(0,1)\)</span> has density <span class="math inline">\(p(x) = \mathbb 1(0 &lt; x &lt; 1)\)</span>.</p>
 <p>Why is this procedure correct? Let us call <span class="math inline">\(c_i = \sum_{k=1}^i p_k\)</span>, then <span class="math inline">\(c_1 = p_1 &gt; 0\)</span> and <span class="math inline">\(c_N = 1\)</span>. Moreover, define <span class="math inline">\(c_0:= 0\)</span>. All <span class="math inline">\(c_i\in(0,1]\)</span> (except <span class="math inline">\(c_0\)</span>) and sorted <span class="math inline">\(c_{i-1} &lt; c_i\)</span> (since all <span class="math inline">\(p_i&gt;0\)</span>). So the intervals <span class="math inline">\(I_i=[c_{i-1}, c_i)\)</span> form a partition of <span class="math inline">\([0,1)\)</span> and the uniform distribution <span class="math inline">\(\mathbb 1\bigl(x\in[0,1)\bigr)\)</span> can be written as a mixture of uniform distributions:</p>
 <p><span class="math display">\[
 \mathbb 1\bigl(x\in[0,1)\bigr) = \sum_{i=1}^{N} \mathbb 1\bigl(x\in[c_{i-1}, c_{i})\bigr)
 \]</span></p>
-<p>Criterion (Eq. <a href="#eq-discrete_sampling">Equation&nbsp;14</a>) picks the interval with <span class="math inline">\(u\in[c_{i-1}, c_{i})=:I_i\)</span>. The length of each interval <span class="math inline">\(I_i\)</span> is <span class="math inline">\(c_i - c_{i-1} = p_i\)</span>, and equal to the chance of landing in <span class="math inline">\(I_i\)</span>. Therefor the generated <span class="math inline">\(x_i\)</span> will follow <span class="math inline">\(p\)</span>.</p>
+<p>Criterion (Eq. <a href="#eq-discrete_sampling">Equation&nbsp;15</a>) picks the interval with <span class="math inline">\(u\in[c_{i-1}, c_{i})=:I_i\)</span>. The length of each interval <span class="math inline">\(I_i\)</span> is <span class="math inline">\(c_i - c_{i-1} = p_i\)</span>, and equal to the chance of landing in <span class="math inline">\(I_i\)</span>. Therefor the generated <span class="math inline">\(x_i\)</span> will follow <span class="math inline">\(p\)</span>.</p>
 <div class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># illustration discrete sampling</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1211,7 +1223,7 @@ x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m
 <p>The Poisson distribution is a pmf over the sample space <span class="math inline">\(\mathbb N\)</span>, i.e.&nbsp;<span class="math inline">\(x=0, 1, 2, \ldots\)</span> and defined as</p>
 <p><span id="eq-poisson"><span class="math display">\[
 p(x) = \frac{\lambda^x}{x!} e^{-\lambda}, \,\,\, \lambda &gt; 0
-\tag{15}\]</span></span></p>
+\tag{16}\]</span></span></p>
 <p>the parameter <span class="math inline">\(\lambda\)</span> is called <em>rate</em>. The mean and variance of <span class="math inline">\(x\)</span> are</p>
 <p><span class="math display">\[
 \mathbb E[x] = \lambda, \,\,\, \text{var}[x] = \lambda\,.
@@ -1283,7 +1295,7 @@ p(x) = \frac{\lambda^x}{x!} e^{-\lambda}, \,\,\, \lambda &gt; 0
 <p>Let <span class="math inline">\(h\)</span> be a <em>one-to-one mapping</em> between two one-dimensional sample spaces <span class="math inline">\(h: \mathcal X \to \mathcal Y\)</span>, and <span class="math inline">\(h^{-1}\)</span> is the inverse function. If <span class="math inline">\(x\sim p_x(x)\)</span>, what is the distribution <span class="math inline">\(p_y(y)\)</span> of <span class="math inline">\(y=h(x)\)</span>? To answer this question let us compute the distribution <span class="math inline">\(p_y\)</span>:</p>
 <p><span id="eq-transform1d"><span class="math display">\[
 p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{h'(h^{-1}(y))}
-\tag{16}\]</span></span></p>
+\tag{17}\]</span></span></p>
 <p>where we used the transformation property of the <a href="https://en.wikipedia.org/wiki/Dirac_delta_function">delta distribution</a>. The transformation rule guarantees that normalized pdfs transform into normalized pdfs.</p>
 <p>This result can be generalized to multiple dimensions. Let <span class="math inline">\(h\)</span> be an invertible one-to-one mapping between two <span class="math inline">\(D\)</span> dimensional sample spaces. Assume further that <span class="math inline">\(h\)</span> is continuously differentiable such that the Jacobian</p>
 <p><span class="math display">\[
@@ -1302,16 +1314,16 @@ p_x(h^{-1}(y)) \, |\text{det}(\nabla h^{-1})(y)|, &amp; y \in h(\mathcal X) \\
 <p>The <a href="https://en.wikipedia.org/wiki/Inverse_transform_sampling"><em>inversion method</em></a> is a simple variable transformation method. Let <span class="math inline">\(p(x)\)</span> be a pdf over a sample space <span class="math inline">\(\mathcal X \subset \mathbb R\)</span>, then the <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function"><em>cumulative distribution function</em> (cdf)</a> is:</p>
 <p><span id="eq-cdf"><span class="math display">\[
 P(y) = \Pr(x \le y) = \mathbb E_p[x \le y] = \int^y_{-\infty} p(x)\, dx
-\tag{17}\]</span></span></p>
+\tag{18}\]</span></span></p>
 <p>this is the continuous analog of <span class="math inline">\(c_i\)</span> defined above in the section on sampling discrete models. By construction, <span class="math inline">\(P(x) \in [0, 1]\)</span> for <span class="math inline">\(x \in\mathcal X\)</span>. <span class="math inline">\(P(x)\)</span> is continuous and strictly increasing and therefore invertible. Inverse transform sampling uses the following mathematical fact:</p>
 <p><span id="eq-inversion_method"><span class="math display">\[
 x = P^{-1}(u) \sim p(x)\,\,\,\text{for}\,\,\, u\sim\mathcal U(0,1)
-\tag{18}\]</span></span></p>
-<p>That is, we can generate random samples from <span class="math inline">\(p(x)\)</span> by generating uniformly distributed random numbers in <span class="math inline">\([0, 1]\)</span> and map them to <span class="math inline">\(\mathcal X\)</span> with the inverse of the cdf <span class="math inline">\(P^{-1}\)</span>. To see that this is a valid sampling procedure, let us compute the distribution of <span class="math inline">\(x=P^{-1}(u)\)</span> using the transformation rule (Eq. <a href="#eq-transform1d">Equation&nbsp;16</a>): We have</p>
+\tag{19}\]</span></span></p>
+<p>That is, we can generate random samples from <span class="math inline">\(p(x)\)</span> by generating uniformly distributed random numbers in <span class="math inline">\([0, 1]\)</span> and map them to <span class="math inline">\(\mathcal X\)</span> with the inverse of the cdf <span class="math inline">\(P^{-1}\)</span>. To see that this is a valid sampling procedure, let us compute the distribution of <span class="math inline">\(x=P^{-1}(u)\)</span> using the transformation rule (Eq. <a href="#eq-transform1d">Equation&nbsp;17</a>): We have</p>
 <p><span class="math display">\[
 \frac{d\, P^{-1}(u)}{d\, u} = \frac{1}{P'(P^{-1}(u))} = \frac{1}{p(P^{-1}(u))}
 \]</span></p>
-<p>Plugging this expression into (Eq. <a href="#eq-transform1d">Equation&nbsp;16</a>) yields</p>
+<p>Plugging this expression into (Eq. <a href="#eq-transform1d">Equation&nbsp;17</a>) yields</p>
 <p><span class="math display">\[
 p_x(x) = \frac{p_u(P(x))}{(P^{-1})'(P(x))} = \frac{1}{1 / p(x)} = p(x)
 \]</span></p>
@@ -1500,7 +1512,7 @@ x^{(s)} = - \frac{\log u^{(s)}}{\lambda}, \,\,\, u^{(s)} \sim \mathcal U(0,1)
 <p><img src="lecture_files/figure-html/cell-20-output-1.png" width="1148" height="278"></p>
 </div>
 </div>
-<p>In principle, the inverse transformation approach (Eq. <a href="#eq-inversion_method">Equation&nbsp;18</a>) generalizes to multiple dimensions (see, for example, Murray Rosenblatt: <a href="https://www.jstor.org/stable/2236692?seq=1#metadata_info_tab_contents">Remarks on a Multivariate Transformation</a>):</p>
+<p>In principle, the inverse transformation approach (Eq. <a href="#eq-inversion_method">Equation&nbsp;19</a>) generalizes to multiple dimensions (see, for example, Murray Rosenblatt: <a href="https://www.jstor.org/stable/2236692?seq=1#metadata_info_tab_contents">Remarks on a Multivariate Transformation</a>):</p>
 <p><span id="eq-multivariate_transform"><span class="math display">\[
 %
 \begin{aligned}
@@ -1510,7 +1522,7 @@ x^{(s)} = - \frac{\log u^{(s)}}{\lambda}, \,\,\, u^{(s)} \sim \mathcal U(0,1)
     &amp;\vdots  \\
     P_D(x_D'\mid{}x_{D-1}, \ldots, x_{1}) &amp;= \Pr(x_D &lt; x_D'\mid{}x_{D-1}, \ldots, x_{1}) = \int \mathbb 1(x_D \le x_D')\, p(x_D\mid{}x_{D-1}, \ldots, x_{1})\, dx_D
 \end{aligned}
-\tag{19}\]</span></span></p>
+\tag{20}\]</span></span></p>
 <p>However, only in very rare cases is it possible to compute the multivariate cumulative distribution function in higher dimensional spaces, let alone invert it in closed form.</p>
 <p>So this expression is mostly of theoretical interest to us. Nevertheless, it is curious to see that multivariate pdfs can in principle be mapped to a uniform distributions over the hypercube:</p>
 <p><span class="math display">\[
@@ -1795,7 +1807,7 @@ p(x) \propto f\bigl((x-b)^T\!\!A(x-b)\bigr)
 <p>The <a href="https://en.wikipedia.org/wiki/Erlang_distribution">Erlang distribution</a>, a special version of the <a href="https://en.wikipedia.org/wiki/Gamma_distribution">Gamma distribution</a>, has the functional form</p>
 <p><span id="eq-erlang"><span class="math display">\[
     p(x|k, \lambda) = \frac{\lambda^k}{\Gamma(k)} x^{k - 1} e^{-\lambda x}, \, k \in \mathbb N, \, k&gt; 0,\, \lambda &gt; 0
-\tag{20}\]</span></span></p>
+\tag{21}\]</span></span></p>
 <p>We can use exponentially distributed random variables <span class="math inline">\(z_i \sim \lambda e^{-\lambda z_i}, i=1, \ldots, k\)</span> to produce an Erlang variate. Define <span class="math inline">\(z_i = x y_i\)</span> with <span class="math inline">\(y_i\in[0, 1]\)</span> for <span class="math inline">\(1 \le i \le k-1\)</span> and <span class="math inline">\(z_k = x \bigl(1-\sum_{i=1}^{k-1} y_i\bigr)\)</span>, then <span class="math inline">\(x = \sum_i z_i\)</span>. The Jacobian of the parameter transform is</p>
 <p><span class="math display">\[
 \frac{\partial (z_1, \ldots, z_k)}{\partial (x, y_1, \ldots, y_{k-1})} =
@@ -1869,11 +1881,11 @@ x \sim x^{k-1} e^{-\lambda x}
 <p><a href="https://en.wikipedia.org/wiki/Rejection_sampling"><em>Rejection sampling</em></a> is an early sampling approach that has been developed by von Neumann. The idea is to use a helper distribution <span class="math inline">\(q\)</span> from which we can sample easily in order to sample from a more complicated model <span class="math inline">\(p\)</span>. To be a valid proposal distribution, <span class="math inline">\(q\)</span> must satisfy</p>
 <p><span id="eq-rejection_proposal"><span class="math display">\[
     p(x) \le M q(x)
-\tag{21}\]</span></span></p>
+\tag{22}\]</span></span></p>
 <p>for a constant <span class="math inline">\(M\)</span> which implies <span class="math inline">\(M\ge 1\)</span>, since <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> are normalized pdfs. Moreover, the support of <span class="math inline">\(p\)</span> should be contained in the support of the proposal distribution <span class="math inline">\(q\)</span>. Let’s define the ratio</p>
 <p><span id="eq-rejection_accprob"><span class="math display">\[
     r(x) := \frac{p(x)}{M q(x)}
-\tag{22}\]</span></span></p>
+\tag{23}\]</span></span></p>
 <p>which is smaller than or equal to 1 for all <span class="math inline">\(x\)</span> with <span class="math inline">\(q(x)&gt;0\)</span>, otherwise we set <span class="math inline">\(r(x) = 1\)</span>.</p>
 <section id="algorithm-rejection-sampling" class="level3">
 <h3 class="anchored" data-anchor-id="algorithm-rejection-sampling">Algorithm: Rejection sampling</h3>
@@ -1981,8 +1993,8 @@ x^{(s)} \sim p(x\mid{}a=1)\, .
 <p>It is straight forward to compute this distribution. We have <span class="math inline">\(p(x\mid{}a=1) = p(x, a=1)\, /\, p(a=1)\)</span>. We need to compute the marginal probability <span class="math inline">\(p(a=1)\)</span>:</p>
 <p><span id="eq-rs-acceptance"><span class="math display">\[
 p(a=1) = \int p(x, a=1)\, dx = \int q(x)\, r(x)\, dx = \int q(x)\, \frac{p(x)}{Mq(x)}\, dx = \frac{1}{M}
-\tag{23}\]</span></span></p>
-<p>since <span class="math inline">\(p\)</span> is normalized. Equation (<a href="#eq-rs-acceptance">Equation&nbsp;23</a>) tells us that the average probability to propose an acceptable sample is <span class="math inline">\(M^{-1}\)</span>. We can now compute the desired conditional distribution <span class="math inline">\(p(x\mid{}a=1)\)</span>:</p>
+\tag{24}\]</span></span></p>
+<p>since <span class="math inline">\(p\)</span> is normalized. Equation (<a href="#eq-rs-acceptance">Equation&nbsp;24</a>) tells us that the average probability to propose an acceptable sample is <span class="math inline">\(M^{-1}\)</span>. We can now compute the desired conditional distribution <span class="math inline">\(p(x\mid{}a=1)\)</span>:</p>
 <p><span class="math display">\[
 p(x\mid{}a=1) = \frac{p(x, a=1)}{p(a=1)} = M q(x)\, r(x) = M q(x)\, \frac{p(x)}{M q(x)} = p(x)\, .
 \]</span></p>
@@ -2132,7 +2144,7 @@ p(x\mid{}a=1) = \frac{p(x, a=1)}{p(a=1)} = M q(x)\, r(x) = M q(x)\, \frac{p(x)}{
 <p><span class="math display">\[
 p^*(x) \le M q^*(x)\,\,\, \Rightarrow M \ge Z_p/Z_q\, .
 \]</span></p>
-<p>In analogy to Eq. (<a href="#eq-rejection_accprob">Equation&nbsp;22</a>), the acceptance probability changes to</p>
+<p>In analogy to Eq. (<a href="#eq-rejection_accprob">Equation&nbsp;23</a>), the acceptance probability changes to</p>
 <p><span class="math display">\[
 r(x) = \frac{p^*(x)}{M q^*(x)} \le 1
 \]</span></p>
@@ -2172,11 +2184,11 @@ q(x) = 0\,\,\, \Rightarrow\,\,\, f(x)p(x) = 0
 <p>Expectation values are then approximated by</p>
 <p><span id="eq-IS"><span class="math display">\[
     \mathbb E_p[f] \approx \hat f_{\text{IS}} := \frac{1}{S} \sum_{s=1}^S w^{(s)} \, f(x^{(s)})
-\tag{24}\]</span></span></p>
+\tag{25}\]</span></span></p>
 <p>The right hand side can be interpreted as the expectation of <span class="math inline">\(f\)</span> under the approximate density</p>
 <p><span id="eq-is-approximation"><span class="math display">\[
     \hat p_S(x) = \frac{1}{S} \sum_{s=1}^S w^{(s)} \delta\bigl(x - x^{(s)}\bigr)\, .
-\tag{25}\]</span></span></p>
+\tag{26}\]</span></span></p>
 <p>This is a generalization of the approximate density introduced earlier in Eq. (<a href="#eq-approximate_pdf">Equation&nbsp;5</a>).</p>
 <p>Let us again use a Gaussian target and a Cauchy proposal to illustrate the sampling algorithm:</p>
 <div class="cell" data-execution_count="29">
@@ -2229,7 +2241,7 @@ q(x) = 0\,\,\, \Rightarrow\,\,\, f(x)p(x) = 0
 </section>
 <section id="properties-of-importance-sampling" class="level3">
 <h3 class="anchored" data-anchor-id="properties-of-importance-sampling">Properties of importance sampling</h3>
-<p>The importance sampling estimator (Eq. <a href="#eq-IS">Equation&nbsp;24</a>) is unbiased: The <span class="math inline">\(S\)</span> samples follow the joint distribution <span class="math inline">\(q_S(x^{(1)}, \ldots, x^{(S)}) = \prod_s q(x^{(s)})\)</span>, and the expectation of the importance sampling estimator is</p>
+<p>The importance sampling estimator (Eq. <a href="#eq-IS">Equation&nbsp;25</a>) is unbiased: The <span class="math inline">\(S\)</span> samples follow the joint distribution <span class="math inline">\(q_S(x^{(1)}, \ldots, x^{(S)}) = \prod_s q(x^{(s)})\)</span>, and the expectation of the importance sampling estimator is</p>
 <p><span class="math display">\[
 \mathbb E_{q_S}[\hat f_{\text{IS}}]
 = \frac{1}{S} \mathbb E_{q_S}\biggl[\sum_s f(x^{(s)}) p(x^{(s)})/q(x^{(s)})\biggr]
@@ -2237,7 +2249,7 @@ q(x) = 0\,\,\, \Rightarrow\,\,\, f(x)p(x) = 0
 = \mathbb E_p[f]\, .
 \]</span></p>
 <p>The law of large numbers guarantees that <span class="math inline">\(\hat f_{\text{IS}} \to \mathbb E_p[f]\)</span> for <span class="math inline">\(S\to\infty\)</span>.</p>
-<p>Since the importance sampling (IS) estimator <span class="math inline">\(\hat f_{\text{IS}}\)</span> is simply the Monte Carlo estimator for <span class="math inline">\(w(x)f(x)\)</span> and sampling distribution <span class="math inline">\(q\)</span>, also the variance is readily available from Eq. (<a href="#eq-MCvariance">Equation&nbsp;8</a>):</p>
+<p>Since the importance sampling (IS) estimator <span class="math inline">\(\hat f_{\text{IS}}\)</span> is simply the Monte Carlo estimator for <span class="math inline">\(w(x)f(x)\)</span> and sampling distribution <span class="math inline">\(q\)</span>, also the variance is readily available from Eq. (<a href="#eq-MCvariance">Equation&nbsp;9</a>):</p>
 <p><span class="math display">\[
 \text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \text{var}_q[wf] \, .
 \]</span></p>
@@ -2247,7 +2259,7 @@ q(x) = 0\,\,\, \Rightarrow\,\,\, f(x)p(x) = 0
 \]</span></p>
 <p><span id="eq-ISvariance"><span class="math display">\[
     \text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \biggl( \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2 \biggr)\, .
-\tag{26}\]</span></span></p>
+\tag{27}\]</span></span></p>
 <p>Like the error of the standard Monte Carlo approximation, the error of the IS estimator shrinks with <span class="math inline">\(1/\sqrt{S}\)</span>. We can also minimize the variance of the IS estimator as a functional of the proposal distribution (subject to the constraint <span class="math inline">\(\int q(x)\, dx = 1\)</span>), which can be achieved by minimizing the Lagrangian <span class="math inline">\(\mathbb E_p[p/q\, f^2] + \lambda (1-\int q(x) dx)\)</span> resulting in the optimal IS proposal:</p>
 <p><span class="math display">\[
 q_{\text{opt}}(x) \propto |f(x)|\, p(x)\, .
@@ -2284,26 +2296,26 @@ w(x) = \frac{p(x)}{q(x)} = \frac{Z_q}{Z_p} \frac{p^*(x)}{q^*(x)}
 <p>The IS estimator for the ratio of normalizing constants is</p>
 <p><span id="eq-ISratio"><span class="math display">\[
     (\widehat{Z_p/Z_q})_{\text{IS}} = \frac{1}{S} \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})} \, .
-\tag{27}\]</span></span></p>
-<p>Plugging this estimator into standard IS estimator (Eq. <a href="#eq-IS">Equation&nbsp;24</a>) yields the <em>self-normalized</em> importance sampling (NIS) estimator</p>
+\tag{28}\]</span></span></p>
+<p>Plugging this estimator into standard IS estimator (Eq. <a href="#eq-IS">Equation&nbsp;25</a>) yields the <em>self-normalized</em> importance sampling (NIS) estimator</p>
 <p><span id="eq-ISselfnormalized"><span class="math display">\[
 \hat f_{\text{NIS}} = \frac{\sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}\, f(x^{(s)})}{ \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}} = \frac{\sum_{s=1}^S w^{(s)}\, f(x^{(s)})}{ \sum_{s=1}^S w^{(s)}}
-\tag{28}\]</span></span></p>
+\tag{29}\]</span></span></p>
 <p>In contrast to <span class="math inline">\(\hat f_{\text{IS}}\)</span>, the self-noramlized IS estimator <span class="math inline">\(\hat f_{\text{NIS}}\)</span> is biased, but strongly consistent, meaning that for <span class="math inline">\(S\to\infty\)</span> the NIS estimator converges to the correct estimate: <span class="math inline">\(\hat f_{\text{NIS}} \to \mathbb E_p[f]\)</span>. The asymptotic variance of the estimator can be approximated by</p>
 <p><span id="eq-NISvar"><span class="math display">\[
 \text{var}_{\text{as}}[\hat f_{\text{NIS}}] =  \frac{\frac{1}{S} \sum_s [w^{(s)}]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}}\bigr)^2}{\bigl[\frac{1}{S} \sum_s w^{(s)}\bigr]^2}\, .   
-\tag{29}\]</span></span></p>
+\tag{30}\]</span></span></p>
 </section>
 <section id="effective-sample-size" class="level3">
 <h3 class="anchored" data-anchor-id="effective-sample-size">Effective sample size</h3>
-<p>The <a href="https://en.wikipedia.org/wiki/Effective_sample_size">effective sampling size (ESS)</a> is the number of <em>independent</em> samples <span class="math inline">\(S_{\text{eff}}\)</span> that would result in the same variance as the NIS estimator (Eq. <a href="#eq-NISvar">Equation&nbsp;29</a>). To compute ESS, we match the asymptotic variance of <span class="math inline">\(\hat f_{\text{NIS}}\)</span> with the variance resulting from <span class="math inline">\(S_{\text{eff}}\)</span>:</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Effective_sample_size">effective sampling size (ESS)</a> is the number of <em>independent</em> samples <span class="math inline">\(S_{\text{eff}}\)</span> that would result in the same variance as the NIS estimator (Eq. <a href="#eq-NISvar">Equation&nbsp;30</a>). To compute ESS, we match the asymptotic variance of <span class="math inline">\(\hat f_{\text{NIS}}\)</span> with the variance resulting from <span class="math inline">\(S_{\text{eff}}\)</span>:</p>
 <p><span class="math display">\[
 \frac{1}{S} \text{var}_{\text{as}}[\hat f_{\text{NIS}}] = \frac{\sum_s \bigl[w^{(s)}\bigr]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}} \bigr)^2}{\bigl[\sum_s w^{(s)}\bigr]^2} = \frac{\sigma^2}{S_{\text{eff}}}
 \]</span></p>
 <p>where <span class="math inline">\(\sigma^2 = \text{var}_p[f]\)</span>. For <span class="math inline">\(f(x^{(s)}) - \hat f_{\text{NIS}} \approx \sigma\)</span>, we obtain:</p>
 <p><span id="eq-ESS"><span class="math display">\[
 S_{\text{eff}} = \frac{\bigl[\sum_s w^{(s)}\bigr]^2}{\sum_s \bigr[w^{(s)}\bigl]^2}
-\tag{30}\]</span></span></p>
+\tag{31}\]</span></span></p>
 <p>The two extreme cases are:</p>
 <ol type="1">
 <li><p>All importance weights are the same, <span class="math inline">\(w^{(s)} = 1/S\)</span>, in which case <span class="math inline">\(S_{\text{eff}} = S\)</span>.</p></li>
@@ -2417,7 +2429,7 @@ x^{(s)}\sim q(x)
 <p>The idea of <a href="https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo"><strong>Markov chain Monte Carlo (MCMC)</strong></a> methods is to give up the <em>independence</em> of successive samples and generate sequences of states where <span class="math inline">\(x^{(s)}\)</span> depends on the previous sample <span class="math inline">\(x^{(s-1)}\)</span>. Our hope is that also when introducing these correlations, the Monte Carlo approximation</p>
 <p><span id="eq-MCapproximation"><span class="math display">\[
 \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr) \approx \mathbb E_p[f]
-\tag{31}\]</span></span></p>
+\tag{32}\]</span></span></p>
 <p>is still valid. This is justified by our intuition that as long as we run the simulation long enough correlations between two states <span class="math inline">\(x^{(s')}\)</span> and <span class="math inline">\(x^{(s)}\)</span> will vanish with large <span class="math inline">\(|s'-s|\)</span>, and the samples <span class="math inline">\(x^{(s)}\)</span> will approximately follow <span class="math inline">\(p(x)\)</span> for large <span class="math inline">\(s\)</span></p>
 <p>In the following, we will restrict ourselves to <em>discrete</em> sample spaces <span class="math inline">\(\mathcal X\)</span> (finite or countably infinite). Markov chains defined on continuous sample spaces can be treated in a similar, yet mathematically much more involved fashion (measure theory, etc.).</p>
 <section id="definition-of-markov-chains" class="level3">
@@ -2426,7 +2438,7 @@ x^{(s)}\sim q(x)
 <p>A (first order) <a href="https://en.wikipedia.org/wiki/Markov_chain"><em>Markov chain</em></a> is a <em>memoryless</em> stochastic process <span class="math inline">\(\left(x^{(s)}\right)_{s\ge 0}\)</span> that has the following <a href="https://en.wikipedia.org/wiki/Markov_property">property</a></p>
 <p><span id="eq-MarkovChain"><span class="math display">\[
 \Pr\bigl(x^{(s+1)} \mid x^{(s)}, \ldots, x^{(1)}\bigr) = \Pr\bigl(x^{(s+1)} \mid x^{(s)}\bigr)
-\tag{32}\]</span></span></p>
+\tag{33}\]</span></span></p>
 <p>with <span class="math inline">\(x^{(s)} \in \mathcal X\)</span>. That is, the probability of finding the system in state <span class="math inline">\(x^{(s+1)}\)</span> only depends on the <em>last</em> state <span class="math inline">\(x^{(s)}\)</span>, not on the previous states before the last state. In this sense, Markov chains have no memory. A Markov chain is uniquely characterized by</p>
 <ol type="1">
 <li><p>the <em>distribution of the initial state</em> <span class="math inline">\(x^{(0)} \sim p^{(0)}\)</span> and</p></li>
@@ -2453,23 +2465,23 @@ x^{(s)}\sim q(x)
 <p>Since the transition probability depends only on the last state, we can summarize all probabilities in a <em>transition matrix</em></p>
 <p><span id="eq-transition-matrix"><span class="math display">\[
     P(x, y) = \Pr(x \mid y)
-\tag{33}\]</span></span></p>
+\tag{34}\]</span></span></p>
 <p>For continuous sample spaces, the transition matrix becomes a transition operator or <a href="https://en.wikipedia.org/wiki/Markov_kernel">Markov kernel</a>. For the above two-state system we have</p>
 <p><span id="eq-twostate"><span class="math display">\[
 P(x, y) = \begin{pmatrix}
 1 - \alpha &amp; \beta \\
 \alpha &amp; 1 - \beta \\
 \end{pmatrix}
-\tag{34}\]</span></span></p>
+\tag{35}\]</span></span></p>
 <p>where <span class="math inline">\(\alpha, \beta \in [0, 1]\)</span>.</p>
 <p>In discrete sample spaces, <span class="math inline">\(P(x, y)\)</span> is the probability that we jump from state <span class="math inline">\(y\in\mathcal X\)</span> to state <span class="math inline">\(x\in\mathcal X\)</span>. Because we are dealing with conditional probabilities, we have</p>
 <p><span id="eq-transition-matrix2"><span class="math display">\[
 \sum_{x\in\mathcal X} P(x, y) = 1, \,\,\, P(x, y) \ge 0\, .
-\tag{35}\]</span></span></p>
+\tag{36}\]</span></span></p>
 <p>The first condition can be written in matrix-vector notation</p>
 <p><span id="eq-leftstochastic"><span class="math display">\[
 \mathbb 1^T\!P = \mathbb 1^T
-\tag{36}\]</span></span></p>
+\tag{37}\]</span></span></p>
 <p>where</p>
 <p><span id="eq-one"><span class="math display">\[
 \mathbb 1 = \begin{pmatrix}
@@ -2477,8 +2489,8 @@ P(x, y) = \begin{pmatrix}
 \vdots\\
 1\\
 \end{pmatrix}
-\tag{37}\]</span></span></p>
-<p>is a column vector whose elements are all one, and <span class="math inline">\(P\)</span> is the transition matrix. Non-negative square matrices that satisfy condition (<a href="#eq-leftstochastic">Equation&nbsp;36</a>) are called <a href="https://en.wikipedia.org/wiki/Stochastic_matrix"><em>(left) stochastic</em></a> matrices. The qualifier “left” stems from the fact that the <em>columns</em> of <span class="math inline">\(P(x, y)\)</span> are probability vectors, so multiplication with <span class="math inline">\(\mathbb 1^T\)</span> from the left produces one for each column.</p>
+\tag{38}\]</span></span></p>
+<p>is a column vector whose elements are all one, and <span class="math inline">\(P\)</span> is the transition matrix. Non-negative square matrices that satisfy condition (<a href="#eq-leftstochastic">Equation&nbsp;37</a>) are called <a href="https://en.wikipedia.org/wiki/Stochastic_matrix"><em>(left) stochastic</em></a> matrices. The qualifier “left” stems from the fact that the <em>columns</em> of <span class="math inline">\(P(x, y)\)</span> are probability vectors, so multiplication with <span class="math inline">\(\mathbb 1^T\)</span> from the left produces one for each column.</p>
 <section id="left-versus-right-stochastic-matrices" class="level4">
 <h4 class="anchored" data-anchor-id="left-versus-right-stochastic-matrices">Left versus right stochastic matrices</h4>
 <ul>
@@ -2550,12 +2562,12 @@ p^{(1)}(x) = \sum_{y\in\mathcal X} P(x, y)\, p^{(0)}(y)\, .
 <p>The marginal distribution of the <span class="math inline">\((s+1)\)</span>-th state in a Markov chain follows the distribution</p>
 <p><span id="eq-marginalMC"><span class="math display">\[
 p^{(s+1)}(x) = \sum_{y\in\mathcal X} P(x, y)\, p^{(s)}(y)\, .
-\tag{38}\]</span></span></p>
+\tag{39}\]</span></span></p>
 <p>Repeating the same argument for <span class="math inline">\(p^{(s)}\)</span>, we have</p>
 <p><span id="eq-marginalMC2"><span class="math display">\[
 p^{(s+1)}(x) = \sum_{y, z\in\mathcal X} P(x, y)\, P(y, z) \, p^{(s-1)}(z) =
 \sum_{z\in\mathcal X} \left(\sum_{y\in\mathcal X} P(x, y)\, P(y, z) \right) \, p^{(s-1)}(z)\, .
-\tag{39}\]</span></span></p>
+\tag{40}\]</span></span></p>
 <p>The expression in brackets, <span class="math inline">\(\sum_{y\in\mathcal X} P(x, y)\, P(y, z)\)</span>, is the transition matrix for making two successive transitions. By generalizing the argument, we obtain the <a href="https://en.wikipedia.org/wiki/Chapman%E2%80%93Kolmogorov_equation">Chapman-Kolmogorov equation</a>.</p>
 <p>In matrix-vector notation, we have</p>
 <p><span class="math display">\[
@@ -2569,7 +2581,7 @@ x^{(s)}\sim P^s p^{(0)}
 <p>The matrix power <span class="math inline">\(P^s\)</span> is the matrix analog of the power of scalar quantities:</p>
 <p><span id="eq-matrix_power"><span class="math display">\[
 P^s = \underbrace{P \cdot P\cdots P}_{s\text{ terms}}
-\tag{40}\]</span></span></p>
+\tag{41}\]</span></span></p>
 <p>where the dot “<span class="math inline">\(\cdot\)</span>” indicates matrix multiplication. It is straightforward to see that if <span class="math inline">\(P\)</span> is stochastic, then <span class="math inline">\(P^s\)</span> for <span class="math inline">\(s\ge 1\)</span> is also stochastic. The matrix power <span class="math inline">\(P^s\)</span> <em>propagates</em> the distribution of states by <span class="math inline">\(s\)</span> time steps.</p>
 <p>Multiplication of the transition matrix <span class="math inline">\(P\)</span> from the right advances a distribution <span class="math inline">\(p^{(s)} \to p^{(s+1)}\)</span>, whereas multiplication from the left corresponds to computing the expectation of some function defined on sample space <span class="math inline">\(\mathcal X\)</span>:</p>
 <p><span class="math display">\[
@@ -2598,7 +2610,7 @@ P^S = (U\Lambda U^{-1}) (U\Lambda U^{-1}) \cdots (U\Lambda U^{-1}) = U\Lambda^S 
 <p>The states with <span class="math inline">\(|\lambda |=1\)</span> play a crucial role in the long term behavior of the Markov chain. The left stochasticity of <span class="math inline">\(P\)</span> is the requirement that <span class="math inline">\(\mathbb 1\)</span> is a left eigenvector with eigenvalue 1. Since left and right eigenvalues coincide, there is at least one <em>right</em> eigenvector <span class="math inline">\(\pi\)</span> with eigenvalue one:</p>
 <p><span id="eq-stationary"><span class="math display">\[
 P\pi = \pi
-\tag{41}\]</span></span></p>
+\tag{42}\]</span></span></p>
 <p>If <span class="math inline">\(\pi\)</span> is normalized such that <span class="math inline">\(\mathbb 1^T\!\pi=1\)</span>, then <span class="math inline">\(\pi\)</span> is a <strong>stationary</strong> or <strong>invariant</strong> distribution of <span class="math inline">\(P\)</span>.</p>
 <p>Thanks to the <a href="https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem">Perron-Frobenius theorem</a> the elements in <span class="math inline">\(\pi\)</span> all have the same sign. We choose the sign to be positive to obtain a valid probability distribution. Moreover, we normalize <span class="math inline">\(\pi\)</span> to one (remember that the standard normalization for eigenvectors is <span class="math inline">\(u^T\!u=1\)</span>).</p>
 <p>The stationary distribution is a <em>fixed point</em> of the propagation dynamics generated by <span class="math inline">\(P\)</span>. If <span class="math inline">\(\pi\)</span> is unique, then it is also called the <em>equilibrium distribution</em> in a physical context.</p>
@@ -2636,8 +2648,8 @@ P = \begin{pmatrix}
 <p>An alternative definition of an irreducible Markov chain goes as follows: For all pairs <span class="math inline">\(x, y \in \mathcal X\)</span> there exists <span class="math inline">\(s(x,y)\in \mathbb N\)</span> such that</p>
 <p><span id="eq-irreducible"><span class="math display">\[
 \Pr\bigl(x^{(s)}=x\mid x^{(0)} = y\bigr) = (P^s)(x, y) &gt; 0
-\tag{42}\]</span></span></p>
-<p>note that <span class="math inline">\(s(x,y)\)</span> is in general different for every pair of states <span class="math inline">\(x, y \in\mathcal X\)</span>. The intuition behind this notion of irreducibility is that “all states can be reached from all other states”. <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.24.9739&amp;rep=rep1&amp;type=pdf">Häggström</a> uses the following terminology: If two states satisfy the irreducibility condition (<a href="#eq-irreducible">Equation&nbsp;42</a>), then <span class="math inline">\(x\)</span> is said to <em>communicate</em> with <span class="math inline">\(y\)</span>, i.e.&nbsp;<span class="math inline">\(y\)</span> can be reached from <span class="math inline">\(x\)</span> in a finite time, which is symbolized by <span class="math inline">\(x\to y\)</span>. Two states <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> <em>intercommunicate</em>, if <span class="math inline">\(x\to y\)</span> and <span class="math inline">\(y\to x\)</span>, which is denoted by <span class="math inline">\(x\leftrightarrow y\)</span> (so there exists a path from <span class="math inline">\(x\)</span> to <span class="math inline">\(y\)</span> with non-vanishing probability, and likewise a path from <span class="math inline">\(y\)</span> back to <span class="math inline">\(x\)</span>). Using this terminology, a Markov chain is irreducible, if <span class="math inline">\(x \leftrightarrow y\)</span> for all <span class="math inline">\(x, y \in \mathcal X\)</span>. This gives us also a hint for verifying irreducibility by checking if the <em>transition graph</em> of a Markov chain is <a href="https://en.wikipedia.org/wiki/Strongly_connected_component">strongly connected</a>.</p>
+\tag{43}\]</span></span></p>
+<p>note that <span class="math inline">\(s(x,y)\)</span> is in general different for every pair of states <span class="math inline">\(x, y \in\mathcal X\)</span>. The intuition behind this notion of irreducibility is that “all states can be reached from all other states”. <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.24.9739&amp;rep=rep1&amp;type=pdf">Häggström</a> uses the following terminology: If two states satisfy the irreducibility condition (<a href="#eq-irreducible">Equation&nbsp;43</a>), then <span class="math inline">\(x\)</span> is said to <em>communicate</em> with <span class="math inline">\(y\)</span>, i.e.&nbsp;<span class="math inline">\(y\)</span> can be reached from <span class="math inline">\(x\)</span> in a finite time, which is symbolized by <span class="math inline">\(x\to y\)</span>. Two states <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> <em>intercommunicate</em>, if <span class="math inline">\(x\to y\)</span> and <span class="math inline">\(y\to x\)</span>, which is denoted by <span class="math inline">\(x\leftrightarrow y\)</span> (so there exists a path from <span class="math inline">\(x\)</span> to <span class="math inline">\(y\)</span> with non-vanishing probability, and likewise a path from <span class="math inline">\(y\)</span> back to <span class="math inline">\(x\)</span>). Using this terminology, a Markov chain is irreducible, if <span class="math inline">\(x \leftrightarrow y\)</span> for all <span class="math inline">\(x, y \in \mathcal X\)</span>. This gives us also a hint for verifying irreducibility by checking if the <em>transition graph</em> of a Markov chain is <a href="https://en.wikipedia.org/wiki/Strongly_connected_component">strongly connected</a>.</p>
 <p>On the other hand, if a Markov chain is reducible, then the analysis of its long-term behavior can be reduced to the analysis of the long-term behavior of one or more Markov chains with smaller state space.</p>
 <p>To illustrate the concept of irreducibility let us come back to the linear congruential generators that we discussed in the context of pseudo random number generation.</p>
 <section id="example-lcg-with-bad-magic-numbers" class="level4">
@@ -2645,7 +2657,7 @@ P = \begin{pmatrix}
 <p>In lecture 2, we studied linear congruential generators based on the recurrence relation</p>
 <p><span id="eq-LCG"><span class="math display">\[
 x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m
-\tag{43}\]</span></span></p>
+\tag{44}\]</span></span></p>
 <p>with</p>
 <ul>
 <li><p><strong>modulus</strong> <span class="math inline">\(m &gt; 0\)</span></p></li>
@@ -2768,7 +2780,7 @@ x^{(s+1)} = (a x^{(s)} + c)\, \text{mod}\, m
 <p><img src="lecture_files/figure-html/cell-34-output-1.png" width="1125" height="342"></p>
 </div>
 </div>
-<p>We can now analyze this LCG by using Markov chain methods. The recurrence relation (<a href="#eq-LCG">Equation&nbsp;43</a>) defines a Markov chain with deterministic transitions:</p>
+<p>We can now analyze this LCG by using Markov chain methods. The recurrence relation (<a href="#eq-LCG">Equation&nbsp;44</a>) defines a Markov chain with deterministic transitions:</p>
 <p><span class="math display">\[
 P(x, y) = \left\{\begin{array}{c l}
 1 \,\,;&amp;x = (a y + c) \, \text{mod}\, m\\
@@ -2862,7 +2874,7 @@ entropy of stationary distribution: [4.094 4.094 4.094 0.   ]</code></pre>
 <p>The period of a state <span class="math inline">\(x\in\mathcal X\)</span> is defined as</p>
 <p><span id="eq-period"><span class="math display">\[
 d(x) = \text{gcd}\left\{s \ge 1 : P^s(x, x) &gt; 0\right\}
-\tag{44}\]</span></span></p>
+\tag{45}\]</span></span></p>
 <p>where <span class="math inline">\(\text{gcd}\{a_1, a_2, \ldots\}\)</span> is the <a href="https://en.wikipedia.org/wiki/Greatest_common_divisor">greatest common divisor</a> of the natural numbers <span class="math inline">\(a_1, a_2, \ldots \in \mathbb N\)</span>. The period of a state <span class="math inline">\(x\)</span> is the greatest common divisor of the times that the chain can return (i.e.&nbsp;has positive probability of returning) to <span class="math inline">\(x\)</span>, given that we start in <span class="math inline">\(x\)</span>.</p>
 <p>A Markov chain is <em>aperiodic</em> if the periods of all states are one: <span class="math inline">\(d(x) = 1\)</span> for all <span class="math inline">\(x\in\mathcal X\)</span>.</p>
 <p>So if a state is periodic, then the return times to <span class="math inline">\(x\)</span> are multiples of a factor greater than one, its period <span class="math inline">\(d(x)\)</span>.</p>
@@ -2895,7 +2907,7 @@ P(x, y) = \begin{pmatrix}
 1 - \alpha &amp; \beta \\
 \alpha &amp; 1 - \beta \\
 \end{pmatrix}
-\tag{45}\]</span></span></p>
+\tag{46}\]</span></span></p>
 <p>with eigenvalues <span class="math inline">\(1\)</span> and <span class="math inline">\(1-\alpha-\beta\)</span> and corresponding (right) eigenvectors:</p>
 <p><span id="eq-twostate-decomposition"><span class="math display">\[
 \pi = \frac{1}{\alpha+\beta} \begin{pmatrix}
@@ -2904,7 +2916,7 @@ P(x, y) = \begin{pmatrix}
 \text{and}\,\,\,  \begin{pmatrix}
 1 \\ -1 \\
 \end{pmatrix}
-\tag{46}\]</span></span></p>
+\tag{47}\]</span></span></p>
 <p>assuming <span class="math inline">\(\alpha&gt;0\)</span> or <span class="math inline">\(\beta&gt;0\)</span>.</p>
 <p>In case <span class="math inline">\(\alpha=\beta=0\)</span>:</p>
 <p><span id="eq-twostate3"><span class="math display">\[
@@ -2912,7 +2924,7 @@ P(x, y) = \begin{pmatrix}
 1  &amp; 0 \\
 0 &amp; 1  \\
 \end{pmatrix}
-\tag{47}\]</span></span></p>
+\tag{48}\]</span></span></p>
 <p>all two state distributions are stationary with eigenvalue one. In particular, we have eigenvectors</p>
 <p><span id="eq-decomposition2"><span class="math display">\[
 \begin{pmatrix}
@@ -2921,7 +2933,7 @@ P(x, y) = \begin{pmatrix}
 \begin{pmatrix}
 0 \\ 1 \\
 \end{pmatrix}
-\tag{48}\]</span></span></p>
+\tag{49}\]</span></span></p>
 <p>corresponding to two recurrent classes, and <span class="math inline">\(P\)</span> is reducible.</p>
 <p>In case <span class="math inline">\(\alpha=\beta=1\)</span>:</p>
 <p><span id="eq-twostate4"><span class="math display">\[
@@ -2929,7 +2941,7 @@ P(x, y) = \begin{pmatrix}
 0  &amp; 1 \\
 1 &amp; 0  \\
 \end{pmatrix}
-\tag{49}\]</span></span></p>
+\tag{50}\]</span></span></p>
 <p>the eigenvalues are <span class="math inline">\(1\)</span> and <span class="math inline">\(-1\)</span> with eigenvectors</p>
 <p><span class="math display">\[
 \begin{pmatrix}
@@ -2989,8 +3001,8 @@ P(x, y) = \begin{pmatrix}
 <p>Irreducibility and aperiodicity implies that <span class="math inline">\(\pi\)</span> is unique (see, for example, <a href="https://www.ams.org/journals/bull/2009-46-02/S0273-0979-08-01238-X/">Diaconis: The Markov Chain Monte Carlo Revolution</a>) and powers of <span class="math inline">\(P\)</span> converge to a rank one matrix</p>
 <p><span id="eq-fundamental"><span class="math display">\[
 P^S(x, y) \to \pi(x)
-\tag{50}\]</span></span></p>
-<p>for <span class="math inline">\(S\to\infty\)</span> and all <span class="math inline">\(x, y \in\mathcal X\)</span>. Equation (<a href="#eq-fundamental">Equation&nbsp;50</a>) means that we can start from any initial state <span class="math inline">\(y\in\mathcal X\)</span> with <span class="math inline">\(\pi(y) &gt; 0\)</span> and will eventually produce samples from the stationary distribution <span class="math inline">\(\pi\)</span>. Another way to express this <em>convergence in distribution</em> is:</p>
+\tag{51}\]</span></span></p>
+<p>for <span class="math inline">\(S\to\infty\)</span> and all <span class="math inline">\(x, y \in\mathcal X\)</span>. Equation (<a href="#eq-fundamental">Equation&nbsp;51</a>) means that we can start from any initial state <span class="math inline">\(y\in\mathcal X\)</span> with <span class="math inline">\(\pi(y) &gt; 0\)</span> and will eventually produce samples from the stationary distribution <span class="math inline">\(\pi\)</span>. Another way to express this <em>convergence in distribution</em> is:</p>
 <p><span class="math display">\[
 |P^S p - \pi| \to 0
 \]</span></p>
@@ -3000,7 +3012,7 @@ P^S \to \pi\mathbb 1^T\, .
 \]</span></p>
 <p>That is, if <span class="math inline">\(P\)</span> is irreducible and aperiodic, then matrix powers of <span class="math inline">\(P\)</span> converge to a rank-1 matrix.</p>
 <p>The fundamental theorem for Markov chains follows from the <a href="https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem">Perron-Frobenius theorem</a> for non-negative matrices and the irreducibility of <span class="math inline">\(P\)</span>.</p>
-<p>Why does theorem (<a href="#eq-fundamental">Equation&nbsp;50</a>) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from <span class="math inline">\(x\)</span> to <span class="math inline">\(y\)</span> according to <span class="math inline">\(P(y, x)\)</span>. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution.</p>
+<p>Why does theorem (<a href="#eq-fundamental">Equation&nbsp;51</a>) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from <span class="math inline">\(x\)</span> to <span class="math inline">\(y\)</span> according to <span class="math inline">\(P(y, x)\)</span>. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution.</p>
 <p>But there is still something missing in order to use the simulation of a Markov chain for probabilistic inference. In our setting, we are given a probabilistic model <span class="math inline">\(p\)</span> (our target distribution) rather than a transition matrix <span class="math inline">\(P\)</span>. So we are still facing the challenge of designing a suitable Markov chain that has the desired target as its stationary distribution. This problem has been solved in a very ingenious fashion by Metropolis et al., as we will see soon.</p>
 <div class="cell" data-execution_count="40">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># matrix power converges to rank-1 matrix</span></span>
@@ -3064,7 +3076,7 @@ P^S \to \pi\mathbb 1^T\, .
 <p>Irreducibility and aperiodicity of a stochastic transition matrix implies a strong law of large numbers for Markov chains:</p>
 <p><span id="eq-lln_markov"><span class="math display">\[
 \frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr) \to \mathbb E_{\pi}[f]
-\tag{51}\]</span></span></p>
+\tag{52}\]</span></span></p>
 <p>where <span class="math inline">\(x^{(s)} \sim \Pr\bigl(x\mid x^{(s-1)}\bigr) = P\bigl(x, x^{(s-1)}\bigr)\)</span> is an irreducible, aperiodic Markov chain with stationary distribution <span class="math inline">\(\pi\)</span>. Therefore, simulating a Markov chain produces samples that can be used to approximate an expectation similar to the approximation in standard Monte Carlo or importance sampling.</p>
 <p>Analogous to the standard Monte Carlo approximation, Markov chain Monte Carlo (MCMC) sampling produces estimates of expectations that coincide with the true expectation in the long run. Again, this is only a stochastic guarantee, and it will be generally difficult to know how close we are to the correct value. But nevertheless we have a guarantee that running a Markov chain longer should help.</p>
 </section>
@@ -3073,13 +3085,13 @@ P^S \to \pi\mathbb 1^T\, .
 <p>A very important concept to verify stationarity of a Markov chain <span class="math inline">\(P\)</span> is <em>reversibility</em>. A Markov chain is <em><span class="math inline">\(\pi\)</span>-reversible</em> if the transition matrix satisfies the <em>detailed balance</em> equations</p>
 <p><span id="eq-reversible"><span class="math display">\[
 P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
-\tag{52}\]</span></span></p>
-<p>for all <span class="math inline">\(x, y \in \mathcal X\)</span> for some distribution <span class="math inline">\(\pi\)</span>. From the point of view of probability flow across the transition graph, the detailed balance equations (<a href="#eq-reversible">Equation&nbsp;52</a>) state that “the amount of probability mass flowing from a source state <span class="math inline">\(x\)</span> to a sink <span class="math inline">\(y\)</span> via the directed edge with capacity <span class="math inline">\(P(y, x)\)</span> equals the probability mass flowing backwards.” So the dynamics across the transition graph is in a steady state. As a consequence, reversibility implies that <span class="math inline">\(\pi\)</span> is an invariant distribution:</p>
+\tag{53}\]</span></span></p>
+<p>for all <span class="math inline">\(x, y \in \mathcal X\)</span> for some distribution <span class="math inline">\(\pi\)</span>. From the point of view of probability flow across the transition graph, the detailed balance equations (<a href="#eq-reversible">Equation&nbsp;53</a>) state that “the amount of probability mass flowing from a source state <span class="math inline">\(x\)</span> to a sink <span class="math inline">\(y\)</span> via the directed edge with capacity <span class="math inline">\(P(y, x)\)</span> equals the probability mass flowing backwards.” So the dynamics across the transition graph is in a steady state. As a consequence, reversibility implies that <span class="math inline">\(\pi\)</span> is an invariant distribution:</p>
 <p><span id="eq-reversible_invariance"><span class="math display">\[
 \sum_{y\in\mathcal X} P(x, y)\pi(y) = \sum_{y\in\mathcal X} P(y, x) \pi(x) = \pi(x)\, .
-\tag{53}\]</span></span></p>
+\tag{54}\]</span></span></p>
 <p>Therefore, to verify that a distribution of interest (our target distribution) is the invariant distribution of a Markov chain, we can simply check if the transition matrix satisfies detailed balance with respect to the target distribution.</p>
-<p>The contrary to (<a href="#eq-reversible_invariance">Equation&nbsp;53</a>) is <strong>not</strong> true: The fact that <span class="math inline">\(\pi\)</span> is a stationary distribution of the transition matrix <span class="math inline">\(P\)</span> does not imply, that <span class="math inline">\(P\)</span> is <span class="math inline">\(\pi\)</span>-reversible.</p>
+<p>The contrary to (<a href="#eq-reversible_invariance">Equation&nbsp;54</a>) is <strong>not</strong> true: The fact that <span class="math inline">\(\pi\)</span> is a stationary distribution of the transition matrix <span class="math inline">\(P\)</span> does not imply, that <span class="math inline">\(P\)</span> is <span class="math inline">\(\pi\)</span>-reversible.</p>
 <p>If we start a Markov chain in the stationary distribution, <span class="math inline">\(p^{(0)} = \pi\)</span>, then <span id="eq-forward-backward"><span class="math display">\[
 \begin{aligned}
     \Pr\bigl(x_S = x^{(S)}, \ldots x_0=x^{(0)}\bigr) &amp;=
@@ -3088,7 +3100,7 @@ P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
     \prod_{s=1}^S P\bigl(x^{(s-1)}, x^{(s)}\bigr)\, \pi\bigl(x^{(S)}\bigr) \\
     &amp;= \Pr\bigl(x_S = x^{(0)}, \ldots x_0=x^{(S)}\bigr)
 \end{aligned}
-\tag{54}\]</span></span></p>
+\tag{55}\]</span></span></p>
 <p>The probability of generating a Markov chain when starting in the stationary distribution is the same in forward and backward direction. This is why the Markov chain is called <em>reversible</em>.</p>
 <p>If the transition matrix <span class="math inline">\(P\)</span> is symmetric, <span class="math inline">\(P^T=P\)</span>, then the uniform distribution is the stationary distribution because the detailed balance equations are satisfied for <span class="math inline">\(\pi(x) = 1/|\mathcal X|\)</span>.</p>
 </section>
@@ -3111,7 +3123,7 @@ P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
 </ol>
 <p><span id="eq-MHaccept"><span class="math display">\[
     A(y, x) = \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}
-\tag{55}\]</span></span></p>
+\tag{56}\]</span></span></p>
 <p>The MH algorithm is the first and most important Markov chain Monte Carlo (MCMC) algorithm. Most other MCMC algorithms are specialized versions of MH sampling.</p>
 <p><em>Remarks</em></p>
 <ol type="1">
@@ -3123,7 +3135,7 @@ P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
 </ol>
 <p><span id="eq-unnormalized"><span class="math display">\[
     p(x) = \frac{1}{Z_p} p^*(x), \,\,\, Q(x, y) = \frac{1}{Z_Q} Q^*(x, y)
-\tag{56}\]</span></span></p>
+\tag{57}\]</span></span></p>
 <p>where <span class="math inline">\(p^*(x) \ge 0\)</span> and <span class="math inline">\(Z_p = \sum_x p^*(x)\)</span> etc., then the <em>acceptance ratio</em> is</p>
 <p><span class="math display">\[
 \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} =
@@ -3173,11 +3185,11 @@ w(x) = \frac{p(x)}{q(x)}\, ,
 <p>The MH algorithm generates a Markov chain on <span class="math inline">\(\mathcal X\)</span>. The transition probabilities of the Markov chain are given by</p>
 <p><span id="eq-MHtransitions"><span class="math display">\[
 P(y, x) = Q(y, x)\, A(y, x) + \delta(y,x)\, r(x)
-\tag{57}\]</span></span></p>
+\tag{58}\]</span></span></p>
 <p>where the acceptance probability <span class="math inline">\(A(y, x)\)</span> is defined above, and the rejection probability is</p>
 <p><span id="eq-MHrejection"><span class="math display">\[
 r(x) = 1 - \sum_{y\in \mathcal X} Q(y, x)\, A(y, x)
-\tag{58}\]</span></span></p>
+\tag{59}\]</span></span></p>
 <p>The transition probability of <span class="math inline">\(y\not= x\)</span> is <span class="math inline">\(A(y, x)\, Q(y, x)\)</span> by construction of the algorithm. The term for <span class="math inline">\(y=x\)</span> is obtained by subtracting the sum <span class="math inline">\(\sum_y A(y, x)\, Q(y, x)\)</span> from one, which is just <span class="math inline">\(r(x)\)</span>. In general, it holds that the diagonal entries of the transition matrix are fixed by column stochasticity:</p>
 <p><span class="math display">\[
 1 = \sum_y P(y, x) \,\,\,\Rightarrow\,\,\, P(x, x) = 1 - \sum_{y\not= x} P(y, x)\, .
@@ -3186,7 +3198,7 @@ r(x) = 1 - \sum_{y\in \mathcal X} Q(y, x)\, A(y, x)
 </section>
 <section id="stationarity-of-the-target-distribution" class="level4">
 <h4 class="anchored" data-anchor-id="stationarity-of-the-target-distribution">Stationarity of the target distribution</h4>
-<p>To show that the target distribution <span class="math inline">\(p(x)\)</span> is indeed the stationary distribution of the Markov chain generated by the MH algorithm, we check if the transition matrix (<a href="#eq-MHtransitions">Equation&nbsp;57</a>) is <span class="math inline">\(p\)</span>-reversible. For <span class="math inline">\(y\not= x\)</span> we have:</p>
+<p>To show that the target distribution <span class="math inline">\(p(x)\)</span> is indeed the stationary distribution of the Markov chain generated by the MH algorithm, we check if the transition matrix (<a href="#eq-MHtransitions">Equation&nbsp;58</a>) is <span class="math inline">\(p\)</span>-reversible. For <span class="math inline">\(y\not= x\)</span> we have:</p>
 <p><span id="eq-MHreversible"><span class="math display">\[
 \begin{aligned}
     P(y, x)\, p(x)
@@ -3197,7 +3209,7 @@ r(x) = 1 - \sum_{y\in \mathcal X} Q(y, x)\, A(y, x)
     &amp;= Q(x, y)\, A(x, y)\, p(y) \\
     &amp;= P(x, y)\, p(y)
 \end{aligned}
-\tag{59}\]</span></span></p>
+\tag{60}\]</span></span></p>
 <p>The MH chain satisfies the detailed balance equations with regard to our target distribution. Therefore, <span class="math inline">\(p\)</span> is a stationary distribution and will be sampled in the long run.</p>
 <p>To ensure that the simulation converges to <span class="math inline">\(p\)</span>, we have to ensure irreducibility by proper choice of the proposal chain <span class="math inline">\(Q(y, x)\)</span>. The proposal chain needs to be irreducible: every point <span class="math inline">\(y \in \mathcal X\)</span> is reachable from any <span class="math inline">\(x \in\mathcal X\)</span> in a finite number of steps.</p>
 </section>
@@ -3284,11 +3296,11 @@ p(x) = \frac{x}{Z}, \,\,\, x\in\{1, \ldots, m\}=:\mathcal X, \,\,\, Z=\sum_{x=1}
 <p>The MH algorithm takes a base chain <span class="math inline">\(Q\)</span>, the proposal chain, that does not yet have the desired target distribution <span class="math inline">\(p\)</span> and tweaks it in such a way that the new chain has the correct distribution. This is achieved by constructing a new chain <span class="math inline">\(P\)</span> that is <span class="math inline">\(p\)</span>-reversible:</p>
 <p><span id="eq-p-reversible"><span class="math display">\[
     P(x, y)\, p(y) = P(y, x)\, p(x)
-\tag{60}\]</span></span></p>
+\tag{61}\]</span></span></p>
 <p>The mapping from <span class="math inline">\(Q\)</span> to <span class="math inline">\(P\)</span> involves the acceptance ratio</p>
 <p><span id="eq-acceptance-ratio"><span class="math display">\[
     R(y, x) = \frac{Q(x, y)\, p(y)}{Q(y, x)\, p(x)}
-\tag{61}\]</span></span></p>
+\tag{62}\]</span></span></p>
 <p>and is defined as</p>
 <p><span id="eq-metropolized"><span class="math display">\[
 P(y, x) = \left\{
@@ -3296,19 +3308,19 @@ P(y, x) = \left\{
 Q(y, x)\, \min\{1, R(y, x)\} &amp; \text{ if } y\not= x \\
 \sum_z Q(z, x) \bigl(1 - \min\{1, R(z, x)\}\bigr) &amp; \text{ if } y=x\\
 \end{array}\right.
-\tag{62}\]</span></span></p>
+\tag{63}\]</span></span></p>
 <p>If <span class="math inline">\(Q\)</span> is irreducible, then <span class="math inline">\(P\)</span> is also irreducible.</p>
-<p>The acceptance ratio <span class="math inline">\(R(y, x)\)</span> (Eq. <a href="#eq-acceptance-ratio">Equation&nbsp;61</a>) assesses how unbalanced the proposal chain is, i.e.&nbsp;how strongly <span class="math inline">\(Q\)</span> deviates from <span class="math inline">\(p\)</span>-reversibility. If <span class="math inline">\(Q\)</span> were already <span class="math inline">\(p\)</span>-reversible, then the ratio <span class="math inline">\(R\)</span> would always be one, and the proposal would always be accepted. The larger <span class="math inline">\(R(y, x)\)</span> deviates from one, the more unbalanced is the proposal chain with regard to the target. Since <span class="math inline">\(R(x, y) = 1 / R(y, x)\)</span>, a strong flux of probability in one direction, results in a reduced flux of probability in the backwards direction.</p>
+<p>The acceptance ratio <span class="math inline">\(R(y, x)\)</span> (Eq. <a href="#eq-acceptance-ratio">Equation&nbsp;62</a>) assesses how unbalanced the proposal chain is, i.e.&nbsp;how strongly <span class="math inline">\(Q\)</span> deviates from <span class="math inline">\(p\)</span>-reversibility. If <span class="math inline">\(Q\)</span> were already <span class="math inline">\(p\)</span>-reversible, then the ratio <span class="math inline">\(R\)</span> would always be one, and the proposal would always be accepted. The larger <span class="math inline">\(R(y, x)\)</span> deviates from one, the more unbalanced is the proposal chain with regard to the target. Since <span class="math inline">\(R(x, y) = 1 / R(y, x)\)</span>, a strong flux of probability in one direction, results in a reduced flux of probability in the backwards direction.</p>
 <p>To better understand how the mapping from some irreducible proposal chain <span class="math inline">\(Q\)</span> to a <span class="math inline">\(p\)</span>-reversible Metropolis chain <span class="math inline">\(P\)</span> works, let me try to explain a very nice paper by <a href="https://projecteuclid.org/euclid.ss/1015346318">Billera &amp; Diaconis: A Geometric Interpretation of the Metropolis-Hastings Algorithm</a>. This paper sets out to provide a global view on why the MH algorithm in some sense provides the optimal way of turning some arbitrary Markov chain <span class="math inline">\(Q\)</span> into a Markov chain with the desired stationary distribution.</p>
-<p>First let us think of the space of all possible Markov chains indexed by states from the finite sample space <span class="math inline">\(\mathcal X\)</span>. This space is formed by left stochastic square matrices of size <span class="math inline">\(|\mathcal X|\)</span> and will be called <span class="math inline">\(\mathcal S(\mathcal X)\)</span>. <span class="math inline">\(\mathcal S(\mathcal X)\)</span> is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of <span class="math inline">\(\mathcal S(\mathcal X)\)</span> is <span class="math inline">\(|\mathcal X|(|\mathcal X| -1 )\)</span>: there are <span class="math inline">\(|X|^2\)</span> non-negative entries in total from which we need to subtract <span class="math inline">\(|X|\)</span> diagonal entries that are fixed by column stochasticity (Eq. <a href="#eq-leftstochastic">Equation&nbsp;36</a>).</p>
+<p>First let us think of the space of all possible Markov chains indexed by states from the finite sample space <span class="math inline">\(\mathcal X\)</span>. This space is formed by left stochastic square matrices of size <span class="math inline">\(|\mathcal X|\)</span> and will be called <span class="math inline">\(\mathcal S(\mathcal X)\)</span>. <span class="math inline">\(\mathcal S(\mathcal X)\)</span> is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of <span class="math inline">\(\mathcal S(\mathcal X)\)</span> is <span class="math inline">\(|\mathcal X|(|\mathcal X| -1 )\)</span>: there are <span class="math inline">\(|X|^2\)</span> non-negative entries in total from which we need to subtract <span class="math inline">\(|X|\)</span> diagonal entries that are fixed by column stochasticity (Eq. <a href="#eq-leftstochastic">Equation&nbsp;37</a>).</p>
 <p>For a fixed target distribution <span class="math inline">\(p\)</span>, the subset <span class="math inline">\(\mathcal R(p)\)</span> of all Markov matrices that are <span class="math inline">\(p\)</span>-reversible <span id="eq-p-reversible-chains"><span class="math display">\[
 \mathcal R(p) = \left\{ P \in \mathcal S(\mathcal X): P(x, y)\, p(y) = P(y, x)\, p(x) \right\}
-\tag{63}\]</span></span> has dimension <span class="math inline">\(|\mathcal X|(|\mathcal X| - 1) / 2\)</span>, because <span class="math inline">\(p\)</span>-reversibility (Eq. <a href="#eq-p-reversible">Equation&nbsp;60</a>) fixes a triangular portion of the transition matrix</p>
+\tag{64}\]</span></span> has dimension <span class="math inline">\(|\mathcal X|(|\mathcal X| - 1) / 2\)</span>, because <span class="math inline">\(p\)</span>-reversibility (Eq. <a href="#eq-p-reversible">Equation&nbsp;61</a>) fixes a triangular portion of the transition matrix</p>
 <p><span class="math display">\[
 P(y, x) = P(x, y) \frac{p(y)}{p(x)}
 \]</span></p>
 <p>We can either choose <span class="math inline">\(P(x, y)\)</span> upon which <span class="math inline">\(P(y, x)\)</span> is fixed, or vice versa. <span class="math inline">\(\mathcal R(p)\)</span> is a convex subspace of <span class="math inline">\(\mathcal S\)</span>: If <span class="math inline">\(P, P' \in \mathcal R(p)\)</span>, then <span class="math inline">\(\lambda P + (1-\lambda) P' \in \mathcal R(p)\)</span> for <span class="math inline">\(\lambda\in[0,1]\)</span>.</p>
-<p>To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. <a href="#eq-twostate">Equation&nbsp;34</a>). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by <span class="math inline">\(\alpha = \Pr(x_2|x_1)\)</span> and <span class="math inline">\(\beta=\Pr(x_1|x_2)\)</span>. The <span class="math inline">\(p\)</span>-reversible chains form a one-dimensional subspace</p>
+<p>To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. <a href="#eq-twostate">Equation&nbsp;35</a>). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by <span class="math inline">\(\alpha = \Pr(x_2|x_1)\)</span> and <span class="math inline">\(\beta=\Pr(x_1|x_2)\)</span>. The <span class="math inline">\(p\)</span>-reversible chains form a one-dimensional subspace</p>
 <p><span class="math display">\[
 \mathcal R(p) = \left\{(\alpha, \beta) \in [0,1]^2 : \beta = \frac{p(x_1)}{p(x_2)}\,\alpha  \right\}
 \]</span></p>
@@ -3353,8 +3365,8 @@ P(y, x) = P(x, y) \frac{p(y)}{p(x)}
 <p>The Metropolis-Hastings algorithm maps an irreducible proposal chain <span class="math inline">\(Q\)</span> to <span class="math inline">\(\mathcal R(p)\)</span></p>
 <p><span id="eq-Metropolis-map"><span class="math display">\[
 M[Q](y, x) = \min\left\{Q(y, x), \frac{p(y)}{p(x)}\,Q(x, y) \right\}
-\tag{64}\]</span></span></p>
-<p>for <span class="math inline">\(y\not= x\)</span> (the diagonal entries are fixed by column stochasticity (Eq. <a href="#eq-leftstochastic">Equation&nbsp;36</a>)). The function <span class="math inline">\(M: \mathcal S(\mathcal X) \to \mathcal R(p)\)</span> is called <em>Metropolis map</em>. For a two-state system, the map is simply</p>
+\tag{65}\]</span></span></p>
+<p>for <span class="math inline">\(y\not= x\)</span> (the diagonal entries are fixed by column stochasticity (Eq. <a href="#eq-leftstochastic">Equation&nbsp;37</a>)). The function <span class="math inline">\(M: \mathcal S(\mathcal X) \to \mathcal R(p)\)</span> is called <em>Metropolis map</em>. For a two-state system, the map is simply</p>
 <p><span class="math display">\[
 \begin{pmatrix}
 \alpha \\ \beta
@@ -3384,12 +3396,12 @@ M[Q](y, x) = \min\left\{Q(y, x), \frac{p(y)}{p(x)}\,Q(x, y) \right\}
 <p>By construction, the off-diagonal entries in the Metropolis chain <span class="math inline">\(M[Q]\)</span> are <em>coordinate-wise decreasing</em>:</p>
 <p><span id="eq-coordinatewise-decreasing"><span class="math display">\[
 M[Q](y, x) \le Q(y, x)\,\,\,\text{for all}\,\, x, y \in \mathcal X \, .
-\tag{65}\]</span></span></p>
+\tag{66}\]</span></span></p>
 <p>In the above figure, <span class="math inline">\(Q\)</span> is either shifted to the left along the <span class="math inline">\(\alpha\)</span> axis, i.e.&nbsp;towards smaller <span class="math inline">\(P(x_2, x_1)\)</span> values until <span class="math inline">\(\mathcal{R}(p)\)</span> is hit, or <span class="math inline">\(Q\)</span> is shifted downwards long the <span class="math inline">\(\beta\)</span> axis.</p>
 <p>A suitable metric on <span class="math inline">\(\mathcal S(\mathcal{X})\)</span> is</p>
 <p><span id="eq-metric"><span class="math display">\[
 d(P, P') = \sum_{x\in\mathcal{X}} \sum_{y\not= x} p(x)\, \left|P(y, x) - P'(y, x)\right|
-\tag{66}\]</span></span></p>
+\tag{67}\]</span></span></p>
 <p>which is only zero, if <span class="math inline">\(P'=P\)</span>. The following figure shows “circles” around some <span class="math inline">\(Q\in\mathcal S(\mathcal X)\)</span> which are of course not actual circles because <span class="math inline">\(d(P,P')\)</span> is a weighted L1 norm, so <span class="math inline">\(d\)</span>-circles are diamonds.</p>
 <p>For the 2-state system, we have</p>
 <p><span class="math display">\[
@@ -3443,7 +3455,7 @@ d(P, P') = p(x_1)\, |\alpha - \alpha'| + p(x_2)\, |\beta - \beta'|
 <p><img src="lecture_files/figure-html/cell-46-output-1.png" width="919" height="920"></p>
 </div>
 </div>
-<p>Billera and Diaconis demonstrate that the Metropolis map minimizes the distance <span class="math inline">\(d(Q,P)\)</span> between the proposal chain <span class="math inline">\(Q\)</span> and all <span class="math inline">\(P\in\mathcal{R}(p)\)</span>. Among all minimizers in the set of <span class="math inline">\(p\)</span>-reversible chains, it picks the unique element that is coordinate-wise decreasing (Eq. <a href="#eq-coordinatewise-decreasing">Equation&nbsp;65</a>). It makes sense to demand that the mapping is coordinate-wise decreasing, because otherwise it will be more difficult to guarantee that the mapped chain is still in <span class="math inline">\(\mathcal S(\mathcal X)\)</span>.</p>
+<p>Billera and Diaconis demonstrate that the Metropolis map minimizes the distance <span class="math inline">\(d(Q,P)\)</span> between the proposal chain <span class="math inline">\(Q\)</span> and all <span class="math inline">\(P\in\mathcal{R}(p)\)</span>. Among all minimizers in the set of <span class="math inline">\(p\)</span>-reversible chains, it picks the unique element that is coordinate-wise decreasing (Eq. <a href="#eq-coordinatewise-decreasing">Equation&nbsp;66</a>). It makes sense to demand that the mapping is coordinate-wise decreasing, because otherwise it will be more difficult to guarantee that the mapped chain is still in <span class="math inline">\(\mathcal S(\mathcal X)\)</span>.</p>
 </section>
 <section id="variations-of-metropolis-hastings" class="level3">
 <h3 class="anchored" data-anchor-id="variations-of-metropolis-hastings">Variations of Metropolis-Hastings</h3>
@@ -3590,11 +3602,11 @@ p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
 <span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 96.7% (stepsize = 1.00e-01)
-acceptance rate: 80.8% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 96.6% (stepsize = 1.00e-01)
+acceptance rate: 80.3% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.2% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.0% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="826"></p>
@@ -3762,14 +3774,14 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb58-75"><a href="#cb58-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb58-76"><a href="#cb58-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 96.5% (stepsize = 1.00e-01)
+<pre><code>acceptance rate: 97.1% (stepsize = 1.00e-01)
 acceptance rate: 80.2% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 15.8% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.3% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1119" height="825"></p>
+<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1119" height="826"></p>
 </div>
 </div>
 <p>In the next example, we run the MH algorithm on a continuous pdf in two dimensions.</p>
@@ -3879,11 +3891,11 @@ acceptance rate: 80.2% (stepsize = 1.00e+00)</code></pre>
 <p>Let <span class="math inline">\(P_i\)</span> be <span class="math inline">\(N\)</span> Markov chains that share the same stationary distribution <span class="math inline">\(\pi\)</span>:</p>
 <p><span id="eq-multiple_chains"><span class="math display">\[
 P_i \pi = \pi, \,\,\, \mathbb{1}^T\!P_i = \mathbb{1}^T
-\tag{67}\]</span></span></p>
+\tag{68}\]</span></span></p>
 <p>The product of all chains, <span class="math inline">\(P=\prod_i P_i\)</span> (here <span class="math inline">\(\prod_i\)</span> symbolizes a <em>matrix product</em>), is also a Markov chain with the same stationary distribution:</p>
 <p><span id="eq-product_chain"><span class="math display">\[
 P\pi = \pi, \,\,\, \mathbb{1}^T\!P = \mathbb{1}^T
-\tag{68}\]</span></span></p>
+\tag{69}\]</span></span></p>
 <p>Therefore, the following algorithm will simulate <span class="math inline">\(P\)</span> and therefore eventually <span class="math inline">\(\pi\)</span>:</p>
 <p><span class="math display">\[\begin{align}\label{eq-markov-sequence}
 \begin{split}
@@ -3899,23 +3911,23 @@ P\pi = \pi, \,\,\, \mathbb{1}^T\!P = \mathbb{1}^T
 <p>By <span class="math inline">\(x_{\setminus i}\)</span> we denote the variable vector obtained by omitting the <span class="math inline">\(i\)</span>-th variable (or group of variables):</p>
 <p><span id="eq-without-group"><span class="math display">\[
 x_{\setminus i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
-\tag{69}\]</span></span></p>
+\tag{70}\]</span></span></p>
 <p>Then <span class="math inline">\(x_{\setminus i}\)</span> follows the marginal distribution:</p>
 <p><span id="eq-without-group-marginal"><span class="math display">\[
 p_{\setminus i}(x_{\setminus i}) = \int p(x_1, \ldots, x_N)\, d x_i
-\tag{70}\]</span></span></p>
+\tag{71}\]</span></span></p>
 <p>The marginal distribution of <span class="math inline">\(x_i\)</span> is:</p>
 <p><span id="eq-group-marginal"><span class="math display">\[
 p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\setminus i}
-\tag{71}\]</span></span></p>
+\tag{72}\]</span></span></p>
 <p>The conditional distribution of <span class="math inline">\(x_i\)</span> also readily available:</p>
 <p><span id="eq-group-conditional"><span class="math display">\[
 p_{i}(x_{i}|x_{\setminus i}) = \frac{p(x)}{p_{\setminus i}(x_{\setminus i})}
-\tag{72}\]</span></span></p>
+\tag{73}\]</span></span></p>
 <p>Let us consider a sequence of <span class="math inline">\(N\)</span> Markov chains <span class="math inline">\(P_i\)</span> where each chain only updates <span class="math inline">\(x_i\)</span> and does not change <span class="math inline">\(x_{\setminus i}\)</span>:</p>
 <p><span id="eq-chain-group"><span class="math display">\[
 Q_i(y, x) = q_i(y_i, x_i; x_{\setminus i})\, \delta(y_{\setminus i} - x_{\setminus i})  
-\tag{73}\]</span></span></p>
+\tag{74}\]</span></span></p>
 <p>where we introduced a product of delta distributions:</p>
 <p><span class="math display">\[
 \delta(x_{\setminus i}) := \prod_{j\not= i} \delta(x_j)
@@ -3990,7 +4002,7 @@ M[Q_i](y, x)
 <span id="cb62-54"><a href="#cb62-54" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb62-55"><a href="#cb62-55" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1114" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1088" height="346"></p>
 </div>
 </div>
 </section>
@@ -4595,7 +4607,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].imshow(x_SW.reshape(L, L))</span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_1952/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
+<pre><code>/tmp/ipykernel_2066/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
   plt.rc('image', interpolation=None, cmap='gray')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -4610,7 +4622,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <p>The idea of HMC is to exploit the following physical analogy: we interpret</p>
 <p><span id="eq-energy-hmc"><span class="math display">\[
 E(x) = - \log p(x)
-\tag{74}\]</span></span></p>
+\tag{75}\]</span></span></p>
 <p>as a potential energy function of a physical system with degrees of freedom <span class="math inline">\(x\)</span>. Typically, <span class="math inline">\(x\in\mathbb{R}^D\)</span>.</p>
 <p>We introduce auxiliary variables <span class="math inline">\(v\in\mathbb{R}^D\)</span> that follow a <span class="math inline">\(D\)</span>-dimensional standard Gaussian distribution:</p>
 <p><span class="math display">\[
@@ -4619,11 +4631,11 @@ p(v) = (2\pi)^{-D/2} \exp\left\{-\|v\|^2 / 2 \right\}
 <p>and construct the joint distribution:</p>
 <p><span id="eq-hmc-joint"><span class="math display">\[
 p(x, v) = p(x)\, p(v) \propto \exp\left\{- E(x) - \|v\|^2 / 2 \right\}\, .
-\tag{75}\]</span></span></p>
+\tag{76}\]</span></span></p>
 <p>It seems that we didn’t gain anything by introducing <span class="math inline">\(v\)</span> other than artificially blowing up the problem and writing the joint distribution in some fancy, pseudo-physical way. However, the major insight comes from the fact that if we stretch the physical analogy further, the joint distribution can be viewed as the <a href="https://en.wikipedia.org/wiki/Canonical_ensemble">canonical ensemble</a> defined over <a href="https://en.wikipedia.org/wiki/Phase_space"><em>phase space</em></a>:</p>
 <p><span id="eq-hmc-hamiltonian"><span class="math display">\[
 p(x, v) \propto \exp\left\{- H(x, v)\right\}\,\,\,\text{where}\,\,\,  H(x, v) := \underbrace{\tfrac{1}{2} \|v\|^2}_{\text{kinetic energy}} + \underbrace{E(x)}_{\text{potential energy}}\, .
-\tag{76}\]</span></span></p>
+\tag{77}\]</span></span></p>
 <p>Phase space is the joint space of positions <span class="math inline">\(x\)</span> and momenta (velocities) <span class="math inline">\(v\)</span> in our physical analogy, and the total energy is given by the sum of the kinetic and potential energy is called the <a href="https://en.wikipedia.org/wiki/Hamiltonian_mechanics"><em>Hamiltonian</em></a> of the system.</p>
 <section id="hamiltonian-dynamics" class="level3">
 <h3 class="anchored" data-anchor-id="hamiltonian-dynamics">Hamiltonian dynamics</h3>
@@ -4671,7 +4683,7 @@ H(x, v) = v^2 / 2 + k x^2 / 2
 <p>In matrix-vector form we have</p>
 <p><span id="eq-oscillator"><span class="math display">\[
 \frac{d}{dt} \begin{pmatrix} v\\ x\end{pmatrix} = \begin{pmatrix} 0 &amp; -k \\ 1 &amp; 0 \\ \end{pmatrix} \begin{pmatrix} v\\ x\end{pmatrix} = A \begin{pmatrix} v\\ x\end{pmatrix}\,\,\,\Rightarrow\,\,\, \begin{pmatrix} v(t)\\ x(t)\end{pmatrix} = \exp\{tA\} \begin{pmatrix} v_0\\ x_0\end{pmatrix}
-\tag{77}\]</span></span></p>
+\tag{78}\]</span></span></p>
 <p>where <span class="math inline">\(\exp\{tA\}\)</span> is a matrix exponential <span class="math inline">\(\exp\{tA\} = \sum_n \frac{t^n}{n!} A^n\)</span>. The matrix powers have a simple structure:</p>
 <p><span class="math display">\[
 A^{2n} = (-k)^n I, \,\,\, A^{2n+1} = (-k)^n A
@@ -5270,7 +5282,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb86-47"><a href="#cb86-47" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, py, color<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
 <span id="cb86-48"><a href="#cb86-48" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance_rate: 89.30% (HMC), 63.84% (Metropolis)</code></pre>
+<pre><code>acceptance_rate: 90.60% (HMC), 62.88% (Metropolis)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-72-output-2.png" width="837" height="550"></p>
@@ -5342,10 +5354,10 @@ modified Euler: det(trafo) = 1.000
 <span id="cb89-49"><a href="#cb89-49" aria-hidden="true" tabindex="-1"></a>samples_metro <span class="op">=</span> np.array(<span class="bu">list</span>(metro))[::n_leapfrog]</span>
 <span id="cb89-50"><a href="#cb89-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(metro.acceptance_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.8725</code></pre>
+<pre><code>0.886</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.25003</code></pre>
+<pre><code>0.24950666666666665</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="74">
@@ -5506,8 +5518,8 @@ modified Euler: det(trafo) = 1.000
 <p>The speed of convergence of a Markov chain <span class="math inline">\(P\)</span> with stationary distribution <span class="math inline">\(\pi\)</span> depends on how quickly contributions to the distance</p>
 <p><span id="eq-distance"><span class="math display">\[
 \left|p^{(S)} - \pi\right|
-\tag{78}\]</span></span></p>
-<p>die out as <span class="math inline">\(S\to\infty\)</span>. Distance (<a href="#eq-distance">Equation&nbsp;78</a>) is dominated by the second largest eigenvalue <span class="math inline">\(\lambda_2\)</span> of <span class="math inline">\(P\)</span>. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly <span class="math inline">\(|\lambda_2| &lt; 1\)</span>. If <span class="math inline">\(u_2, u_3, \ldots\)</span> are the eigenvectors of <span class="math inline">\(P\)</span> with eigenvalues <span class="math inline">\(1 &gt; |\lambda_2| \ge |\lambda_3| &gt;\ldots\)</span>, then we can write the initial distribution as <span class="math display">\[
+\tag{79}\]</span></span></p>
+<p>die out as <span class="math inline">\(S\to\infty\)</span>. Distance (<a href="#eq-distance">Equation&nbsp;79</a>) is dominated by the second largest eigenvalue <span class="math inline">\(\lambda_2\)</span> of <span class="math inline">\(P\)</span>. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly <span class="math inline">\(|\lambda_2| &lt; 1\)</span>. If <span class="math inline">\(u_2, u_3, \ldots\)</span> are the eigenvectors of <span class="math inline">\(P\)</span> with eigenvalues <span class="math inline">\(1 &gt; |\lambda_2| \ge |\lambda_3| &gt;\ldots\)</span>, then we can write the initial distribution as <span class="math display">\[
 p^{(0)} = \pi + a_2 u_2 + a_3 u_3 + \ldots
 \]</span> After <span class="math inline">\(S\)</span> transitions, the initial <span class="math inline">\(p^{(0)}\)</span> will be propagated to <span class="math display">\[
 p^{(S)} = \pi + a_2 \lambda_2^S u_2 + a_3 \lambda_3^S u_3 + \ldots
@@ -5599,18 +5611,18 @@ p^{(S)} = \pi + a_2 \lambda_2^S u_2 + a_3 \lambda_3^S u_3 + \ldots
 <p>It is difficult to assess the reliability of MCMC approximations, because of the dependence of the samples <span class="math inline">\(x^{(s)}\)</span>. The dependence usually adds variance to the estimator, when compared against simple Monte Carlo averages.</p>
 <p>To minimize biases stemming from a poor choice of the initial distribution <span class="math inline">\(p^{(0)}\)</span>, it is common practice to discard the first samples <span class="math inline">\(x^{(0)}, \ldots, x^{(B)}\)</span> called <em>burn-in</em>. It is assumed that <span class="math inline">\(x^{(B+1)}\)</span> will approximately follow the target distribution <span class="math inline">\(p\)</span>. The Monte Carlo approximation then becomes: <span id="eq-burnin"><span class="math display">\[
 \frac{1}{S-B} \sum_{s=B+1}^S f\bigl(x^{(s)}\bigr)\, .
-\tag{79}\]</span></span> Several statistics can be used to detect bias in MCMC simulations. However, they usually rely on rather strong assumptions, such as the asymptotic normality, or at least uni-modality of the target.</p>
+\tag{80}\]</span></span> Several statistics can be used to detect bias in MCMC simulations. However, they usually rely on rather strong assumptions, such as the asymptotic normality, or at least uni-modality of the target.</p>
 </section>
 <section id="auto-correlation-diagnostic" class="level3">
 <h3 class="anchored" data-anchor-id="auto-correlation-diagnostic">Auto-correlation diagnostic</h3>
 <p>The asymptotic variance of the MCMC estimator can be shown to converge against <span id="eq-variance"><span class="math display">\[
 \text{var}\left[\frac{1}{S}\sum_s f\bigl(x^{(s)}\bigr) \right] \xrightarrow[S\to\infty]{} \frac{1}{S} \text{var}_p[f] (1 + 2 \sum_{s\ge 1} \rho_s)  
-\tag{80}\]</span></span> where <span class="math inline">\(\rho_s\)</span> are the <em>correlations</em> between the initial samples and the <span class="math inline">\(s\)</span>-th samples <span id="eq-correlation"><span class="math display">\[
+\tag{81}\]</span></span> where <span class="math inline">\(\rho_s\)</span> are the <em>correlations</em> between the initial samples and the <span class="math inline">\(s\)</span>-th samples <span id="eq-correlation"><span class="math display">\[
 \rho_s = \text{corr}[f(x^{(0)}), f(x^{(s)})] \, .
-\tag{81}\]</span></span> For uncorrelated samples <span class="math inline">\(\rho_s=0\)</span> and we are back to the standard variance of Monte Carlo estimators: <span class="math inline">\(\text{var}[f]/S\)</span>. However, due to correlations the variance can be increased significantly (in principle, the variance can approach infinity for perfectly correlated samples).</p>
+\tag{82}\]</span></span> For uncorrelated samples <span class="math inline">\(\rho_s=0\)</span> and we are back to the standard variance of Monte Carlo estimators: <span class="math inline">\(\text{var}[f]/S\)</span>. However, due to correlations the variance can be increased significantly (in principle, the variance can approach infinity for perfectly correlated samples).</p>
 <p>Another way to look at this is that correlations decrease the <em>effective sample size</em> (ESS), which becomes <span id="eq-ess"><span class="math display">\[
 S_{\text{eff}} = \frac{S}{1 + 2 \sum_{s\ge 1} \rho_s} = \frac{S}{\text{IACT}}
-\tag{82}\]</span></span> where <span class="math inline">\(\text{IACT} = 1 + 2 \sum_{s\ge 1} \rho_s\)</span> is the <em>integrated auto-correlation time</em>.</p>
+\tag{83}\]</span></span> where <span class="math inline">\(\text{IACT} = 1 + 2 \sum_{s\ge 1} \rho_s\)</span> is the <em>integrated auto-correlation time</em>.</p>
 <div class="cell" data-execution_count="81">
 <div class="sourceCode cell-code" id="cb100"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="co"># autocorrelation analysis of bimodal target</span></span>
 <span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a></span>
