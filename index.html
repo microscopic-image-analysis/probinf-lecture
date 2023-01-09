@@ -778,16 +778,16 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(np.transpose([S, estimates]), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([[1.00000000e+03, 3.09600000e+00],
-       [2.15443500e+03, 3.14900000e+00],
-       [4.64158900e+03, 3.14100000e+00],
-       [1.00000000e+04, 3.15700000e+00],
-       [2.15443470e+04, 3.13500000e+00],
-       [4.64158880e+04, 3.13900000e+00],
-       [1.00000000e+05, 3.13700000e+00],
+<pre><code>array([[1.00000000e+03, 3.11200000e+00],
+       [2.15443500e+03, 3.06800000e+00],
+       [4.64158900e+03, 3.12700000e+00],
+       [1.00000000e+04, 3.14800000e+00],
+       [2.15443470e+04, 3.12900000e+00],
+       [4.64158880e+04, 3.14100000e+00],
+       [1.00000000e+05, 3.13600000e+00],
        [2.15443469e+05, 3.14200000e+00],
-       [4.64158883e+05, 3.14500000e+00],
-       [1.00000000e+06, 3.14300000e+00]])</code></pre>
+       [4.64158883e+05, 3.13700000e+00],
+       [1.00000000e+06, 3.14400000e+00]])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-7-output-2.png" width="949" height="468"></p>
@@ -975,7 +975,7 @@ D_{\text{max. error}} \approx -1 / W(-1/(8\pi)) \approx 24
 <ul>
 <li><p>Even though the Monte Carlo rate is usually <span class="math inline">\(\mathcal O(1/\sqrt{S})\)</span>, the constants involved may grow exponentially in dimension.</p></li>
 <li><p>Deterministic methods may have better rate of convergence than the Monte Carlo rate <span class="math inline">\(1/\sqrt{S}\)</span> (but may also deteriorate faster when dimension increases).</p></li>
-<li><p>Monte Carlo estimate is always random, so we never have guaranteed tolerance, but only statistical evidence (consistent confidence intervals at best).</p></li>
+<li><p>Monte Carlo estimate is always random, so we never have a guaranteed tolerance, but only statistical evidence (consistent confidence intervals at best).</p></li>
 </ul>
 </section>
 <section id="pseudo-random-number-generators" class="level2">
@@ -1297,9 +1297,9 @@ p(x) = \frac{\lambda^x}{x!} e^{-\lambda}, \,\,\, \lambda &gt; 0
 <h3 class="anchored" data-anchor-id="transformation-of-probability-distributions">Transformation of probability distributions</h3>
 <p>Let <span class="math inline">\(h\)</span> be a <em>one-to-one mapping</em> between two one-dimensional sample spaces <span class="math inline">\(h: \mathcal X \to \mathcal Y\)</span>, and <span class="math inline">\(h^{-1}\)</span> is the inverse function. If <span class="math inline">\(x\sim p_x(x)\)</span>, what is the distribution <span class="math inline">\(p_y(y)\)</span> of <span class="math inline">\(y=h(x)\)</span>? To answer this question let us compute the distribution <span class="math inline">\(p_y\)</span>:</p>
 <p><span id="eq-transform1d"><span class="math display">\[
-p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{h'(h^{-1}(y))}
+p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{|h'(h^{-1}(y))|}
 \tag{17}\]</span></span></p>
-<p>where we used the transformation property of the <a href="https://en.wikipedia.org/wiki/Dirac_delta_function">delta distribution</a>. The transformation rule guarantees that normalized pdfs transform into normalized pdfs.</p>
+<p>where we used the transformation property of the <a href="https://en.wikipedia.org/wiki/Dirac_delta_function#Composition_with_a_function">delta distribution</a>. The transformation rule guarantees that normalized pdfs transform into normalized pdfs.</p>
 <p>This result can be generalized to multiple dimensions. Let <span class="math inline">\(h\)</span> be an invertible one-to-one mapping between two <span class="math inline">\(D\)</span> dimensional sample spaces. Assume further that <span class="math inline">\(h\)</span> is continuously differentiable such that the Jacobian</p>
 <p><span class="math display">\[
 \nabla h(x) = \left(\frac{\partial h_i(x)}{\partial x_j} \right)_{i,j}
@@ -1322,7 +1322,8 @@ P(y) = \Pr(x \le y) = \mathbb E_p[x \le y] = \int^y_{-\infty} p(x)\, dx
 <p><span id="eq-inversion_method"><span class="math display">\[
 x = P^{-1}(u) \sim p(x)\,\,\,\text{for}\,\,\, u\sim\mathcal U(0,1)
 \tag{19}\]</span></span></p>
-<p>That is, we can generate random samples from <span class="math inline">\(p(x)\)</span> by generating uniformly distributed random numbers in <span class="math inline">\([0, 1]\)</span> and map them to <span class="math inline">\(\mathcal X\)</span> with the inverse of the cdf <span class="math inline">\(P^{-1}\)</span>. To see that this is a valid sampling procedure, let us compute the distribution of <span class="math inline">\(x=P^{-1}(u)\)</span> using the transformation rule (Eq. <a href="#eq-transform1d">Equation&nbsp;17</a>): We have</p>
+<p>That is, we can generate random samples from <span class="math inline">\(p(x)\)</span> by generating uniformly distributed random numbers in <span class="math inline">\([0, 1]\)</span> and map them to <span class="math inline">\(\mathcal X\)</span> with the inverse of the cdf <span class="math inline">\(P^{-1}\)</span>.</p>
+<p>To see that this is a valid sampling procedure, let us compute the distribution of <span class="math inline">\(x=P^{-1}(u)\)</span> using the transformation rule (Eq. <a href="#eq-transform1d">Equation&nbsp;17</a>): We have</p>
 <p><span class="math display">\[
 \frac{d\, P^{-1}(u)}{d\, u} = \frac{1}{P'(P^{-1}(u))} = \frac{1}{p(P^{-1}(u))}
 \]</span></p>
@@ -3606,13 +3607,13 @@ p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
 <span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>acceptance rate: 96.8% (stepsize = 1.00e-01)
-acceptance rate: 80.4% (stepsize = 1.00e+00)</code></pre>
+acceptance rate: 80.6% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.2% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 15.8% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="825"></p>
+<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="824"></p>
 </div>
 </div>
 </section>
@@ -3777,14 +3778,14 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb58-75"><a href="#cb58-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb58-76"><a href="#cb58-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 97.0% (stepsize = 1.00e-01)
-acceptance rate: 79.8% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 97.2% (stepsize = 1.00e-01)
+acceptance rate: 80.3% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 15.7% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.2% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1114" height="824"></p>
+<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1088" height="826"></p>
 </div>
 </div>
 <p>In the next example, we run the MH algorithm on a continuous pdf in two dimensions.</p>
@@ -4245,7 +4246,7 @@ p(x_2 | x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{
 <span id="cb65-35"><a href="#cb65-35" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb65-36"><a href="#cb65-36" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-55-output-1.png" width="922" height="922"></p>
+<p><img src="lecture_files/figure-html/cell-55-output-1.png" width="923" height="922"></p>
 </div>
 </div>
 </section>
@@ -4610,7 +4611,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].imshow(x_SW.reshape(L, L))</span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_2013/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
+<pre><code>/tmp/ipykernel_2039/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
   plt.rc('image', interpolation=None, cmap='gray')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -4922,7 +4923,7 @@ v(T) &amp;= v(T-\epsilon/2) - (\epsilon/2) \nabla_x E(x(T)) \\
 <span id="cb79-56"><a href="#cb79-56" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb79-57"><a href="#cb79-57" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()                             </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-66-output-1.png" width="1123" height="356"></p>
+<p><img src="lecture_files/figure-html/cell-66-output-1.png" width="1123" height="357"></p>
 </div>
 </div>
 <section id="comparison-to-other-integration-methods" class="level3">
@@ -5285,7 +5286,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb86-47"><a href="#cb86-47" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, py, color<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
 <span id="cb86-48"><a href="#cb86-48" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance_rate: 91.30% (HMC), 62.99% (Metropolis)</code></pre>
+<pre><code>acceptance_rate: 88.20% (HMC), 63.25% (Metropolis)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-72-output-2.png" width="837" height="550"></p>
@@ -5357,10 +5358,10 @@ modified Euler: det(trafo) = 1.000
 <span id="cb89-49"><a href="#cb89-49" aria-hidden="true" tabindex="-1"></a>samples_metro <span class="op">=</span> np.array(<span class="bu">list</span>(metro))[::n_leapfrog]</span>
 <span id="cb89-50"><a href="#cb89-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(metro.acceptance_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.8705</code></pre>
+<pre><code>0.8715</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.25010666666666664</code></pre>
+<pre><code>0.24894666666666668</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="74">
@@ -5383,7 +5384,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb92-17"><a href="#cb92-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_ylabel(<span class="vs">r'$\sigma_i$'</span>)</span>
 <span id="cb92-18"><a href="#cb92-18" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="839" height="834"></p>
+<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="836" height="834"></p>
 </div>
 </div>
 <p>A practical issue in applications of HMC is that the algorithm requires the gradient of minus log <span class="math inline">\(p(x)\)</span>. For some models it is far from straightforward to implement the gradient. Moreover, the gradient evaluations are on top of the evaluations of <span class="math inline">\(\log p(x)\)</span>, which are typical for MCMC approaches based on Metropolis-Hastings. Some remedy is provided by the possibility to use <a href="https://en.wikipedia.org/wiki/Automatic_differentiation"><em>automatic differentiation</em></a> to compute the gradient without implementing it explicitly. This strategy is used, for example, in the <a href="https://en.wikipedia.org/wiki/Stan_(software)">STAN</a> software for statistical inference or in probabilistic programming packages such as <a href="https://www.tensorflow.org/probability">tensorflow probability</a>, <a href="https://docs.pymc.io/">PyMC 3</a>, or <a href="https://pyro.ai/">pyro</a>.</p>
