@@ -171,7 +171,7 @@ __Cons__:
 
 * Deterministic methods may have better rate of convergence than the Monte Carlo rate $1/\sqrt{S}$ (but may also deteriorate faster when dimension increases).
 
-* Monte Carlo estimate is always random, so we never have guaranteed tolerance, but only statistical evidence (consistent confidence intervals at best).
+* Monte Carlo estimate is always random, so we never have a guaranteed tolerance, but only statistical evidence (consistent confidence intervals at best).
 
 ## Pseudo-random Number Generators
 
@@ -503,10 +503,10 @@ Let's first look at the simplest version of sampling from a pdf where the sample
 Let $h$ be a *one-to-one mapping* between two one-dimensional sample spaces $h: \mathcal X \to \mathcal Y$, and $h^{-1}$ is the inverse function. If $x\sim p_x(x)$, what is the distribution $p_y(y)$ of $y=h(x)$? To answer this question let us compute the distribution $p_y$:
 
 $$
-p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{h'(h^{-1}(y))}
+p_y(y) = \int_{\mathcal X} \delta(y - h(x))\, p_x(x)\, dx = \int_{\mathcal X} \frac{1}{|h'(x)|} \delta(x - h^{-1}(y))\, p_x(x)\, dx = \frac{p_x(h^{-1}(y))}{|h'(h^{-1}(y))|}
 $$ {#eq-transform1d}
 
-where we used the transformation property of the [delta distribution](https://en.wikipedia.org/wiki/Dirac_delta_function). The transformation rule guarantees that normalized pdfs transform into normalized pdfs. 
+where we used the transformation property of the [delta distribution](https://en.wikipedia.org/wiki/Dirac_delta_function#Composition_with_a_function). The transformation rule guarantees that normalized pdfs transform into normalized pdfs. 
 
 This result can be generalized to multiple dimensions. Let $h$ be an invertible one-to-one mapping between two $D$ dimensional sample spaces. Assume further that $h$ is continuously differentiable such that the Jacobian
 
@@ -537,7 +537,9 @@ $$
 x = P^{-1}(u) \sim p(x)\,\,\,\text{for}\,\,\, u\sim\mathcal U(0,1) 
 $$ {#eq-inversion_method}
 
-That is, we can generate random samples from $p(x)$ by generating uniformly distributed random numbers in $[0, 1]$ and map them to $\mathcal X$ with the inverse of the cdf $P^{-1}$. To see that this is a valid sampling procedure, let us compute the distribution of $x=P^{-1}(u)$ using the transformation rule (Eq. @eq-transform1d): We have
+That is, we can generate random samples from $p(x)$ by generating uniformly distributed random numbers in $[0, 1]$ and map them to $\mathcal X$ with the inverse of the cdf $P^{-1}$. 
+
+To see that this is a valid sampling procedure, let us compute the distribution of $x=P^{-1}(u)$ using the transformation rule (Eq. @eq-transform1d): We have
 
 $$
 \frac{d\, P^{-1}(u)}{d\, u} = \frac{1}{P'(P^{-1}(u))} = \frac{1}{p(P^{-1}(u))}
