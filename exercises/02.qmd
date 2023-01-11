@@ -210,7 +210,7 @@ def plot_lagged_sums(lag=0):
 
 ## c)
 
-The first of the diehard tests is called **"Birtday spacings"** (named after the [birthday problem](https://en.wikipedia.org/wiki/Birthday_problem)).
+The first of the diehard tests is called **"Birthday spacings"** (named after the [birthday problem](https://en.wikipedia.org/wiki/Birthday_problem)).
 The test goes as follows:
 
 - Choose $m$ birthdays uniformly random in a year of $n$ days.
