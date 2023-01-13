@@ -304,23 +304,54 @@ That is, the Monte Carlo estimate of $\mathbb E_p[f]$ is __unbiased__.
 How accurate is the estimate on average (i.e. how close do we get to the true value if we run many replications of the sampling procedure)? To answer this question, we compute the variance
 
 $$
+	\text{var}_{p_S}[\hat f_S] = \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] = 
+	\frac{1}{S} \text{var}_{p}[f]\, .
+$$ {#eq-MCvariance}
+
+To see the validity of the last result, we first write
+
+$$
 \begin{aligned}
     \text{var}_{p_S}[\hat f_S] 
     &= \mathbb{E}_{p_S}\bigl[(\hat f_S - \mu)^2\bigr] \\
-    &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} (f(x^{(s)} - \mu) (f(x^{s'}) - \mu))\bigr] \\
-    &= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[(f(x^{(s)}) - \mu) (f(x^{(s')}) - \mu)\bigr] \\
-	&= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')}) - \mu(f(x^{(s)}) + f(x^{(s')})) + \mu^2)\bigr] \\
-	&= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')})\bigr] - \mu^2 \\
-	&= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p_S}\bigl[\bigl(f(x^{(s)})\bigr)^2\bigr] + \frac{1}{S^2} \sum_{s\not= s'} \mathbb{E}_{p_S}\bigl[f(x^{(s)})\,f(x^{(s')})\bigr] - \mu^2 \\
-	&= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p}\bigl[\bigl(f(x^{(s)})\bigr)^2\bigr] + \frac{S(S-1)}{S^2} \mu^2 - \mu^2 \\
-	&= \frac{1}{S} \mathbb{E}_{p}\bigl[f^2\bigr] - \frac{1}{S} \mu^2 \\
-	&= \frac{1}{S} \mathbb{E}_{p}\bigl[(f - \mu)^2\bigr] \\
-    &= \frac{1}{S} \text{var}_{p}[f] 
+    &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} \underbrace{(f(x^{(s)}) - \mu)}_{\tilde f(x^{(s)})} (f(x^{(s')}) - \mu))\bigr] \\
+    &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} \tilde f(x^{(s)}) \tilde f(x^{(s')}) \bigr] \\
 \end{aligned}
-$$ {#eq-MCvariance}
-where we've made use of the linearity of expectations in the third equality, and of the independence of the samples (eq. @eq-MC-sample-independece) in the seventh.
+$$
+
+where $\tilde f(x^{(s)}) := f(x^{(s)}) - \mu$ has a vanishing first moment:
+
+$$
+\mathbb{E}_{p_S}\bigl[ \tilde f(x^{(s)}) \bigr]
+= \mathbb{E}_{p(x^{(s)})}\bigl[ \tilde f(x^{(s)}) \bigr]
+= \mathbb{E}_{p}[f] - \mu = 0\, . 
+$$
+
+The second moment is identical to the variance of f:
+
+$$
+\mathbb{E}_{p_S}\bigl[( \tilde f(x^{(s)}) )^2 \bigr]
+= \mathbb{E}_{p(x^{(s)})} \bigl[( \tilde f(x^{(s)}) )^2 \bigr]
+= \mathbb{E}_{p}[(f - \mu)^2] 
+= \text{var}_{p}[f]\, .
+$$
+
+It follows that
+$$
+\begin{aligned}
+    \text{var}_{p_S}[\hat f_S] 
+    &= \mathbb{E}_{p_S}\bigl[\frac{1}{S^2} \sum_{s,s'} \tilde f(x^{(s)}) \tilde f(x^{(s')}) \bigr] \\
+    &= \frac{1}{S^2} \sum_{s,s'} \mathbb{E}_{p_S}\bigl[\tilde f(x^{(s)}) \tilde f(x^{(s')}) \bigr] \\
+	&= \frac{1}{S^2} \sum_{s} \mathbb{E}_{p_S}\bigl[(\tilde f(x^{(s)}))^2 \bigr] + \frac{1}{S^2} \sum_{s\not= s'} \mathbb{E}_{p_S}\bigl[\tilde f(x^{(s)}) \tilde f(x^{(s')}) \bigr] \\
+    &= \frac{1}{S} \text{var}_{p}[f] + \frac{1}{S^2} \sum_{s\not= s'} \underbrace{\mathbb{E}_{p(x^{(s)})}\bigl[\tilde f(x^{(s)})\bigr]}_{0} \, \mathbb{E}_{p(x^{(s')})}\bigl[ \tilde f(x^{(s')}) \bigr] \\
+    &= \frac{1}{S} \text{var}_{p}[f] \\
+\end{aligned}
+$$
+
+where we've made use of the linearity of expectations in the second equality, and of the independence of the samples (eq. @eq-MC-sample-independece) in the third.
 
 The result shows that Monte Carlo error bars shrink like $1/\sqrt{S}$:
+
 $$
 \sigma(\hat f_S) := \sqrt{\text{var}[\hat f_S]} = \sigma(f) / \sqrt{S}
 $$ {#eq-MCerror}
