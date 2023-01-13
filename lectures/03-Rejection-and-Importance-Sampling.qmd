@@ -22,7 +22,7 @@
 
 * Direct sampling is possible via variable transformation methods that utilize the transformation rule: $p_y(y) = p_x(h^{-1}(y)) / |\nabla h(h^{-1}(y))|$
 
-* Inversion method: $h(x) = P(x) = \int^x p(x')\, dx$ (cumulative distribution function)
+* Inversion method: $h(x) = P(x) = \int_{-\infty}^x p(x')\, dx'$ (cumulative distribution function)
 
 * Some examples of transformation methods: Box-Muller $(x, y) = r (\cos\varphi, \sin\varphi)$, multivariate Gaussians 
 
@@ -65,7 +65,7 @@ fig.tight_layout()
 
 #### Sampling from the unit ball
 
-Using samples from the $(D-1)$-sphere we can also easily sample from the [$D$-dimensional unit ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) $\mathbb B^D = \{x\in\mathbb R : \|x\| \le 1\}$. Every element in $\mathbb B^D$ can be decomposed into
+Using samples from the $(D-1)$-sphere we can also easily sample from the [$D$-dimensional unit ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) $\mathbb B^D = \{x\in\mathbb R^D : \|x\| \le 1\}$. Every element in $\mathbb B^D$ can be decomposed into
 
 $$
 x = r\, u \in \mathbb B^D\,\,\,\text{where}\,\,\, u\in\mathbb S^{D-1},\, r\in[0, 1]
@@ -148,7 +148,7 @@ where $x, b \in \mathbb R^D$ and $A\in\mathbb R^{D\times D}$ is positive definit
 The [Erlang distribution](https://en.wikipedia.org/wiki/Erlang_distribution), a special version of the [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution), has the functional form
 
 $$
-    p(x|k, \lambda) = \frac{\lambda^k}{\Gamma(k)} x^{k - 1} e^{-\lambda x}, \, k \in \mathbb N, \, k> 0,\, \lambda > 0
+    p(x\mid{}k, \lambda) = \frac{\lambda^k}{\Gamma(k)} x^{k - 1} e^{-\lambda x}, \, k \in \mathbb N, \, x > 0,\, \lambda > 0
 $$ {#eq-erlang}
 
 We can use exponentially distributed random variables $z_i \sim \lambda e^{-\lambda z_i}, i=1, \ldots, k$ to produce an Erlang variate. Define $z_i = x y_i$ with $y_i\in[0, 1]$ for $1 \le i \le k-1$ and $z_k = x \bigl(1-\sum_{i=1}^{k-1} y_i\bigr)$, then $x = \sum_i z_i$. The Jacobian of the parameter transform is
