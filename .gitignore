@@ -6,6 +6,7 @@
 lecture_files
 *.html
 *.pdf
+*.ipynb
 lectures/*_files
 exercises/*_files
 /.quarto/
