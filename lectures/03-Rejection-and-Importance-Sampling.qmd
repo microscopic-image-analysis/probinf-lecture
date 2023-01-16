@@ -673,7 +673,7 @@ $$
 
 This estimator achieves minimum variance
 $$
-\left(\mathbb E_p[|f|] \right)^2 - \left(E_p[f] \right)^2
+\left(\mathbb E_p[|f|] \right)^2 - \left(\mathbb E_p[f] \right)^2
 $$
 
 which can approach zero if $f(x) \ge 0$. However, this result is mostly of theoretical interest. 
@@ -722,7 +722,7 @@ $$
 \hat f_{\text{NIS}} = \frac{\sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}\, f(x^{(s)})}{ \sum_{s=1}^S \frac{p^*(x^{(s)})}{q^*(x^{(s)})}} = \frac{\sum_{s=1}^S w^{(s)}\, f(x^{(s)})}{ \sum_{s=1}^S w^{(s)}}
 $$ {#eq-ISselfnormalized}
 
-In contrast to $\hat f_{\text{IS}}$, the self-noramlized IS estimator $\hat f_{\text{NIS}}$ is biased, but strongly consistent, meaning that for $S\to\infty$ the NIS estimator converges to the correct estimate: $\hat f_{\text{NIS}} \to \mathbb E_p[f]$. The asymptotic variance of the estimator can be approximated by
+In contrast to $\hat f_{\text{IS}}$, the self-normalized IS estimator $\hat f_{\text{NIS}}$ is biased, but strongly consistent, meaning that for $S\to\infty$ the NIS estimator converges to the correct estimate: $\hat f_{\text{NIS}} \to \mathbb E_p[f]$. The asymptotic variance of the estimator can be approximated by
 
 $$
 \text{var}_{\text{as}}[\hat f_{\text{NIS}}] =  \frac{\frac{1}{S} \sum_s [w^{(s)}]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}}\bigr)^2}{\bigl[\frac{1}{S} \sum_s w^{(s)}\bigr]^2}\, .   
@@ -730,7 +730,7 @@ $$ {#eq-NISvar}
 
 ### Effective sample size
 
-The [effective sampling size (ESS)](https://en.wikipedia.org/wiki/Effective_sample_size) is the number of *independent* samples $S_{\text{eff}}$ that would result in the same variance as the NIS estimator (Eq. @eq-NISvar). To compute ESS, we match the asymptotic variance of $\hat f_{\text{NIS}}$ with the variance resulting from $S_{\text{eff}}$:    
+The [effective sample size (ESS)](https://en.wikipedia.org/wiki/Effective_sample_size) is the number of *independent* samples $S_{\text{eff}}$ that would result in the same variance as the NIS estimator (Eq. @eq-NISvar). To compute ESS, we match the asymptotic variance of $\hat f_{\text{NIS}}$ with the variance resulting from $S_{\text{eff}}$:    
 
 $$
 \frac{1}{S} \text{var}_{\text{as}}[\hat f_{\text{NIS}}] = \frac{\sum_s \bigl[w^{(s)}\bigr]^2 \bigl(f(x^{(s)}) - \hat f_{\text{NIS}} \bigr)^2}{\bigl[\sum_s w^{(s)}\bigr]^2} = \frac{\sigma^2}{S_{\text{eff}}}
