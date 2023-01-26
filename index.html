@@ -801,15 +801,15 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(np.transpose([S, estimates]), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([[1.00000000e+03, 3.17600000e+00],
-       [2.15443500e+03, 3.17200000e+00],
-       [4.64158900e+03, 3.14800000e+00],
-       [1.00000000e+04, 3.14800000e+00],
-       [2.15443470e+04, 3.15800000e+00],
-       [4.64158880e+04, 3.16000000e+00],
-       [1.00000000e+05, 3.13700000e+00],
-       [2.15443469e+05, 3.14200000e+00],
-       [4.64158883e+05, 3.13900000e+00],
+<pre><code>array([[1.00000000e+03, 3.16000000e+00],
+       [2.15443500e+03, 3.15300000e+00],
+       [4.64158900e+03, 3.13700000e+00],
+       [1.00000000e+04, 3.13400000e+00],
+       [2.15443470e+04, 3.13000000e+00],
+       [4.64158880e+04, 3.12900000e+00],
+       [1.00000000e+05, 3.14700000e+00],
+       [2.15443469e+05, 3.14600000e+00],
+       [4.64158883e+05, 3.14200000e+00],
        [1.00000000e+06, 3.14000000e+00]])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -3629,16 +3629,16 @@ p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
 <span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 97.4% (stepsize = 1.00e-01)</code></pre>
+<pre><code>acceptance rate: 97.5% (stepsize = 1.00e-01)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 80.8% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 80.9% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>acceptance rate: 15.4% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-48-output-4.png" width="1114" height="824"></p>
+<p><img src="lecture_files/figure-html/cell-48-output-4.png" width="1114" height="826"></p>
 </div>
 </div>
 </section>
@@ -3803,13 +3803,13 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb59-75"><a href="#cb59-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb59-76"><a href="#cb59-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 96.5% (stepsize = 1.00e-01)</code></pre>
+<pre><code>acceptance rate: 97.1% (stepsize = 1.00e-01)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 79.5% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 80.5% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 15.7% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.1% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-50-output-4.png" width="1114" height="825"></p>
@@ -3913,7 +3913,7 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb63-94"><a href="#cb63-94" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb63-95"><a href="#cb63-95" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1088" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1139" height="346"></p>
 </div>
 </div>
 </section>
@@ -4033,7 +4033,7 @@ M[Q_i](y, x)
 <span id="cb64-54"><a href="#cb64-54" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb64-55"><a href="#cb64-55" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1114" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1139" height="346"></p>
 </div>
 </div>
 </section>
@@ -4189,7 +4189,7 @@ p(x_2 | x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{
 <span id="cb65-106"><a href="#cb65-106" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb65-107"><a href="#cb65-107" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-53-output-1.png" width="922" height="922"></p>
+<p><img src="lecture_files/figure-html/cell-53-output-1.png" width="920" height="922"></p>
 </div>
 </div>
 <p>This collapsed Gibbs sampler uses the marginal distribution to sample <span class="math inline">\(x_1\)</span> and the conditional distribution to sample <span class="math inline">\(x_2\)</span>:</p>
@@ -4231,7 +4231,7 @@ p(x_2 | x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{
 <span id="cb66-35"><a href="#cb66-35" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb66-36"><a href="#cb66-36" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-54-output-1.png" width="922" height="922"></p>
+<p><img src="lecture_files/figure-html/cell-54-output-1.png" width="920" height="922"></p>
 </div>
 </div>
 <p>This collapsed Gibbs sampler uses the marginal distribution to sample <span class="math inline">\(x_2\)</span> and the conditional distribution to sample <span class="math inline">\(x_1\)</span>:</p>
@@ -4638,7 +4638,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].imshow(x_SW.reshape(L, L))</span>
 <span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_1922/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
+<pre><code>/tmp/ipykernel_1913/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
   plt.rc('image', interpolation=None, cmap='gray')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -5313,7 +5313,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb88-47"><a href="#cb88-47" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, py, color<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
 <span id="cb88-48"><a href="#cb88-48" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance_rate: 90.30% (HMC), 63.47% (Metropolis)</code></pre>
+<pre><code>acceptance_rate: 90.00% (HMC), 62.92% (Metropolis)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-72-output-2.png" width="837" height="550"></p>
@@ -5385,10 +5385,10 @@ modified Euler: det(trafo) = 1.000
 <span id="cb91-49"><a href="#cb91-49" aria-hidden="true" tabindex="-1"></a>samples_metro <span class="op">=</span> np.array(<span class="bu">list</span>(metro))[::n_leapfrog]</span>
 <span id="cb91-50"><a href="#cb91-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(metro.acceptance_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.869</code></pre>
+<pre><code>0.875</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.24941333333333332</code></pre>
+<pre><code>0.25116666666666665</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="74">
@@ -5411,7 +5411,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb94-17"><a href="#cb94-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_ylabel(<span class="vs">r'$\sigma_i$'</span>)</span>
 <span id="cb94-18"><a href="#cb94-18" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="834" height="834"></p>
+<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="838" height="834"></p>
 </div>
 </div>
 <p>A practical issue in applications of HMC is that the algorithm requires the gradient of minus log <span class="math inline">\(p(x)\)</span>. For some models it is far from straightforward to implement the gradient. Moreover, the gradient evaluations are on top of the evaluations of <span class="math inline">\(\log p(x)\)</span>, which are typical for MCMC approaches based on Metropolis-Hastings. Some remedy is provided by the possibility to use <a href="https://en.wikipedia.org/wiki/Automatic_differentiation"><em>automatic differentiation</em></a> to compute the gradient without implementing it explicitly. This strategy is used, for example, in the <a href="https://en.wikipedia.org/wiki/Stan_(software)">STAN</a> software for statistical inference or in probabilistic programming packages such as <a href="https://www.tensorflow.org/probability">tensorflow probability</a>, <a href="https://docs.pymc.io/">PyMC 3</a>, or <a href="https://pyro.ai/">pyro</a>.</p>
