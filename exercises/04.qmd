@@ -1,0 +1,367 @@
+---
+jupyter: python3
+title: Exercise 4
+---
+
+# Problem 1: Importance sampling
+
+Consider the standard normal distribution as our target distribution $p$.
+We will use the [t distribution](https://en.wikipedia.org/wiki/Student%27s_t-distribution#Generalized_Student's_t-distribution) with 3 degrees of freedom ($t_3$) as a proposal distribution $q$ to perform importance sampling.
+
+## a)
+
+Verify visually that the PDF of the $t_3$ distribution with scale parameter $\hat\sigma = 1.15$ has approximately the same curvature than the PDF of the target distribution.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import t, norm
+
+p = norm()  # standard normal
+q = t(3, 0, 1.15)  # Student-t with df=3 and scale 1.15
+
+fig, axs = plt.subplots(1, 2, figsize=(8, 3))
+
+x = np.linspace(-5, 5, 100)
+axs[0].plot(x, q.pdf(x), label="t")
+axs[0].plot(x, p.pdf(x), label="normal")
+axs[0].legend()
+
+x = np.linspace(-1, 1, 100)
+axs[1].plot(x, p.pdf(0) / q.pdf(0) * q.pdf(x), label="t (rescaled)")
+axs[1].plot(x, p.pdf(x), label="normal")
+axs[1].legend()
+```
+
+## b)
+
+Draw a sample of size $S = 100$ from the proposal distribution and compute the importance ratios. Plot a histogram of the log importance ratios and discuss the result.
+
+```{python}
+def importance_sampling(p, q, n_samples):
+    samples = q.rvs(size=n_samples)
+    w = p.pdf(samples) / q.pdf(samples)
+    return samples, w
+
+S = 100
+
+fig, axs = plt.subplots(1, 2, figsize=(8, 3))
+samples, w = importance_sampling(p, q, S)
+axs[0].hist(samples)
+axs[1].hist(np.log(w))
+axs[0].set_title("Samples from q")
+axs[1].set_title("Log importance weights")
+```
+
+## c)
+
+Assume $X \sim p$, i.e. $X$ follows a standard normal distirbution.
+Estimate $\mathbb{E}_p(X)$ and $\text{Var}_p(X)$ using importance sampling. Compare the results to the true values.
+
+```{python}
+E_estimated = np.sum(w * samples) / S
+print(f"The estimated mean of X is {E_estimated}. (true mean is zero)")
+```
+
+```{python}
+VAR_estimated = np.sum(w * np.square(samples)) / S
+print(f"The estimated variance of X is {VAR_estimated}. (true variance is 1)")
+```
+
+## d)
+
+Repeat **b)** and **c)** for $S = 10,000$
+
+```{python}
+S = 10_000
+
+fig, axs = plt.subplots(1, 2, figsize=(8, 3))
+samples, w = importance_sampling(p, q, S)
+axs[0].hist(samples, bins=30)
+axs[1].hist(np.log(w))
+axs[0].set_title("Samples from q")
+axs[1].set_title("Log importance weights")
+```
+
+```{python}
+E_estimated = np.sum(w * samples) / S
+print(f"The estimated mean of X is {E_estimated}. (true mean is zero)")
+```
+
+```{python}
+VAR_estimated = np.sum(w * np.square(samples)) / S
+print(f"The estimated variance of X is {VAR_estimated}. (true variance is 1)")
+```
+
+## e)
+
+Using the last sample, compute the effective sample size.
+
+```{python}
+ESS = np.square(np.sum(w)) / np.sum(np.square(w))
+print(f"The effective sample size is {int(ESS)}. (Total sample size is {S}")
+```
+
+
+## f)
+
+Repeat the exercise with the roles of $p$ and $q$ exchanged.
+In other words: Use a $t_3$ distribution with scale parameter $1.15$ as target distribution and perform importance sampling using a standard normal as proposal distribution.
+Explain why the estimates of $\text{Var}(X)$ are systematically too low.
+
+
+```{python}
+S = 10_000
+
+fig, axs = plt.subplots(1, 2, figsize=(8, 3))
+samples, w = importance_sampling(q, p, S)
+axs[0].hist(samples)
+axs[1].hist(np.log(w), bins=50)
+axs[0].set_title("Samples from q (normal)")
+axs[1].set_title("Log importance weights")
+```
+
+```{python}
+E_estimated = np.sum(w * samples) / S
+print(f"The estimated mean of X is {E_estimated}. (true mean is zero)")
+```
+
+```{python}
+VAR_estimated = np.sum(w * np.square(samples)) / S
+print(f"The estimated variance of X is {VAR_estimated}. (true variance is {q.var()})")
+```
+
+```{python}
+ESS = np.square(np.sum(w)) / np.sum(np.square(w))
+print(f"The effective sample size is {int(ESS)}. (Total sample size is {S}")
+```
+
+```{python}
+x = np.linspace(0, 10, 100)
+log_pdf_proposal = p.logpdf(x)
+log_w = q.logpdf(x) - p.logpdf(x)
+
+plt.plot(log_pdf_proposal, log_w)
+plt.xlabel("Log density of proposal")
+plt.ylabel("Log weight")
+```
+
+# Problem 2: Optimal importance sampling
+
+Your friend plays a slot machine that is based on normal random numbers.
+Each round they play, they have to insert 1 € into the machine.
+Then the machine draws a random number $X \sim \mathcal{N}(0, 1)$ and returns coins with a total value $f$ (in €) according to the following formula:
+
+$$
+f(X) = 50 \cdot \exp\left(\frac{(X - 4)^2}{2}\right)
+$$
+
+## a)
+
+Rebuild the slot machine on your computer. Use your simulation to figure out whether your friend will get rich playing this game. (Say using 100 simulation runs)
+
+```{python}
+def f(x):
+    return 50 * np.exp(-0.5 * np.square(x - 4))
+
+def expectation_using_direct_sampling(p, f, n_samples):
+    samples = p.rvs(size=n_samples)
+    return np.sum(f(samples)) / n_samples
+
+p = norm(0.0, 1.0)
+
+est_mc = expectation_using_direct_sampling(p, f, 100)
+print(f"MC estimate of return using direct sampling: {est_mc}")
+```
+
+## b)
+
+Repeat this estimate many times, put the estimates in a histogram.
+
+```{python}
+plt.hist([expectation_using_direct_sampling(p, f, 100) for _ in range(1_000)], range=(0, 3), bins=30, alpha=0.5)
+```
+
+
+## c)
+
+Is there a better way (aside from using pen, paper and your brain) to estimate the expected return?
+
+Try importance sampling using $\mathcal{N}(2, 1/\sqrt{2})$ as a proposal distribution.
+Put your new estimates into the histogram from **b)**.
+
+```{python}
+def expectation_using_importance_sampling(p, q, f, n_samples):
+    samples = q.rvs(size=n_samples)
+    w = p.pdf(samples) / q.pdf(samples)
+    return np.sum(w * f(samples)) / n_samples
+
+q = norm(2.0, 1 / np.sqrt(2))
+est_is = expectation_using_importance_sampling(p, q, f, 100)
+print(f"MC estimate of return using importance sampling: {est_is}")
+```
+
+```{python}
+plt.hist([expectation_using_direct_sampling(p, f, 100) for _ in range(1_000)], range=(0, 3), bins=30, alpha=0.5, label="direct sampling")
+plt.hist([expectation_using_importance_sampling(p, q, f, 100) for _ in range(1_000)], range=(0, 3), bins=30, alpha=0.5, label="importance sampling")
+plt.legend()
+```
+
+## d)
+
+Explain the result
+
+In the lecture ([equation 27](https://microscopic-image-analysis.github.io/probinf-lecture/#eq-ISvariance)) we've learned that the variance of the importance sampling estimator for the expectation value of a function $f$ is
+
+$$
+    \text{var}[\hat f_{\text{IS}}] = \frac{1}{S} \biggl( \mathbb E_p[wf^2] - \bigl( \mathbb E_p[f] \bigr)^2 \biggr)\, . 
+$$
+
+By a clever choice of the proposal distribution (which affects the distribution of $w$) we can reduce the variance to a minimum value:
+
+$$
+q_{\text{opt}}(x) \propto |f(x)|\, p(x)\, .
+$$
+
+Both, the target distribution $p(x)$ and the reward function $f(x)$ are proportional to a gaussian. The product of two gaussians is again a gaussian (note: Here we mean the product of two bell curves, **not** the product of two gaussian/normal random variables, which would **not** follow a normal distribution):
+
+$$
+\exp\left(-\frac{(x - \mu_1)^2}{2 \sigma_1^2}\right) \cdot \exp\left(-\frac{(x - \mu_2)^2}{2 \sigma_2^2}\right) \propto \exp\left(-\frac{(x - \mu)^2}{2 \sigma^2}\right)
+$$
+with
+$$
+\begin{aligned}
+\mu &= \frac{\mu_1 \sigma_2^2 + \mu_2 \sigma_1^2}{\sigma_1^2 + \sigma_2^2} \\
+\frac{1}{\sigma^2} &= \frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2},
+\end{aligned}
+$$
+which can be seen after writing as one exponent and completing the square.
+
+If we plug in the parameters for the two gaussians in our problem, we get $\mu = 2$ and $\sigma = 1 / \sqrt{2}$, which are exactly the parameters we've used in our proposal distribution.
+The variance of this estimator is actually zero! (All samples equal)
+
+# Problem 3: Markov Chains
+
+Consider the three Markov Chains in figure @fig-markov-chains
+
+::: {#fig-markov-chains layout-ncol=3}
+
+![](images/MC-Graph-1.png){#fig-a width=40%}
+
+![](images/MC-Graph-2.png){#fig-b width=20%}
+
+![](images/MC-Graph-3.png){#fig-c width=20%}
+
+Three Markov Chains, where the edge weights represent transition probabilites between states
+:::
+
+## a)
+
+Implement the transition probability matrix $P_i$ for all three graphs.
+
+```{python}
+P1 = np.array(
+    [
+        [0, 0, 0.5, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0],
+        [0, 0, 0.5, 0, 0, 0.5],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0.5],
+    ]
+)
+
+P2 = np.array(
+    [
+        [0, 0, 0.7, 0.2],
+        [0, 0, 0.3, 0.8],
+        [0.8, 0.4, 0, 0],
+        [0.2, 0.6, 0, 0]
+    ]
+)
+
+P3 = np.array(
+    [
+        [0, 0.5, 0.5],
+        [0.5, 0, 0.5],
+        [0.5, 0.5, 0]
+    ]
+)
+```
+
+
+## b)
+
+For each of the graphs, figure out whether they are periodic or aperiodic. If a graph is periodic, find the periodicity of at least one state that has periodicity > 1.
+
+* Graph @fig-a is periodic. The states 1, 2, and 3 all have periodicity 3, since starting from e.g. state 2 it is only possible to return to state 2 in $3 k, \, k \in \mathbb{N}$ steps.
+* Graph @fig-b is periodic. All states have a periodicity of 2.
+* Graph @fig-c is aperiodic. Starting from any state, one can return to that state in $k = 2, 3, 4, ...$ steps. The gcd is 1.
+
+## c)
+
+For each of the graphs, figure out whether they are reducible or irreducible
+
+* Graph @fig-a is reducible. E.g. it is never possible to reach state 1 from state 5
+* Graph @fig-b is irreducible. Every state is reachable from every other state in a finite number of steps.
+* Graph @fig-c is irreducible for the same reason.
+
+## d)
+
+Find the eigenvalues and corresponding eigenvectors for the three martixes. Before doing so, think about what you expect. Does the result align with your expectation?
+
+```{python}
+def print_eigen(P):
+    eigvals, eigvecs = np.linalg.eig(P)
+    largest_eigvec = eigvecs[:, np.abs(eigvals).argmax()]
+    largest_eigvec /= largest_eigvec.sum()
+
+    with np.printoptions(precision=3):
+        print("Eigenvalues:")
+        print(eigvals)
+        print("Absolute value of Eigenvalues:")
+        print(np.abs(eigvals))
+        print("Eigenvectors:")
+        print(eigvecs)
+        print("Eigenvector with largest eigenvalue:")
+        print(largest_eigvec)
+```
+
+
+```{python}
+print_eigen(P1)
+```
+
+```{python}
+print_eigen(P2)
+```
+
+```{python}
+print_eigen(P3)
+```
+
+## e)
+
+Calculate the matrix power $P_i^{50}$ and $P_i^{51}$ for the three matrixes. Again, think about what you'd expect before doing so.
+
+```{python}
+np.linalg.matrix_power(P1, 50)
+```
+```{python}
+np.linalg.matrix_power(P1, 51)
+```
+
+```{python}
+np.linalg.matrix_power(P2, 50)
+```
+```{python}
+np.linalg.matrix_power(P2, 51)
+```
+
+```{python}
+np.linalg.matrix_power(P3, 50)
+```
+```{python}
+np.linalg.matrix_power(P3, 51)
+```
+
