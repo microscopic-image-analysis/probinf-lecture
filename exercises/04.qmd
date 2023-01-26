@@ -304,7 +304,7 @@ For each of the graphs, figure out whether they are reducible or irreducible
 
 * Graph @fig-a is reducible. E.g. it is never possible to reach state 1 from state 5
 * Graph @fig-b is irreducible. Every state is reachable from every other state in a finite number of steps.
-* Graph @fig-c is reducible.
+* Graph @fig-c is irreducible for the same reason.
 
 ## d)
 
