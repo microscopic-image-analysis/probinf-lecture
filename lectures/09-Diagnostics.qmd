@@ -1,0 +1,88 @@
+---
+editor:
+    render-on-save: true
+---
+
+# Lecture 9: Diagnostics
+
+* Trace plots (examples, mixing, (non-)stationarity / convergence)
+* ESS
+* (split-)$\hat{R}$
+* (t)rank plots
+* Rank-normalized $\hat{R}$ https://arxiv.org/pdf/1903.08008.pdf
+* https://arxiv.org/pdf/2003.07900.pdf as an example for other approach
+* Divergent transitions in HMC?
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import logsumexp
+
+
+class BimodalMixture:
+    def __init__(self,
+                 centers=np.array([0., 1.]),
+                 widths=np.array([1., 1.]),
+                 weight=0.5):
+        self.centers = np.array(centers)
+        self.widths = np.array(widths)
+        self.weight = float(weight)
+
+    def log_prob(self, x):
+        dist = np.subtract.outer(x, self.centers)
+        logp = -0.5 * dist**2 / self.widths**2 \
+          - 0.5 * np.log(2*np.pi*self.widths**2) \
+          + np.log(self.weight) + np.log(1-self.weight)
+        return logsumexp(logp, axis=1)
+
+
+class Uniform:
+    def __init__(self, limits):
+        self.limits = limits
+    
+    def log_prob(self, x):
+        return np.log((x > self.limits[0]) & (x < self.limits[1]))
+
+
+def random_walk_mh(state, model, stepsize, rng=None, n_steps=1_000):
+    rng = rng or np.random.default_rng()
+    dim = state.shape[0]
+    n_chains = state.shape[1]
+    chains = np.empty_like(state, shape=(dim, n_steps, n_chains))
+    chains[:, 0, :] = state
+    for c in range(n_chains):
+        logp = model.log_prob(chains[:, 0, c])
+        for s in range(1, n_steps):
+            state = chains[:, s - 1, c]
+            proposal = state + stepsize * rng.normal(size=dim)
+            logp_proposal = model.log_prob(proposal)
+            if rng.uniform() < np.exp(logp_proposal - logp):
+                # accept
+                logp = logp_proposal
+                state = proposal
+            chains[:, s, c] = state
+    return chains
+```
+
+```{python}
+initial_state = np.array([[1.0, -2.0]])  # 2 chains with 1-dimensional state
+centers = np.array([1., -2.])
+widths = np.array([0.5, 0.5])
+weight = 0.5
+model1 = BimodalMixture(centers, widths, weight)
+model2 = Uniform(np.array([-3.0, 2.0]))
+
+rng = np.random.default_rng(25)
+chains1 = random_walk_mh(np.array([[1.0, -2.0]]), model1, stepsize=0.3, rng=rng) 
+
+rng = np.random.default_rng(1)
+rng = np.random.default_rng(2)
+chains2 = random_walk_mh(np.array([[1.9, -2.9]]), model2, stepsize=0.1, rng=rng) 
+
+fig, axs = plt.subplots(1, 2, figsize=(8, 3))
+axs[0].plot(chains1[0, :, 0], label="chain 1")
+axs[0].plot(chains1[0, :, 1], label="chain 2")
+axs[1].plot(chains2[0, :, 0], label="chain 1")
+axs[1].plot(chains2[0, :, 1], label="chain 2")
+```
+

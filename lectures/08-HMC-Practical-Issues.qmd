@@ -738,7 +738,7 @@ $$
 \left|p^{(S)} - \pi\right|
 $$ {#eq-distance}
 
-die out as $S\to\infty$. Distance (@eq-distance) is dominated by the second largest eigenvalue $\lambda_2$ of $P$. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly $|\lambda_2| < 1$. If $u_2, u_3, \ldots$ are the eigenvectors of $P$ with eigenvalues $1 > |\lambda_2| \ge |\lambda_3| >\ldots$, then we can write the initial distribution as
+die out as $S\to\infty$. Distance (@eq-distance) is dominated by the second largest eigenvalue $\lambda_2$ of $P$. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly $|\lambda_2| < 1$. If $u_2, u_3, \ldots$ are the eigenvectors of $P$ with eigenvalues $1 > |\lambda_2| \ge |\lambda_3| \ge \ldots$, then we can write the initial distribution as
 $$
 p^{(0)} = \pi + a_2 u_2 + a_3 u_3 + \ldots
 $$
