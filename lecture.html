@@ -801,16 +801,16 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(np.transpose([S, estimates]), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([[1.00000000e+03, 3.16400000e+00],
-       [2.15443500e+03, 3.15100000e+00],
-       [4.64158900e+03, 3.14200000e+00],
-       [1.00000000e+04, 3.12700000e+00],
-       [2.15443470e+04, 3.13200000e+00],
-       [4.64158880e+04, 3.13400000e+00],
-       [1.00000000e+05, 3.12700000e+00],
-       [2.15443469e+05, 3.14500000e+00],
-       [4.64158883e+05, 3.14100000e+00],
-       [1.00000000e+06, 3.14200000e+00]])</code></pre>
+<pre><code>array([[1.00000000e+03, 3.10000000e+00],
+       [2.15443500e+03, 3.15700000e+00],
+       [4.64158900e+03, 3.12600000e+00],
+       [1.00000000e+04, 3.14100000e+00],
+       [2.15443470e+04, 3.14000000e+00],
+       [4.64158880e+04, 3.13000000e+00],
+       [1.00000000e+05, 3.12600000e+00],
+       [2.15443469e+05, 3.14200000e+00],
+       [4.64158883e+05, 3.14300000e+00],
+       [1.00000000e+06, 3.14300000e+00]])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-7-output-2.png" width="949" height="468"></p>
@@ -2662,7 +2662,7 @@ P = \begin{pmatrix}
 \tfrac{1}{2} &amp; 1 \\
 \end{pmatrix}
 \]</span></p>
-<p>We have <span class="math inline">\(\Pr(x=x_2|y=x_2) = 1\)</span>, so the subspace <span class="math inline">\(\{x_2\}\)</span> is mapped to itself.</p>
+<p>We have <span class="math inline">\(\Pr(x=x_2\mid{}y=x_2) = 1\)</span>, so the subspace <span class="math inline">\(\{x_2\}\)</span> is mapped to itself.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <figure class="figure">
@@ -3135,10 +3135,10 @@ P(x, y)\, \pi(y) = P(y, x)\, \pi(x)
 <section id="the-metropolis-hastings-algorithm" class="level2">
 <h2 class="anchored" data-anchor-id="the-metropolis-hastings-algorithm">The Metropolis-Hastings Algorithm</h2>
 <p>We are now ready to discuss the <a href="https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm"><strong>Metropolis-Hastings algorithm</strong></a> which solves the following fundamental problem:</p>
-<section id="for-a-given-target-distribution-px-how-can-we-construct-an-irreducible-and-aperiodic-markov-chain-such-that-px-is-its-stationary-distribution" class="level3">
-<h3 class="anchored" data-anchor-id="for-a-given-target-distribution-px-how-can-we-construct-an-irreducible-and-aperiodic-markov-chain-such-that-px-is-its-stationary-distribution">For a given target distribution <span class="math inline">\(p(x)\)</span>, how can we construct an irreducible and aperiodic Markov chain such that <span class="math inline">\(p(x)\)</span> is its stationary distribution?</h3>
+<blockquote class="blockquote">
+<p>For a given target distribution <span class="math inline">\(p(x)\)</span>, how can we construct an irreducible and aperiodic Markov chain such that <span class="math inline">\(p(x)\)</span> is its stationary distribution?</p>
+</blockquote>
 <p>The Metropolis-Hastings algorithm solves this problem in a very elegant and simple fashion. Due to its simplicity, it is very widely applicable and ranks among the <a href="https://www.andrew.cmu.edu/course/15-355/misc/Top%20Ten%20Algorithms.html">top 10 algorithm of the 20th century</a>.</p>
-</section>
 <section id="algorithm-metropolis-hastings" class="level3">
 <h3 class="anchored" data-anchor-id="algorithm-metropolis-hastings">Algorithm: Metropolis-Hastings</h3>
 <p>Assume <span class="math inline">\(\mathcal X\)</span> is discrete and <span class="math inline">\(p\)</span> a pmf on <span class="math inline">\(\mathcal X\)</span>. Moreover, <span class="math inline">\(Q(y, x)\)</span> is a proposal Markov chain on <span class="math inline">\(\mathcal X\)</span>, that is <span class="math inline">\(Q(\cdot, x)\)</span> is a pmf on <span class="math inline">\(\mathcal X\)</span> that allows us to generate samples from a given state <span class="math inline">\(x\)</span>. The trick of the Metropolis-Hastings algorithm is to modify the Markov chain <span class="math inline">\(Q\)</span>, by auxiliary coin tossing, to a new transition kernel with stationary distribution <span class="math inline">\(p\)</span>.</p>
@@ -3252,7 +3252,7 @@ p(x) = \frac{x}{Z}, \,\,\, x\in\{1, \ldots, m\}=:\mathcal X, \,\,\, Z=\sum_{x=1}
 <p>To design an MH algorithm for simulating <span class="math inline">\(p\)</span>, we have to choose a suitable proposal distribution. A simple choice is to use a uniform distribution over <span class="math inline">\(\mathcal X\)</span>. That is, <span class="math inline">\(Q(y, x)\)</span> is independent of <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>: <span class="math inline">\(Q(y, x) = 1/m\)</span> for all <span class="math inline">\(x, y \in\mathcal X\)</span>.</p>
 <p>The resulting MH chain is irreducible:</p>
 <p><span class="math display">\[
-\Pr(x_1=y| x_0=x) = Q(y, x) \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\} = \frac{1}{m} \min\left\{1, \frac{y}{x}\right\} &gt; 0
+\Pr(x_1=y\mid{} x_0=x) = Q(y, x) \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\} = \frac{1}{m} \min\left\{1, \frac{y}{x}\right\} &gt; 0
 \]</span></p>
 <p>for all <span class="math inline">\(x, y\in\mathcal X\)</span>. We can get from from any <span class="math inline">\(x\in \mathcal X\)</span> to any <span class="math inline">\(y\)</span> within one step (<span class="math inline">\(P(y,x) &gt; 0\)</span> for all <span class="math inline">\(x, y\)</span>).</p>
 <p>The MH algorithm for this special case is very simple:</p>
@@ -3349,7 +3349,7 @@ Q(y, x)\, \min\{1, R(y, x)\} &amp; \text{ if } y\not= x \\
 P(y, x) = P(x, y) \frac{p(y)}{p(x)}
 \]</span></p>
 <p>We can either choose <span class="math inline">\(P(x, y)\)</span> upon which <span class="math inline">\(P(y, x)\)</span> is fixed, or vice versa. <span class="math inline">\(\mathcal R(p)\)</span> is a convex subspace of <span class="math inline">\(\mathcal S\)</span>: If <span class="math inline">\(P, P' \in \mathcal R(p)\)</span>, then <span class="math inline">\(\lambda P + (1-\lambda) P' \in \mathcal R(p)\)</span> for <span class="math inline">\(\lambda\in[0,1]\)</span>.</p>
-<p>To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. <a href="#eq-twostate">Equation&nbsp;35</a>). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by <span class="math inline">\(\alpha = \Pr(x_2|x_1)\)</span> and <span class="math inline">\(\beta=\Pr(x_1|x_2)\)</span>. The <span class="math inline">\(p\)</span>-reversible chains form a one-dimensional subspace</p>
+<p>To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. <a href="#eq-twostate">Equation&nbsp;35</a>). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by <span class="math inline">\(\alpha = \Pr(x_2\mid{} x_1)\)</span> and <span class="math inline">\(\beta=\Pr(x_1\mid{} x_2)\)</span>. The <span class="math inline">\(p\)</span>-reversible chains form a one-dimensional subspace</p>
 <p><span class="math display">\[
 \mathcal R(p) = \left\{(\alpha, \beta) \in [0,1]^2 : \beta = \frac{p(x_1)}{p(x_2)}\,\alpha  \right\}
 \]</span></p>
@@ -3631,14 +3631,14 @@ p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
 <span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 96.9% (stepsize = 1.00e-01)
-acceptance rate: 80.6% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 96.8% (stepsize = 1.00e-01)
+acceptance rate: 80.3% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.2% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.4% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="825"></p>
+<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="824"></p>
 </div>
 </div>
 </section>
@@ -3646,7 +3646,6 @@ acceptance rate: 80.6% (stepsize = 1.00e+00)</code></pre>
 </section>
 <section id="lecture-6-gibbs-sampling-1" class="level1">
 <h1>Lecture 6: Gibbs sampling</h1>
-<p>Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de</p>
 <section id="outline-5" class="level2">
 <h2 class="anchored" data-anchor-id="outline-5">Outline</h2>
 <ul>
@@ -3803,14 +3802,14 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb58-75"><a href="#cb58-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb58-76"><a href="#cb58-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 97.2% (stepsize = 1.00e-01)
-acceptance rate: 79.7% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 97.7% (stepsize = 1.00e-01)
+acceptance rate: 80.4% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.5% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 15.4% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1088" height="825"></p>
+<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1114" height="825"></p>
 </div>
 </div>
 <p>In the next example, we run the MH algorithm on a continuous pdf in two dimensions.</p>
@@ -3911,7 +3910,7 @@ acceptance rate: 79.7% (stepsize = 1.00e+00)</code></pre>
 <span id="cb61-94"><a href="#cb61-94" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb61-95"><a href="#cb61-95" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1139" height="347"></p>
+<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1139" height="346"></p>
 </div>
 </div>
 </section>
@@ -4229,7 +4228,7 @@ p(x_2 | x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{
 <span id="cb64-35"><a href="#cb64-35" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb64-36"><a href="#cb64-36" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-54-output-1.png" width="920" height="922"></p>
+<p><img src="lecture_files/figure-html/cell-54-output-1.png" width="922" height="922"></p>
 </div>
 </div>
 <p>This collapsed Gibbs sampler uses the marginal distribution to sample <span class="math inline">\(x_2\)</span> and the conditional distribution to sample <span class="math inline">\(x_1\)</span>:</p>
@@ -4362,7 +4361,6 @@ p(x, s) = p(x | s) p(s) = \mathcal{N}(x; 0, s^{-1/2})\, \mathcal{G}(s; \nu/2, \n
 </section>
 <section id="lecture-7-hamiltonian-monte-carlo-1" class="level1">
 <h1>Lecture 7: Hamiltonian Monte Carlo</h1>
-<p>Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de</p>
 <section id="outline-6" class="level2">
 <h2 class="anchored" data-anchor-id="outline-6">Outline</h2>
 <ul>
@@ -4636,7 +4634,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].imshow(x_SW.reshape(L, L))</span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_1903/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
+<pre><code>/tmp/ipykernel_1997/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
   plt.rc('image', interpolation=None, cmap='gray')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -4803,7 +4801,6 @@ A^{2n} = (-k)^n I, \,\,\, A^{2n+1} = (-k)^n A
 </section>
 <section id="lecture-8-hamiltonian-monte-carlo-practical-issues-1" class="level1">
 <h1>Lecture 8: Hamiltonian Monte Carlo, Practical Issues</h1>
-<p>Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de</p>
 <section id="outline-7" class="level2">
 <h2 class="anchored" data-anchor-id="outline-7">Outline</h2>
 <ul>
@@ -5311,7 +5308,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb86-47"><a href="#cb86-47" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, py, color<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
 <span id="cb86-48"><a href="#cb86-48" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance_rate: 89.80% (HMC), 64.05% (Metropolis)</code></pre>
+<pre><code>acceptance_rate: 89.50% (HMC), 63.20% (Metropolis)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-72-output-2.png" width="837" height="550"></p>
@@ -5383,10 +5380,10 @@ modified Euler: det(trafo) = 1.000
 <span id="cb89-49"><a href="#cb89-49" aria-hidden="true" tabindex="-1"></a>samples_metro <span class="op">=</span> np.array(<span class="bu">list</span>(metro))[::n_leapfrog]</span>
 <span id="cb89-50"><a href="#cb89-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(metro.acceptance_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.88</code></pre>
+<pre><code>0.875</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.2504133333333333</code></pre>
+<pre><code>0.25005666666666665</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="74">
@@ -5409,7 +5406,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb92-17"><a href="#cb92-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_ylabel(<span class="vs">r'$\sigma_i$'</span>)</span>
 <span id="cb92-18"><a href="#cb92-18" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="834" height="834"></p>
+<p><img src="lecture_files/figure-html/cell-75-output-1.png" width="836" height="834"></p>
 </div>
 </div>
 <p>A practical issue in applications of HMC is that the algorithm requires the gradient of minus log <span class="math inline">\(p(x)\)</span>. For some models it is far from straightforward to implement the gradient. Moreover, the gradient evaluations are on top of the evaluations of <span class="math inline">\(\log p(x)\)</span>, which are typical for MCMC approaches based on Metropolis-Hastings. Some remedy is provided by the possibility to use <a href="https://en.wikipedia.org/wiki/Automatic_differentiation"><em>automatic differentiation</em></a> to compute the gradient without implementing it explicitly. This strategy is used, for example, in the <a href="https://en.wikipedia.org/wiki/Stan_(software)">STAN</a> software for statistical inference or in probabilistic programming packages such as <a href="https://www.tensorflow.org/probability">tensorflow probability</a>, <a href="https://docs.pymc.io/">PyMC 3</a>, or <a href="https://pyro.ai/">pyro</a>.</p>
