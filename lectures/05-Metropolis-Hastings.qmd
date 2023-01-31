@@ -168,8 +168,7 @@ If the transition matrix $P$ is symmetric, $P^T=P$, then the uniform distributio
 
 We are now ready to discuss the [__Metropolis-Hastings algorithm__](https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm) which solves the following fundamental problem:
 
-### For a given target distribution $p(x)$, how can we construct an irreducible and aperiodic Markov chain such that $p(x)$ is its stationary distribution?###
-
+> For a given target distribution $p(x)$, how can we construct an irreducible and aperiodic Markov chain such that $p(x)$ is its stationary distribution?
 
 The Metropolis-Hastings algorithm solves this problem in a very elegant and simple fashion. Due to its simplicity, it is very widely applicable and ranks among the [top 10 algorithm of the 20th century](https://www.andrew.cmu.edu/course/15-355/misc/Top%20Ten%20Algorithms.html). 
 
@@ -324,7 +323,7 @@ To design an MH algorithm for simulating $p$, we have to choose a suitable propo
 The resulting MH chain is irreducible:
 
 $$
-\Pr(x_1=y| x_0=x) = Q(y, x) \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\} = \frac{1}{m} \min\left\{1, \frac{y}{x}\right\} > 0
+\Pr(x_1=y\mid{} x_0=x) = Q(y, x) \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\} = \frac{1}{m} \min\left\{1, \frac{y}{x}\right\} > 0
 $$
 
 for all $x, y\in\mathcal X$. We can get from from any $x\in \mathcal X$ to any $y$ within one step ($P(y,x) > 0$ for all $x, y$). 
@@ -438,7 +437,7 @@ $$
 
 We can either choose $P(x, y)$ upon which $P(y, x)$ is fixed, or vice versa. $\mathcal R(p)$ is a convex subspace of $\mathcal S$: If $P, P' \in \mathcal R(p)$, then $\lambda P + (1-\lambda) P' \in \mathcal R(p)$ for $\lambda\in[0,1]$. 
 
-To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. @eq-twostate). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by $\alpha = \Pr(x_2|x_1)$ and $\beta=\Pr(x_1|x_2)$. The $p$-reversible chains form a one-dimensional subspace
+To get a visual impression, let us display the relevant matrix spaces for sample spaces with only two states (Eq. @eq-twostate). Due to the stochasticity constraints, 2-state Markov chains can be represented by points in a two-dimensional unit square. The axes of this space are spanned by $\alpha = \Pr(x_2\mid{} x_1)$ and $\beta=\Pr(x_1\mid{} x_2)$. The $p$-reversible chains form a one-dimensional subspace
 
 $$
 \mathcal R(p) = \left\{(\alpha, \beta) \in [0,1]^2 : \beta = \frac{p(x_1)}{p(x_2)}\,\alpha  \right\}
