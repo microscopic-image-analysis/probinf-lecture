@@ -1,7 +1,5 @@
 # Lecture 7: Hamiltonian Monte Carlo
 
-Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
-
 ## Outline
 
 * Recap: MCMC + Gibbs Sampling

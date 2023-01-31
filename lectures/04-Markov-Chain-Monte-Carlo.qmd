@@ -295,7 +295,7 @@ P = \begin{pmatrix}
 \end{pmatrix}
 $$
 
-We have $\Pr(x=x_2|y=x_2) = 1$, so the subspace $\{x_2\}$ is mapped to itself. 
+We have $\Pr(x=x_2\mid{}y=x_2) = 1$, so the subspace $\{x_2\}$ is mapped to itself. 
 
 ![Reducible two-state model](images/twostate_reducible.png "Reducible two-state Markov model")
 

@@ -1,7 +1,5 @@
 # Lecture 8: Hamiltonian Monte Carlo, Practical Issues
 
-Michael Habeck - University Hospital Jena - michael.habeck@uni-jena.de
-
 ## Outline
 
 * Hamiltonian Monte Carlo continued
