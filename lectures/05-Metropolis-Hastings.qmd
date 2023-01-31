@@ -219,7 +219,9 @@ This is __very__ convenient!
 
 ### Special cases
 
-* Symmetric proposal distribution $Q^T=Q$ (i.e. the stationary distribution of $Q$ is uniform). This was assumed in the original publication by [Metropolis *et al.*](https://aip.scitation.org/doi/abs/10.1063/1.1699114). The acceptance ratio simplifies to
+#### Symmetric proposal distribution (and relation to statistical physics)
+
+If the proposal distribution is symmetric, $Q^T=Q$, then the stationary distribution of $Q$ is uniform. This was assumed in the original publication by [Metropolis *et al.*](https://aip.scitation.org/doi/abs/10.1063/1.1699114). In this case the acceptance ratio simplifies to
 
 $$
 \frac{Q(x,y)\, p(y)}{Q(y, x)\, p(x)} = \frac{p(y)}{p(x)}
@@ -239,7 +241,9 @@ $$
 
 If the energy of the new state is lower than the energy of the current state, the proposal is always accepted. Otherwise the acceptance probability depends on the [*Boltzmann factor*](https://en.wikipedia.org/wiki/Boltzmann_distribution) $\exp(-\Delta E)$.
 
-* Independence sampler $Q(y, x) = q(y)$. The acceptance ratio simplifies to
+#### Independence sampler
+
+If the proposal distribution is independent of the current state, $Q(y, x) = q(y)$, the acceptance ratio simplifies to
 
 $$
 \frac{Q(x,y)\, p(y)}{Q(y, x)\, p(x)} = \frac{q(x)\, p(y)}{q(y)\, p(x)}
@@ -297,7 +301,7 @@ $$
     &= Q(y, x)\, A(y, x)\, p(x) \\
     &= Q(y, x)\, \min\left\{1, \frac{Q(x, y)}{Q(y, x)}\frac{p(y)}{p(x)} \right\}\, p(x) \\
     &=\min\left\{ Q(y, x)\, p(x), Q(x, y)\, p(y) \right\}\\
-    &= Q(x, y)\, \min\left\{1, \frac{Q(y, x)}{Q(x, y)}\frac{p(x)}{p(y)} \right\}\, p(y) \\
+    &= Q(x, y)\, \min\left\{\frac{Q(y, x)}{Q(x, y)}\frac{p(x)}{p(y)}, 1 \right\}\, p(y) \\
     &= Q(x, y)\, A(x, y)\, p(y) \\
     &= P(x, y)\, p(y)
 \end{aligned}
@@ -386,7 +390,7 @@ Pros:
 
 Cons:
 
-* We sample locally and pay the price of introducing correlations between successive samples. Local sampling might get stuck and ergodicity might be hard to achieve. 
+* We sample locally and pay the price of introducing correlations between successive samples. Local sampling might get stuck and [ergodicity](https://en.wikipedia.org/wiki/Ergodicity#Criterion_for_ergodicity) might be hard to achieve. 
 
 * We don't know how far away we are from the stationary distribution and are only given statistical guarantees for convergence in the long run
 
