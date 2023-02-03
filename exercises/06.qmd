@@ -1,0 +1,490 @@
+---
+jupyter: python3
+title: Exercise 6
+---
+
+# Problem 1: Gibbs-sampling from a change point model
+
+Your friend's hobby is watching birds. They have been particularly interested in a certain species, and have kept note on the number of birds they observed over the last 50 weeks.
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import gamma, poisson, randint
+
+def generate(N, lambdas, n, rng=None):
+    rng = rng or np.random.default_rng()
+    x = np.concatenate(
+        [
+            poisson.rvs(lambdas[0], size=n, random_state=rng),
+            poisson.rvs(lambdas[1], size=N-n, random_state=rng),
+        ]
+    )
+    return x
+
+N = 50
+lambdas = np.array([3., 6.5])
+n = int(0.7 * N)
+
+x = generate(N, lambdas, n, np.random.default_rng(42))
+
+plt.scatter(np.arange(N), x)
+plt.xlabel("Week")
+plt.ylabel("Number of birds")
+None
+```
+
+They noted that while this species is known to stick to a small territory, they have the impression that there was a sudden increase in the local population lately.
+
+Given the weekly bird counts, can you help them estimating when that sudden change happened?
+What was the average observation rate before and after the change? How certain are you with
+your estimates?
+
+## a)
+
+The following is a simple statistical model for the described process. It assumes that the average observation rate before and after the change is constant, and the weekly observations are Poisson-distributed around that average.
+
+In addition we assume a Gamma prior distribution for the two observation rates (the one before and after the change) and a uniform prior on the week $n$ in which the rate changes.
+In total:
+
+$$
+\begin{aligned}
+n &\sim \text{Uniform}(1, 2, ..., N) \\
+\lambda_{1, 2} &\sim \text{Gamma}(a, b) \\
+x_i &\sim \begin{cases}
+    \text{Poisson}(\lambda_1) & 1 \le i \le n \\
+    \text{Poisson}(\lambda_2) & n < i \le N
+    \end{cases}
+\end{aligned}
+$$
+
+Find an expression for the logarithm of the joint posterior distribution $p(\lambda_1, \lambda_2, n \mid x_{1:N})$, up to a constant.
+
+As a start we note down the PMF of the Poisson distribution and the PDF of the gamma distribution:
+
+$$
+\text{Poisson}(x; \lambda) = e^{-\lambda} \frac{\lambda^x}{x!} = \exp\Bigl[x \log(\lambda) - \lambda - \log(x!)\Bigr] \\
+$$ {#eq-poisson}
+$$
+\text{Gamma}(\lambda; a, b) = \frac{b^a \lambda^{a - 1}}{\Gamma(a)} e^{-b \lambda} = \exp\Bigl[(a - 1) \log(\lambda) - b \lambda - \log\bigl(\Gamma(a)\bigr) + a \log(b) \Bigr]
+$$ {#eq-gamma}
+
+Also note the identity
+$$
+x! = \Gamma(x + 1),
+$$
+with the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function) $\Gamma(x)$.
+
+By Bayes' theorem, the posterior is proportional to prior times likelihood:
+$$
+\begin{aligned}
+p(\lambda_1, \lambda_2, n \mid x_{1:N}) &\propto p(x_{1:N} \mid \lambda_1, \lambda_2, n) \, p(\lambda_1, \lambda_2, n) \\
+&= p(x_{1:n} \mid \lambda_1, n) \, p(x_{n+1:N} \mid \lambda_2, n) \, p(\lambda_1) \, p(\lambda_2) \, p(n)
+\end{aligned}
+$$
+where in the last equality we've made use of the conditional independencies assumed in our model.
+
+We can now write down the join log posterior density (up to a normalization constant, which is the denominator in Bayes' theorem):
+$$
+\begin{aligned}
+    \log\bigl(p(\lambda_1, \lambda_2, n \mid x_{1:N})\bigr) &\propto \sum_{i=1}^n (x_i \log(λ_1) - λ_1 - \log(x_i!)) \\
+    &+ \sum_{i=n+1}^N (x_i \log(λ_2) - λ_2 - \log(x_i!)) \\
+    &+ (a - 1) \log(λ_1) - b λ_1 - \log(\Gamma(a)) + a \log(b) \\
+    &+ (a - 1) \log(λ_2) - b λ_2 - \log(\Gamma(a)) + a \log(b) \\
+    &− \log(N) \\
+\end{aligned}
+$$ {#eq-log-posterior}
+
+## b)
+
+We want to sample from this posterior using Gibbs sampling.
+What are the ingredients (mathematical objects) we need for this?
+Write them down. (Was the work we did in **a)** useful?)
+
+The main thing we need are the three conditional probability distributions
+$$
+\begin{aligned}
+&p(\lambda_1 \mid x_{1:N}, \lambda_2, n) \\
+&p(\lambda_2 \mid x_{1:N}, \lambda_1, n) \\
+&p(n \mid x_{1:N}, \lambda_1, \lambda_2) \\
+\end{aligned}
+$$.
+
+The strategy for finding each of these will be to start from the joint posterior (equation @eq-log-posterior), drop all the terms which are just constant because all their variables appear on the conditioning side of the corresponding conditional distribution, and then find the normalization constant for the remaining terms.
+
+Let's start with the first:
+
+$$
+\begin{aligned}
+p(\lambda_1 \mid x_{1:N}, \lambda_2, n) &\propto \sum_{i=1}^n (x_i \log(\lambda_1) - \lambda_1) \\
+&+ (a - 1) \log(\lambda_1) - b \lambda_1 \\
+&= (a + \sum_{i=1}^n x_i - 1) \log(\lambda_1) - (b + n) \lambda_1
+\end{aligned}
+$$
+
+If we compare this to equation @eq-gamma, we see that 
+$$
+p(\lambda_1 \mid x_{1:N}, \lambda_2, n) = \text{Gamma}(a + \sum_{i=1}^n x_i, n + b)
+$$
+
+Completely analogously we see that
+$$
+p(\lambda_2 \mid x_{1:N}, \lambda_1, n) = \text{Gamma}(a + \sum_{i=n+1}^N x_i, N - n + b)
+$$
+
+The conditional posterior for $n$ unfortunately does not correspond to a standard distribution:
+
+$$
+p(n \mid x_{1:N}, \lambda_1, \lambda_2) \propto 
+\left(\sum_{i=1}^n x_i\right) \log(\lambda_1) - n \lambda_1
++ \left(\sum_{i=n+1}^N x_i\right) \log(\lambda_2) - (N - n) \lambda_2
+$$
+
+But this will not hinder us in implementing Gibbs-sampling as we will see in the following.
+
+## c)
+
+Implement Gibbs-sampling from the joint posterior distribution.
+Find the normalization constant in $p(n \mid x_{1:N}, \lambda_1, \lambda_2)$ by brute force.
+
+```{python}
+from scipy.special import logsumexp
+
+def log_p_conditional_n(n, x_cs, lambda_1, lambda_2):
+    """
+    unnormalized log density of p(n | x, λ_1, λ_2)
+    """
+    N = len(x_cs)
+    return (
+        x_cs[n - 1] * np.log(lambda_1) - n * lambda_1 
+        + (x_cs[-1] - x_cs[n - 1]) * np.log(lambda_2) - (N - n) * lambda_2 
+    )
+
+def sample_conditional_n(n, x_cs, lambda_1, lambda_2, rng):
+    """
+    Sample from p(n | x, λ_1, λ_2) directly after calculating the normalization constant
+    via "brute force" (i.e. summing over all possible `n`).
+    """
+    log_p = np.array([log_p_conditional_n(n, x_cs, lambda_1, lambda_2) for n in range(1, N + 1)])
+    log_p -= logsumexp(log_p)  # Normalize
+    c = np.cumsum(np.exp(log_p))
+    return np.searchsorted(c, rng.uniform())
+
+def sample_gibbs(x, a, b, lambdas_init, n_init, num_samples, n_sampler, rng=None):
+    """
+    Sample from p(λ_1, λ_2, n | x) via Gibbs-sampling.
+
+    Parameters
+    ----------
+    x:
+        Observations (weekly bird counts)
+    a:
+        Shape hyperparameter for λ_1, λ_2s prior gamma(a, b)
+    b:
+        Rate hyperparameter for λ_1, λ_2s prior gamma(a, b)
+    lambdas_init:
+        2-vector containing initial values for λ_1 and λ_2
+    n_init:
+        Initial value for n
+    num_samples:
+        The number of samples to draw
+    n_sampler:
+        A function returning a single sample from p(n | x, λ_1, λ_2)
+    rng:
+        A numpy random number generator state
+    """
+    rng = rng or np.random.default_rng()
+
+    lambdas = np.empty((2, num_samples))
+    lambdas[:, 0] = lambdas_init
+    ns = np.empty(num_samples, dtype=np.int64)
+    ns[0] = n_init
+
+    x_cs = np.cumsum(x)
+
+    for i in range(1, num_samples):
+        # sample n
+        n = n_sampler(ns[i - 1], x_cs, lambdas[0, i - 1], lambdas[1, i - 1], rng)
+
+        # sample λ_1
+        alpha1 = a + x_cs[n - 1]
+        beta1 = b + n
+        lambda_1 = gamma.rvs(alpha1, scale=1 / beta1, random_state=rng)
+
+        # sample λ_2
+        alpha2 = a + x_cs[-1] - x_cs[n - 1]
+        beta2 = b + N - n
+        lambda_2 = gamma.rvs(alpha2, scale=1 / beta2, random_state=rng)
+
+        # save samples for this iteration
+        lambdas[:, i] = lambda_1, lambda_2
+        ns[i] = n
+    
+    return lambdas, ns
+```
+
+Before we run the sampler, we need to decide on the hyperparameter values $a$ and $b$ for the prior on $\lambda_1$ and $\lambda_2$.
+We choose $a = 2$ and $b = 0.3$. With these values the prior on $\lambda_{1, 2}$ looks like this:
+
+```{python}
+a = 2
+b = 0.3
+
+prior = gamma(a, scale=1 / b)
+x_plot = np.linspace(0, prior.ppf(0.99), 100)
+plt.plot(x_plot, prior.pdf(x_plot))
+plt.title(f"Gamma({a}, {b}). Mean: {prior.mean():.2}, Std: {prior.std():.2}")
+None
+```
+
+Let's run the sampler and visualize the result
+
+```{python}
+samples_lambdas, samples_n = sample_gibbs(
+    x=x,
+    a=a,
+    b=b,
+    lambdas_init=[5., 5.],
+    n_init=N // 2,
+    num_samples=5_000,
+    n_sampler=sample_conditional_n
+)
+
+def plot_samples(samples_lambdas, samples_n, true_lambdas, true_n):
+    """
+    Provide a [traceplot](https://python.arviz.org/en/stable/examples/plot_trace.html)
+    in the left column and a histogram of the samples in the right column for each of
+    the three variables λ_1, λ_2 and n
+    """
+    fig, axs = plt.subplots(3, 2, figsize=(8, 8))
+    axs[0, 0].plot(samples_lambdas[0, :])
+    axs[0, 0].set_ylabel("λ_1")
+    axs[0, 1].hist(samples_lambdas[0, :], bins=20, density=True, label="p(λ_1 | x)")
+    axs[0, 1].axvline(true_lambdas[0], linestyle="dashed", color="red", label="True λ_1")
+    axs[0, 1].legend()
+    axs[1, 0].plot(samples_lambdas[1, :])
+    axs[1, 0].set_ylabel("λ_2")
+    axs[1, 1].hist(samples_lambdas[1, :], bins=20, density=True, label="p(λ_2 | x)")
+    axs[1, 1].axvline(true_lambdas[1], linestyle="dashed", color="red", label="True λ_2")
+    axs[1, 1].legend()
+    axs[2, 0].plot(samples_n)
+    axs[2, 0].set_ylabel("n")
+    axs[2, 0].set_xlabel("Sample index")
+    axs[2, 1].hist(samples_n, bins=20, density=True, label="p(n | x)")
+    axs[2, 1].axvline(true_n, linestyle="dashed", color="red", label="True n")
+    axs[2, 1].legend()
+    fig.tight_layout()
+
+plot_samples(samples_lambdas, samples_n, lambdas, n)
+```
+
+
+## d)
+
+Do you actually need to know that normalization constant to sample from that distribution?
+Implement a Metropolis-within-Gibbs sampling scheme that allows you to work with an non-normalized version of $p(n \mid x_{1:N}, \lambda_1, \lambda_2)$.
+
+```{python}
+def sample_mh_n(n, x_cs, lambda_1, lambda_2, rng):
+    """
+    sample from p(n | x, λ_1, λ_2) using Metropolis-Hastings with a uniform proposal 
+    distribution that suggests a new `n` from the 6 closest values around the current
+    `n`.
+    """
+    N = len(x_cs)
+    lo, hi = n - 3, n + 3
+    if lo < 1:
+        hi -= lo - 1
+        lo = 1
+    elif hi > N:
+        lo -= hi - N
+        hi = N
+    choices = set(range(lo, hi + 1)) - {n}
+    proposed_n = rng.choice(list(choices))
+    log_r = (  # log of acceptance ratio
+        log_p_conditional_n(proposed_n, x_cs, lambda_1, lambda_2) -
+        log_p_conditional_n(n, x_cs, lambda_1, lambda_2)
+    )
+    if rng.uniform() < np.exp(log_r):
+        # accept proposed n
+        return proposed_n
+    else:
+        # stay at original n
+        return n
+```
+
+```{python}
+samples_mh_lambdas, samples_mh_n = sample_gibbs(
+    x=x,
+    a=a,
+    b=b,
+    lambdas_init=[5., 5.],
+    n_init=N // 2,
+    num_samples=5_000,
+    n_sampler=sample_mh_n  # different than before
+)
+
+plot_samples(samples_mh_lambdas, samples_mh_n, lambdas, n)
+```
+
+## e)
+
+Find/implement a collapsed Gibbs sampling scheme as discussed in the lecture.
+Which of the three samplers do you think is most efficient?
+
+
+In collapsed Gibbs-sampling we can replace one of the conditional distributions by a marginal distribution (as discussed in the lecture).
+
+Since the conditional distributions for the $\lambda$s had a closed form, our hope is that
+it might be easiest to *marginalize over* $\lambda_1$ and $\lambda_2$.
+In other words: We will choose $n$ as the variable which we sample from its marginal (posterior) distribution
+$$
+p(n \mid x_{1:N}) = \int_0^\infty \int_0^\infty p(n, \lambda_1, \lambda_2 \mid x_{1:N})  \, d\lambda_1 \, d\lambda_2.
+$$
+
+To find $p(n \mid x_{1:N})$ we thus start again from the logarithm of the joint posterior (equation @eq-log-posterior):
+
+$$
+\begin{aligned}
+    &\log\bigl(p(\lambda_1, \lambda_2, n \mid x_{1:N})\bigr) \\
+    &\propto \underbrace{(a + \sum_{i=1}^n x_i - 1) \log(λ_1) - (b + n) λ_1 \color{red}{- \log(\Gamma(a + \sum_{i=1}^n x_i)) + (a + \sum_{i=1}^n x_i) \log(b + n)}}_{\log \text{Gamma}(a + \sum_{i=1}^n x_i, b + n)} \\
+    &\color{red}{+ \log(\Gamma(a + \sum_{i=1}^n x_i)) - (a + \sum_{i=1}^n x_i) \log(b + n)} \\
+    &+ \underbrace{(a + \sum_{i=n+1}^N x_i - 1) \log(λ_2) - (b + N - n) λ_2 \color{red}{- \log(\Gamma(a + \sum_{i=n+1}^N x_i)) + (a + \sum_{i=n+1}^N x_i) \log(b + N - n)}}_{\log \text{Gamma}(a + \sum_{i=n+1}^N x_i, b + N - n)} \\
+    &\color{red}{+ \log(\Gamma(a + \sum_{i=n+1}^N x_i)) - (a + \sum_{i=n+1}^N x_i) \log(b + N - n)} \\
+    &- \sum_{i=1}^n\log(x_i!) - \log(\Gamma(a)) + a\log(b) \\
+    &- \sum_{i=n+1}^N\log(x_i!) - \log(\Gamma(a)) + a\log(b) \\
+    &- \log(N) \\
+\end{aligned}
+$$
+
+where compared to equation @eq-log-posterior we've inserted $\color{red}{\text{two zeros}}$.
+
+Why have we done this? To "complete" the gamma distributions!
+Remember that our goal is to marginalize over the $\lambda$s.
+To do this, we have to exponentiate and integrate the above over $\lambda_1$ and $\lambda_2$.
+If we do this, all the terms under the curly braces above disappear (since we're integrating over normalized gamma distributions which collapse to a factor of 1.).
+
+Thus, after exponentiating and integrating over $\lambda_1$ and $\lambda_2$ we end up with:
+$$
+p(n \mid x_{1:N}) \propto \frac{\Gamma(a + \sum_{i=1}^n x_i) \Gamma(a + \sum_{i=n+1}^N x_i)}
+{(b + n)^{a + \sum_{i=1}^n x_i} (b + N - n)^{a + \sum_{i=n+1}^N x_i}},
+$$
+where additionally we've dropped all factors that are independent of $n$.
+
+Now we have an expression for the unnormalized marginal posterior of $n$. We can find the normalization constant again with "brute force" by summing the epression over all possible $n$.
+After that we have all we need to directly sample from $p(n \mid x_{1:N})$.
+
+```{python}
+from scipy.special import loggamma
+
+def marginal_n(x, x_cs, a, b):
+    """
+    Calculate p(n | x).
+
+    The normalization constant is evaluated via "brute force"
+    (i.e. summing over all possible `n`).
+    """
+    N = len(x_cs)
+
+    log_p = np.array([
+        loggamma(a + x_cs[n - 1])
+        - (a + x_cs[n - 1]) * np.log(b + n)
+        - np.sum(loggamma(x[:n] + 1))
+        + loggamma(a + x_cs[-1] - x_cs[n - 1])
+        - (a + x_cs[-1] - x_cs[n - 1]) * np.log(b + N - n)
+        - np.sum(loggamma(x[n:] + 1))
+        for n in range(1, N + 1)
+    ])
+    log_p -= logsumexp(log_p)
+    return np.exp(log_p)
+
+p = marginal_n(x, np.cumsum(x), a, b)
+plt.bar(np.arange(1, N + 1), p, label="p(n | x)")
+plt.xlabel("n")
+plt.axvline(n, linestyle="dashed", color="red", label="True n")
+plt.legend()
+```
+
+```{python}
+def sample_collapsed_gibbs(x, a, b, num_samples, rng=None):
+    """
+    Sample from p(λ_1, λ_2, n | x) via collapsed Gibbs-sampling.
+
+    Note that in constrast to the other two methods, we don't need
+    initial values for λ_1, λ_2 and n.
+    Also, the sampling method for p(n | x) is hardcoded.
+
+    Parameters
+    ----------
+    x:
+        Observations (weekly bird counts)
+    a:
+        Shape hyperparameter for λ_1, λ_2s prior gamma(a, b)
+    b:
+        Rate hyperparameter for λ_1, λ_2s prior gamma(a, b)
+    num_samples:
+        The number of samples to draw
+    rng:
+        A numpy random number generator state
+    """
+    rng = rng or np.random.default_rng()
+
+    lambdas = np.empty((2, num_samples))
+    ns = np.empty(num_samples, dtype=np.int64)
+
+    # marginal distribution of n
+    # in constrast to the other two methods, this distribution does not depend
+    # on λ_1 and λ_2, so we can precalculate it before the loop.
+    # Sampling from this distribution is then done using the CDF of this discrete
+    # distribution (as shown in one of the first lectures).
+    x_cs = np.cumsum(x)
+    p_n = marginal_n(x, x_cs, a, b)
+    c_n = np.cumsum(p_n)
+
+    for i in range(num_samples):
+        # sample n
+        n = np.searchsorted(c_n, rng.uniform())
+
+        # sample λ_1
+        alpha1 = a + x_cs[n - 1]
+        beta1 = b + n
+        lambda_1 = gamma.rvs(alpha1, scale=1 / beta1, random_state=rng)
+
+        # sample λ_2
+        alpha2 = a + x_cs[-1] - x_cs[n - 1]
+        beta2 = b + N - n
+        lambda_2 = gamma.rvs(alpha2, scale=1 / beta2, random_state=rng)
+
+        lambdas[:, i] = lambda_1, lambda_2
+        ns[i] = n
+    
+    return lambdas, ns
+```
+
+```{python}
+samples_collapsed_lambdas, samples_collapsed_n = sample_collapsed_gibbs(
+    x=x,
+    a=a,
+    b=b,
+    num_samples=5_000
+)
+
+plot_samples(samples_collapsed_lambdas, samples_collapsed_n, lambdas, n)
+```
+## f)
+
+Visualize your inferred model. Do the results look plausible?
+
+```{python}
+plt.scatter(np.arange(1, N + 1), x)
+
+samples = np.random.choice(N, size=20, replace=False)
+for s in samples:
+    l1, l2 = samples_lambdas[:, s]
+    ns = samples_n[s]
+    y = np.concatenate([np.full(ns, l1), np.full(N - ns, l2)])
+    plt.plot(np.arange(N), y, color="red", alpha=0.15)
+    plt.xlabel("Week")
+    plt.ylabel("Number of birds")
+```
