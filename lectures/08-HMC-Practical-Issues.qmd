@@ -66,29 +66,29 @@ The leapfrog equations can be rearranged to avoid unnecessary gradient evaluatio
 
 1. From $x(0), v(0)$ compute $v(\epsilon/2)$:
 
-$$
-v(\epsilon/2) = v(0) - (\epsilon/2) \nabla_x E(x(0))
-$$
+	$$
+	v(\epsilon/2) = v(0) - (\epsilon/2) \nabla_x E(x(0))
+	$$
 
 2. Loop over $T-1$ integration steps:
 
-\begin{align}
-\begin{split}
-x(t+\epsilon) &= x(t) + \epsilon v(t+\epsilon/2) \\
-v(t+3\epsilon/2) &= v(t+\epsilon/2) - \epsilon \nabla_x E(x(t+\epsilon)) \\
-\end{split}
-\end{align}
-
+	$$
+	\begin{aligned}
+	x(t+\epsilon) &= x(t) + \epsilon v(t+\epsilon/2) \\
+	v(t+3\epsilon/2) &= v(t+\epsilon/2) - \epsilon \nabla_x E(x(t+\epsilon)) \\
+	\end{aligned}
+	$$
+	
 3. Last full-step in $x$ and half-step in $v$:
 
-\begin{align}
-\begin{split}
-x(T) &= x(T-\epsilon) + \epsilon v(T-\epsilon/2)\\
-v(T) &= v(T-\epsilon/2) - (\epsilon/2) \nabla_x E(x(T)) \\
-\end{split}
-\end{align}
-
-Resulting in $T+1$ gradient evaluations, whereas the original scheme requires two gradient evaluations per time step.
+    $$
+	\begin{aligned}
+	x(T) &= x(T-\epsilon) + \epsilon v(T-\epsilon/2)\\
+	v(T) &= v(T-\epsilon/2) - (\epsilon/2) \nabla_x E(x(T)) \\
+	\end{aligned}
+	$$
+	
+	Resulting in $T+1$ gradient evaluations, whereas the original scheme requires two gradient evaluations per time step.
 
 The following demonstration illustrates leapfrog integration for the harmonic oscillator:
 
@@ -257,17 +257,19 @@ which holds since Hamiltonian dynamics and the leapfrog integrator preserve volu
 
 ### Algorithm: Hamiltonian Monte Carlo
 
-Generate an initial state $x^{(0)} \sim p^{(0)}(x)$ using some initial distribution. For $s=0, 1, 2, \ldots$ cycle over the following iterations
+Generate an initial state $x^{(0)} \sim p^{(0)}(x)$ using some initial distribution. For $s=0, 1, 2, \ldots$ cycle over the following iterations:
 
-\begin{enumerate}
-\item Generate new momenta $v^{(s)} \sim \mathcal N(0, I)$
-\item Integrate Hamilton's equations of motion using the leapfrog algorithm resulting in a proposal state $(x', v')$
-\item Accept $(x', -v')$ with probability 
-$$
-\min\left\{1, \exp\bigl(H(x^{(s)}, v^{(s)})-H(x',-v')\bigr) \right\}
-$$
-as new state $(x^{(s+1)}, -v^{(s+1)})$ 
-\end{enumerate}
+1. Generate new momenta $v^{(s)} \sim \mathcal N(0, I)$
+
+2. Integrate Hamilton's equations of motion using the leapfrog algorithm resulting in a proposal state $(x', v')$
+
+3. Accept $(x', -v')$ with probability 
+
+   $$
+   \min\left\{1, \exp\bigl(H(x^{(s)}, v^{(s)})-H(x',-v')\bigr) \right\}
+   $$
+   
+   as new state $(x^{(s+1)}, -v^{(s+1)})$ 
 
 We have to negate the momenta at the end of the trajectory to make the proposal symmetric. Since Hamiltonian dynamics is reversible, flipping the sign of the momenta guarantees that if we reach $(x', v')$ starting from $(x, v)$ with Hamiltonian dynamics, then we will go back to $(x, v)$ using a dynamics that starts from $(x', -v')$. 
 

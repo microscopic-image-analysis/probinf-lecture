@@ -19,7 +19,7 @@ Q_i(y, x) = \delta(y_{\setminus i} - x_{\setminus i})\, q_i(y_i, x_i; x_{\setmin
 $$
 The Metropolis map of $Q_i$ simulates a Markov chain in the subspace $\mathcal X_i$ with proposal kernel $q_i$.
 
-* __Gibbs sampling:__ A special case is $q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i|x_{\setminus i})$ (the proposal is the conditional distribution $p_i$ of the $i$-th group of variables), which results in proposals that are always accepted. 
+* __Gibbs sampling:__ A special case is $q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i\mid{}x_{\setminus i})$ (the proposal is the conditional distribution $p_i$ of the $i$-th group of variables), which results in proposals that are always accepted. 
 
 ## Auxiliary variable methods
 
@@ -39,8 +39,8 @@ Why is this helpful? We can use Gibbs sampling to generate samples from $p(x, y)
 
 \begin{align}\label{eq-gibbs-auxiliary2}
 \begin{split}
-x^{(s+1)} &\sim p\bigl(x | y^{(s)}\bigr) \\
-y^{(s+1)} &\sim p\bigl(y | x^{(s+1)}\bigr) \\
+x^{(s+1)} &\sim p\bigl(x \mid{} y^{(s)}\bigr) \\
+y^{(s+1)} &\sim p\bigl(y \mid{} x^{(s+1)}\bigr) \\
 \end{split}
 \end{align}
 
@@ -155,7 +155,7 @@ To verify that the marginal distribution over $x$ is correct, let us compute it 
 The conditional distribution of a single bond variable $b_{ij}$ is
 
 $$
-p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
+p(b_{ij} \mid{} x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 $$
 
 These can be updated by simply generating Bernoulli variables for aligned spins, the other bond variables are set to zero. 

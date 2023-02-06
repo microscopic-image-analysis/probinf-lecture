@@ -284,43 +284,43 @@ Therefore, the following algorithm will simulate $P$ and therefore eventually $\
 
 Let's look at a special but important case. Assume that the sample space decomposes into a product of $N$ sample spaces $\mathcal X = \mathcal X_1 \times \cdots \times \mathcal X_N$ with associated variables $x_i$ ($i=1, \ldots, N$)  where $x_i$ denotes a single variable or a group of variables that will be sampled jointly. The joint distribution of all variables is $p(x) = p(x_1, \ldots, x_N)$. 
 
-By $x_{\setminus i}$ we denote the variable vector obtained by omitting the $i$-th variable (or group of variables):
+By $x_{\backslash{}i}$ we denote the variable vector obtained by omitting the $i$-th variable (or group of variables):
 
 $$
-x_{\setminus i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
+x_{\backslash{} i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
 $$ {#eq-without-group}
 
-Then $x_{\setminus i}$ follows the marginal distribution:
+Then $x_{\backslash{} i}$ follows the marginal distribution:
 
 $$
-p_{\setminus i}(x_{\setminus i}) = \int p(x_1, \ldots, x_N)\, d x_i
+p_{\backslash{} i}(x_{\backslash{} i}) = \int p(x_1, \ldots, x_N)\, d x_i
 $$ {#eq-without-group-marginal}
 
 The marginal distribution of $x_i$ is:
 
 $$
-p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\setminus i}
+p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\backslash{} i}
 $$ {#eq-group-marginal}
 
 The conditional distribution of $x_i$ also readily available:
 
 $$
-p_{i}(x_{i}|x_{\setminus i}) = \frac{p(x)}{p_{\setminus i}(x_{\setminus i})}
+p_{i}(x_{i}\mid{}x_{\backslash{} i}) = \frac{p(x)}{p_{\backslash{} i}(x_{\backslash{} i})}
 $$ {#eq-group-conditional}
 
-Let us consider a sequence of $N$ Markov chains $P_i$ where each chain only updates $x_i$ and does not change $x_{\setminus i}$:
+Let us consider a sequence of $N$ Markov chains $P_i$ where each chain only updates $x_i$ and does not change $x_{\backslash{} i}$:
 
 $$
-Q_i(y, x) = q_i(y_i, x_i; x_{\setminus i})\, \delta(y_{\setminus i} - x_{\setminus i})  
+Q_i(y, x) = q_i(y_i, x_i; x_{\backslash{} i})\, \delta(y_{\backslash{} i} - x_{\backslash{} i})  
 $$ {#eq-chain-group}
 
 where we introduced a product of delta distributions:
 
 $$
-\delta(x_{\setminus i}) := \prod_{j\not= i} \delta(x_j)
+\delta(x_{\backslash{} i}) := \prod_{j\not= i} \delta(x_j)
 $$
 
-and $q_i(y_i, x_i; x_{\setminus i})$ is a Markov kernel on $\mathcal X_i \times \mathcal X_i$ with $x_{\setminus i}$ being treated like a set of parameters. 
+and $q_i(y_i, x_i; x_{\backslash{} i})$ is a Markov kernel on $\mathcal X_i \times \mathcal X_i$ with $x_{\backslash{} i}$ being treated like a set of parameters. 
 
 The Metropolis map of $Q_i(y, x)$ is
 
@@ -328,8 +328,8 @@ The Metropolis map of $Q_i(y, x)$ is
 \begin{split}
 M[Q_i](y, x) 
 &= \min\left\{Q_i(y, x), Q_i(x, y) \frac{p(y)}{p(x)} \right\} \\
-&= \delta(y_{\setminus i}-x_{\setminus i})\, \min\left\{q_i(y_i, x_i; x_{\setminus i}), q_i(x_i, y_i; x_{\setminus i}) \frac{p_i(y_i|y_{\setminus i})\,p_{\setminus i}(y_{\setminus i})}{p_i(x_i | x_{\setminus i}) p_{\setminus i}(x_{\setminus i})} \right\} \\
-&= \delta(y_{\setminus i}-x_{\setminus i})\, \min\left\{q_i(y_i, x_i; x_{\setminus i}), q_i(x_i, y_i; x_{\setminus i}) \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i | x_{\setminus i})} \right\}
+&= \delta(y_{\backslash{} i}-x_{\backslash{} i})\, \min\left\{q_i(y_i, x_i; x_{\backslash{} i}), q_i(x_i, y_i; x_{\backslash{} i}) \frac{p_i(y_i\mid{}y_{\backslash{} i})\,p_{\backslash{} i}(y_{\backslash{} i})}{p_i(x_i \mid{} x_{\backslash{} i}) p_{\backslash{} i}(x_{\backslash{} i})} \right\} \\
+&= \delta(y_{\backslash{} i}-x_{\backslash{} i})\, \min\left\{q_i(y_i, x_i; x_{\backslash{} i}), q_i(x_i, y_i; x_{\backslash{} i}) \frac{p_i(y_i\mid{}x_{\backslash{} i})}{p_i(x_i \mid{} x_{\backslash{} i})} \right\}
 \end{split}
 \end{align}
 
@@ -399,43 +399,43 @@ fig.tight_layout()
 
 ## Gibbs sampling
 
-[__Gibbs sampling__](https://en.wikipedia.org/wiki/Gibbs_sampling) is a simple and powerful MCMC method that can be interpreted as a special variant of the component-wise MH algorithm outlined above. Gibbs sampling assumes that we can sample directly from the conditional distributions $p_i(x_i | x_{\setminus i})$, and uses these as component-wise Markov chains:
+[__Gibbs sampling__](https://en.wikipedia.org/wiki/Gibbs_sampling) is a simple and powerful MCMC method that can be interpreted as a special variant of the component-wise MH algorithm outlined above. Gibbs sampling assumes that we can sample directly from the conditional distributions $p_i(x_i \mid{} x_{\backslash{} i})$, and uses these as component-wise Markov chains:
 
 $$
-q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i | x_{\setminus i})
+q_i(y_i, x_i; x_{\backslash{} i}) = p_i(y_i \mid{} x_{\backslash{} i})
 $$
 
 The acceptance ratio in the Metropolis map $M[Q_i]$ (Eq. \ref{eq-coordinatewise-map}) simplifies to 
 
 $$
-\frac{q_i(x_i, y_i; x_{\setminus i})}{q_i(y_i, x_i; x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} =
-\frac{p_i(x_i | x_{\setminus i})}{p_i(y_i | x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} = 1
+\frac{q_i(x_i, y_i; x_{\backslash{} i})}{q_i(y_i, x_i; x_{\backslash{} i})} \frac{p_i(y_i\mid{}x_{\backslash{} i})}{p_i(x_i\mid{}x_{\backslash{} i})} =
+\frac{p_i(x_i \mid{} x_{\backslash{} i})}{p_i(y_i \mid{} x_{\backslash{} i})} \frac{p_i(y_i\mid{}x_{\backslash{} i})}{p_i(x_i\mid{}x_{\backslash{} i})} = 1
 $$
 
 That is, all proposals are accepted - Gibbs sampling is rejection-free. 
 
 ### Algorithm: Gibbs sampling
 
-Let $p(x_1, \ldots, x_N)$ be the joint distribution of $N$ random variables or groups of random variables $x_i\in\mathcal X_i$ with conditional distributions $p_i(x_i | x_{\setminus i})$, then the following iterative algorithm simulates a Markov chain whose stationary distribution is $p(x_1, \ldots, x_N)$:
+Let $p(x_1, \ldots, x_N)$ be the joint distribution of $N$ random variables or groups of random variables $x_i\in\mathcal X_i$ with conditional distributions $p_i(x_i \mid{} x_{\backslash{} i})$, then the following iterative algorithm simulates a Markov chain whose stationary distribution is $p(x_1, \ldots, x_N)$:
 
 \begin{align}\label{eq-gibbs-sampling}
 \begin{split}
-  x^{(s+1)}_1 &\sim p_1\bigl(\,\cdot\, | x^{(s)}_{\setminus 1}\bigr) \\
-  x^{(s+1)}_2 &\sim p_2\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus 2}\bigr) \\
+  x^{(s+1)}_1 &\sim p_1\bigl(\,\cdot\, \mid{} x^{(s)}_{\backslash{} 1}\bigr) \\
+  x^{(s+1)}_2 &\sim p_2\bigl(\,\cdot\, \mid{} {x}^{(s,s+1)}_{\backslash{} 2}\bigr) \\
   & \vdots   \\
-  x^{(s+1)}_N &\sim p_N\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus N}\bigr) \\
+  x^{(s+1)}_N &\sim p_N\bigl(\,\cdot\, \mid{} {x}^{(s,s+1)}_{\backslash{} N}\bigr) \\
 \end{split}
 \end{align}
 
 where ${x}^{(s+1)}_i$ are the components of the next sample and 
 
-$${x}^{(s,s+1)}_{\setminus i} = \begin{pmatrix}{x}^{(s+1)}_1, \ldots, {x}^{(s+1)}_{i-1}, x^{(s)}_{i+1}, \ldots, x^{(s)}_{N}\end{pmatrix}$$
+$${x}^{(s,s+1)}_{\backslash{} i} = \begin{pmatrix}{x}^{(s+1)}_1, \ldots, {x}^{(s+1)}_{i-1}, x^{(s)}_{i+1}, \ldots, x^{(s)}_{N}\end{pmatrix}$$
 
-so ${x}^{(s,s+1)}_{\setminus N} = x^{(s+1)}_{\setminus N}$.
+so ${x}^{(s,s+1)}_{\backslash{} N} = x^{(s+1)}_{\backslash{} N}$.
 
 #### Collapsed Gibbs Sampler
 
-A variant of the Gibbs sampler (Eq. \ref{eq-gibbs-sampling}) is the [*collapsed Gibbs sampler*](https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler) where some of the conditional distributions $p_i(x_i | x_{\setminus i})$ are replaced by a marginal distribution, e.g. $p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\setminus i}$. This scheme is equally valid and rejection-free. See also the original paper by [Jun S. Liu](https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829).
+A variant of the Gibbs sampler (Eq. \ref{eq-gibbs-sampling}) is the [*collapsed Gibbs sampler*](https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler) where some of the conditional distributions $p_i(x_i \mid{} x_{\backslash{} i})$ are replaced by a marginal distribution, e.g. $p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\backslash{} i}$. This scheme is equally valid and rejection-free. See also the original paper by [Jun S. Liu](https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829).
 
 #### Example: Sampling a bivariate Gaussian model
 
@@ -448,8 +448,8 @@ $$
 The conditional distributions are given [by](https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Bivariate_case_2):
 
 \begin{align*}
-p(x_1 | x_2) &= \frac{1}{\sqrt{2\pi\sigma_1^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_1^2(1-\rho^2)} \bigl(x_1 - \mu_1 - \frac{\sigma_1}{\sigma_2}\rho (x_2 - \mu_2) \bigr)^2\right\} \\
-p(x_2 | x_1) &= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_2^2(1-\rho^2)} \bigl(x_2 - \mu_2 - \frac{\sigma_2}{\sigma_1}\rho (x_1 - \mu_1) \bigr)^2\right\}
+p(x_1 \mid{} x_2) &= \frac{1}{\sqrt{2\pi\sigma_1^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_1^2(1-\rho^2)} \bigl(x_1 - \mu_1 - \frac{\sigma_1}{\sigma_2}\rho (x_2 - \mu_2) \bigr)^2\right\} \\
+p(x_2 \mid{} x_1) &= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_2^2(1-\rho^2)} \bigl(x_2 - \mu_2 - \frac{\sigma_2}{\sigma_1}\rho (x_1 - \mu_1) \bigr)^2\right\}
 \end{align*}
 
 and the marginal distributions are $p_i(x_i) = \mathcal N(\mu_i, \sigma_i^2)$. We use the standard Gibbs sampler and the collapsed Gibbs samplers to generate samples from the joint bivariate Gaussian:
@@ -664,8 +664,8 @@ Why is this helpful? We can use Gibbs sampling to generate samples from $p(x, y)
 
 \begin{align}\label{eq-gibbs-auxiliary}
 \begin{split}
-x^{(s+1)} &\sim p\bigl(x | y^{(s)}\bigr) \\
-y^{(s+1)} &\sim p\bigl(y | x^{(s+1)}\bigr) \\
+x^{(s+1)} &\sim p\bigl(x \mid{} y^{(s)}\bigr) \\
+y^{(s+1)} &\sim p\bigl(y \mid{} x^{(s+1)}\bigr) \\
 \end{split}
 \end{align}
 
@@ -676,7 +676,7 @@ where the marginal distributions might be easier to simulate than $p(x)$.
 The [Student-t distribution](https://en.wikipedia.org/wiki/Student%27s_t-distribution) is defined as
 
 $$
-p(x | \nu) = \frac{1}{Z(\nu)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}
+p(x \mid{} \nu) = \frac{1}{Z(\nu)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}
 $$
 
 with a normalization constant $Z(\nu)$ that depends on the degrees of freedom $\nu > 0$. 
@@ -692,12 +692,12 @@ $$
 \end{aligned}
 $$
 
-So $f(x; \alpha, \beta)$ is identical to $p(x|\nu)$ for $\alpha=\nu/2$ and $\beta=\nu/2$.
+So $f(x; \alpha, \beta)$ is identical to $p(x\mid{}\nu)$ for $\alpha=\nu/2$ and $\beta=\nu/2$.
 
 The joint distribution is
 
 $$
-p(x, s) = p(x | s) p(s) = \mathcal{N}(x; 0, s^{-1/2})\, \mathcal{G}(s; \nu/2, \nu/2)
+p(x, s) = p(x \mid{} s) p(s) = \mathcal{N}(x; 0, s^{-1/2})\, \mathcal{G}(s; \nu/2, \nu/2)
 $$
 
 The conditional distributions are $\mathcal{N}(x; 0, s^{-1/2})$ and $\mathcal{G}(s; (\nu+1)/2, (\nu+x^2)/2)$.
