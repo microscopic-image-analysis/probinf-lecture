@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.313">
+<meta name="generator" content="quarto-1.2.335">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -801,16 +801,16 @@ p_S(x^{(1)}, \ldots, x^{(S)}) = \prod_{s=1}^S p(x^{(s)})
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>np.<span class="bu">round</span>(np.transpose([S, estimates]), <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>array([[1.00000000e+03, 3.10000000e+00],
-       [2.15443500e+03, 3.15700000e+00],
-       [4.64158900e+03, 3.12600000e+00],
-       [1.00000000e+04, 3.14100000e+00],
-       [2.15443470e+04, 3.14000000e+00],
-       [4.64158880e+04, 3.13000000e+00],
-       [1.00000000e+05, 3.12600000e+00],
-       [2.15443469e+05, 3.14200000e+00],
-       [4.64158883e+05, 3.14300000e+00],
-       [1.00000000e+06, 3.14300000e+00]])</code></pre>
+<pre><code>array([[1.00000000e+03, 3.19200000e+00],
+       [2.15443500e+03, 3.20300000e+00],
+       [4.64158900e+03, 3.17800000e+00],
+       [1.00000000e+04, 3.11300000e+00],
+       [2.15443470e+04, 3.13300000e+00],
+       [4.64158880e+04, 3.14300000e+00],
+       [1.00000000e+05, 3.13500000e+00],
+       [2.15443469e+05, 3.13300000e+00],
+       [4.64158883e+05, 3.14100000e+00],
+       [1.00000000e+06, 3.14000000e+00]])</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-7-output-2.png" width="949" height="468"></p>
@@ -2106,7 +2106,7 @@ p(x\mid{}a=1) = \frac{p(x, a=1)}{p(a=1)} = M q(x)\, r(x) = M q(x)\, \frac{p(x)}{
 <span id="cb32-53"><a href="#cb32-53" aria-hidden="true" tabindex="-1"></a>        a.set_xlim(<span class="dv">0</span>, times.<span class="bu">max</span>()<span class="op">+</span><span class="dv">1</span>)</span>
 <span id="cb32-54"><a href="#cb32-54" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-28-output-1.png" width="1142" height="754"></p>
+<p><img src="lecture_files/figure-html/cell-28-output-1.png" width="1141" height="754"></p>
 </div>
 </div>
 </section>
@@ -3631,14 +3631,14 @@ p(x) \propto \exp\left\{-\frac{1}{2} x^2 \right\}
 <span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 96.8% (stepsize = 1.00e-01)
-acceptance rate: 80.3% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 97.5% (stepsize = 1.00e-01)
+acceptance rate: 79.4% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 16.4% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.0% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="824"></p>
+<p><img src="lecture_files/figure-html/cell-48-output-3.png" width="1114" height="826"></p>
 </div>
 </div>
 </section>
@@ -3802,14 +3802,14 @@ M[Q](y, x) = \min\left\{Q(y, x), Q(x, y)\frac{p(y)}{p(x)} \right\} \,\,\, \text{
 <span id="cb58-75"><a href="#cb58-75" aria-hidden="true" tabindex="-1"></a>        a.set_ylim(<span class="fl">0.</span>, <span class="fl">0.45</span>)</span>
 <span id="cb58-76"><a href="#cb58-76" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 97.7% (stepsize = 1.00e-01)
-acceptance rate: 80.4% (stepsize = 1.00e+00)</code></pre>
+<pre><code>acceptance rate: 96.5% (stepsize = 1.00e-01)
+acceptance rate: 79.7% (stepsize = 1.00e+00)</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance rate: 15.4% (stepsize = 1.00e+01)</code></pre>
+<pre><code>acceptance rate: 16.2% (stepsize = 1.00e+01)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1114" height="825"></p>
+<p><img src="lecture_files/figure-html/cell-50-output-3.png" width="1088" height="825"></p>
 </div>
 </div>
 <p>In the next example, we run the MH algorithm on a continuous pdf in two dimensions.</p>
@@ -3910,7 +3910,7 @@ acceptance rate: 80.4% (stepsize = 1.00e+00)</code></pre>
 <span id="cb61-94"><a href="#cb61-94" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb61-95"><a href="#cb61-95" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1139" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-51-output-1.png" width="1114" height="346"></p>
 </div>
 </div>
 </section>
@@ -3936,38 +3936,38 @@ P\pi = \pi, \,\,\, \mathbb{1}^T\!P = \mathbb{1}^T
 <section id="coordinate-wise-sampling" class="level3">
 <h3 class="anchored" data-anchor-id="coordinate-wise-sampling">Coordinate-wise sampling</h3>
 <p>Let’s look at a special but important case. Assume that the sample space decomposes into a product of <span class="math inline">\(N\)</span> sample spaces <span class="math inline">\(\mathcal X = \mathcal X_1 \times \cdots \times \mathcal X_N\)</span> with associated variables <span class="math inline">\(x_i\)</span> (<span class="math inline">\(i=1, \ldots, N\)</span>) where <span class="math inline">\(x_i\)</span> denotes a single variable or a group of variables that will be sampled jointly. The joint distribution of all variables is <span class="math inline">\(p(x) = p(x_1, \ldots, x_N)\)</span>.</p>
-<p>By <span class="math inline">\(x_{\setminus i}\)</span> we denote the variable vector obtained by omitting the <span class="math inline">\(i\)</span>-th variable (or group of variables):</p>
+<p>By <span class="math inline">\(x_{\backslash{}i}\)</span> we denote the variable vector obtained by omitting the <span class="math inline">\(i\)</span>-th variable (or group of variables):</p>
 <p><span id="eq-without-group"><span class="math display">\[
-x_{\setminus i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
+x_{\backslash{} i} := \begin{pmatrix}x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_N \end{pmatrix}
 \tag{70}\]</span></span></p>
-<p>Then <span class="math inline">\(x_{\setminus i}\)</span> follows the marginal distribution:</p>
+<p>Then <span class="math inline">\(x_{\backslash{} i}\)</span> follows the marginal distribution:</p>
 <p><span id="eq-without-group-marginal"><span class="math display">\[
-p_{\setminus i}(x_{\setminus i}) = \int p(x_1, \ldots, x_N)\, d x_i
+p_{\backslash{} i}(x_{\backslash{} i}) = \int p(x_1, \ldots, x_N)\, d x_i
 \tag{71}\]</span></span></p>
 <p>The marginal distribution of <span class="math inline">\(x_i\)</span> is:</p>
 <p><span id="eq-group-marginal"><span class="math display">\[
-p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\setminus i}
+p_{i}(x_{i}) = \int p(x_1, \ldots, x_N)\, d x_{\backslash{} i}
 \tag{72}\]</span></span></p>
 <p>The conditional distribution of <span class="math inline">\(x_i\)</span> also readily available:</p>
 <p><span id="eq-group-conditional"><span class="math display">\[
-p_{i}(x_{i}|x_{\setminus i}) = \frac{p(x)}{p_{\setminus i}(x_{\setminus i})}
+p_{i}(x_{i}\mid{}x_{\backslash{} i}) = \frac{p(x)}{p_{\backslash{} i}(x_{\backslash{} i})}
 \tag{73}\]</span></span></p>
-<p>Let us consider a sequence of <span class="math inline">\(N\)</span> Markov chains <span class="math inline">\(P_i\)</span> where each chain only updates <span class="math inline">\(x_i\)</span> and does not change <span class="math inline">\(x_{\setminus i}\)</span>:</p>
+<p>Let us consider a sequence of <span class="math inline">\(N\)</span> Markov chains <span class="math inline">\(P_i\)</span> where each chain only updates <span class="math inline">\(x_i\)</span> and does not change <span class="math inline">\(x_{\backslash{} i}\)</span>:</p>
 <p><span id="eq-chain-group"><span class="math display">\[
-Q_i(y, x) = q_i(y_i, x_i; x_{\setminus i})\, \delta(y_{\setminus i} - x_{\setminus i})  
+Q_i(y, x) = q_i(y_i, x_i; x_{\backslash{} i})\, \delta(y_{\backslash{} i} - x_{\backslash{} i})  
 \tag{74}\]</span></span></p>
 <p>where we introduced a product of delta distributions:</p>
 <p><span class="math display">\[
-\delta(x_{\setminus i}) := \prod_{j\not= i} \delta(x_j)
+\delta(x_{\backslash{} i}) := \prod_{j\not= i} \delta(x_j)
 \]</span></p>
-<p>and <span class="math inline">\(q_i(y_i, x_i; x_{\setminus i})\)</span> is a Markov kernel on <span class="math inline">\(\mathcal X_i \times \mathcal X_i\)</span> with <span class="math inline">\(x_{\setminus i}\)</span> being treated like a set of parameters.</p>
+<p>and <span class="math inline">\(q_i(y_i, x_i; x_{\backslash{} i})\)</span> is a Markov kernel on <span class="math inline">\(\mathcal X_i \times \mathcal X_i\)</span> with <span class="math inline">\(x_{\backslash{} i}\)</span> being treated like a set of parameters.</p>
 <p>The Metropolis map of <span class="math inline">\(Q_i(y, x)\)</span> is</p>
 <p><span class="math display">\[\begin{align}\label{eq-coordinatewise-map}
 \begin{split}
 M[Q_i](y, x)
 &amp;= \min\left\{Q_i(y, x), Q_i(x, y) \frac{p(y)}{p(x)} \right\} \\
-&amp;= \delta(y_{\setminus i}-x_{\setminus i})\, \min\left\{q_i(y_i, x_i; x_{\setminus i}), q_i(x_i, y_i; x_{\setminus i}) \frac{p_i(y_i|y_{\setminus i})\,p_{\setminus i}(y_{\setminus i})}{p_i(x_i | x_{\setminus i}) p_{\setminus i}(x_{\setminus i})} \right\} \\
-&amp;= \delta(y_{\setminus i}-x_{\setminus i})\, \min\left\{q_i(y_i, x_i; x_{\setminus i}), q_i(x_i, y_i; x_{\setminus i}) \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i | x_{\setminus i})} \right\}
+&amp;= \delta(y_{\backslash{} i}-x_{\backslash{} i})\, \min\left\{q_i(y_i, x_i; x_{\backslash{} i}), q_i(x_i, y_i; x_{\backslash{} i}) \frac{p_i(y_i\mid{}y_{\backslash{} i})\,p_{\backslash{} i}(y_{\backslash{} i})}{p_i(x_i \mid{} x_{\backslash{} i}) p_{\backslash{} i}(x_{\backslash{} i})} \right\} \\
+&amp;= \delta(y_{\backslash{} i}-x_{\backslash{} i})\, \min\left\{q_i(y_i, x_i; x_{\backslash{} i}), q_i(x_i, y_i; x_{\backslash{} i}) \frac{p_i(y_i\mid{}x_{\backslash{} i})}{p_i(x_i \mid{} x_{\backslash{} i})} \right\}
 \end{split}
 \end{align}\]</span></p>
 <p>If we run the Metropolis-Hastings algorithm with <span class="math inline">\(Q_i\)</span>, we simulate a Markov chain only on the conditional distribution of the <span class="math inline">\(i\)</span>-th variable (or group of variables). This involves a Markov kernel <span class="math inline">\(q_i\)</span> on the corresponding subspace <span class="math inline">\(\mathcal X_i\)</span> that could, in principle, depend on all of the current variables.</p>
@@ -4030,40 +4030,40 @@ M[Q_i](y, x)
 <span id="cb62-54"><a href="#cb62-54" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb62-55"><a href="#cb62-55" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1088" height="346"></p>
+<p><img src="lecture_files/figure-html/cell-52-output-1.png" width="1114" height="346"></p>
 </div>
 </div>
 </section>
 </section>
 <section id="gibbs-sampling" class="level2">
 <h2 class="anchored" data-anchor-id="gibbs-sampling">Gibbs sampling</h2>
-<p><a href="https://en.wikipedia.org/wiki/Gibbs_sampling"><strong>Gibbs sampling</strong></a> is a simple and powerful MCMC method that can be interpreted as a special variant of the component-wise MH algorithm outlined above. Gibbs sampling assumes that we can sample directly from the conditional distributions <span class="math inline">\(p_i(x_i | x_{\setminus i})\)</span>, and uses these as component-wise Markov chains:</p>
+<p><a href="https://en.wikipedia.org/wiki/Gibbs_sampling"><strong>Gibbs sampling</strong></a> is a simple and powerful MCMC method that can be interpreted as a special variant of the component-wise MH algorithm outlined above. Gibbs sampling assumes that we can sample directly from the conditional distributions <span class="math inline">\(p_i(x_i \mid{} x_{\backslash{} i})\)</span>, and uses these as component-wise Markov chains:</p>
 <p><span class="math display">\[
-q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i | x_{\setminus i})
+q_i(y_i, x_i; x_{\backslash{} i}) = p_i(y_i \mid{} x_{\backslash{} i})
 \]</span></p>
 <p>The acceptance ratio in the Metropolis map <span class="math inline">\(M[Q_i]\)</span> (Eq. <span class="math inline">\(\ref{eq-coordinatewise-map}\)</span>) simplifies to</p>
 <p><span class="math display">\[
-\frac{q_i(x_i, y_i; x_{\setminus i})}{q_i(y_i, x_i; x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} =
-\frac{p_i(x_i | x_{\setminus i})}{p_i(y_i | x_{\setminus i})} \frac{p_i(y_i|x_{\setminus i})}{p_i(x_i|x_{\setminus i})} = 1
+\frac{q_i(x_i, y_i; x_{\backslash{} i})}{q_i(y_i, x_i; x_{\backslash{} i})} \frac{p_i(y_i\mid{}x_{\backslash{} i})}{p_i(x_i\mid{}x_{\backslash{} i})} =
+\frac{p_i(x_i \mid{} x_{\backslash{} i})}{p_i(y_i \mid{} x_{\backslash{} i})} \frac{p_i(y_i\mid{}x_{\backslash{} i})}{p_i(x_i\mid{}x_{\backslash{} i})} = 1
 \]</span></p>
 <p>That is, all proposals are accepted - Gibbs sampling is rejection-free.</p>
 <section id="algorithm-gibbs-sampling" class="level3">
 <h3 class="anchored" data-anchor-id="algorithm-gibbs-sampling">Algorithm: Gibbs sampling</h3>
-<p>Let <span class="math inline">\(p(x_1, \ldots, x_N)\)</span> be the joint distribution of <span class="math inline">\(N\)</span> random variables or groups of random variables <span class="math inline">\(x_i\in\mathcal X_i\)</span> with conditional distributions <span class="math inline">\(p_i(x_i | x_{\setminus i})\)</span>, then the following iterative algorithm simulates a Markov chain whose stationary distribution is <span class="math inline">\(p(x_1, \ldots, x_N)\)</span>:</p>
+<p>Let <span class="math inline">\(p(x_1, \ldots, x_N)\)</span> be the joint distribution of <span class="math inline">\(N\)</span> random variables or groups of random variables <span class="math inline">\(x_i\in\mathcal X_i\)</span> with conditional distributions <span class="math inline">\(p_i(x_i \mid{} x_{\backslash{} i})\)</span>, then the following iterative algorithm simulates a Markov chain whose stationary distribution is <span class="math inline">\(p(x_1, \ldots, x_N)\)</span>:</p>
 <p><span class="math display">\[\begin{align}\label{eq-gibbs-sampling}
 \begin{split}
-  x^{(s+1)}_1 &amp;\sim p_1\bigl(\,\cdot\, | x^{(s)}_{\setminus 1}\bigr) \\
-  x^{(s+1)}_2 &amp;\sim p_2\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus 2}\bigr) \\
+  x^{(s+1)}_1 &amp;\sim p_1\bigl(\,\cdot\, \mid{} x^{(s)}_{\backslash{} 1}\bigr) \\
+  x^{(s+1)}_2 &amp;\sim p_2\bigl(\,\cdot\, \mid{} {x}^{(s,s+1)}_{\backslash{} 2}\bigr) \\
   &amp; \vdots   \\
-  x^{(s+1)}_N &amp;\sim p_N\bigl(\,\cdot\, | {x}^{(s,s+1)}_{\setminus N}\bigr) \\
+  x^{(s+1)}_N &amp;\sim p_N\bigl(\,\cdot\, \mid{} {x}^{(s,s+1)}_{\backslash{} N}\bigr) \\
 \end{split}
 \end{align}\]</span></p>
 <p>where <span class="math inline">\({x}^{(s+1)}_i\)</span> are the components of the next sample and</p>
-<p><span class="math display">\[{x}^{(s,s+1)}_{\setminus i} = \begin{pmatrix}{x}^{(s+1)}_1, \ldots, {x}^{(s+1)}_{i-1}, x^{(s)}_{i+1}, \ldots, x^{(s)}_{N}\end{pmatrix}\]</span></p>
-<p>so <span class="math inline">\({x}^{(s,s+1)}_{\setminus N} = x^{(s+1)}_{\setminus N}\)</span>.</p>
+<p><span class="math display">\[{x}^{(s,s+1)}_{\backslash{} i} = \begin{pmatrix}{x}^{(s+1)}_1, \ldots, {x}^{(s+1)}_{i-1}, x^{(s)}_{i+1}, \ldots, x^{(s)}_{N}\end{pmatrix}\]</span></p>
+<p>so <span class="math inline">\({x}^{(s,s+1)}_{\backslash{} N} = x^{(s+1)}_{\backslash{} N}\)</span>.</p>
 <section id="collapsed-gibbs-sampler" class="level4">
 <h4 class="anchored" data-anchor-id="collapsed-gibbs-sampler">Collapsed Gibbs Sampler</h4>
-<p>A variant of the Gibbs sampler (Eq. <span class="math inline">\(\ref{eq-gibbs-sampling}\)</span>) is the <a href="https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler"><em>collapsed Gibbs sampler</em></a> where some of the conditional distributions <span class="math inline">\(p_i(x_i | x_{\setminus i})\)</span> are replaced by a marginal distribution, e.g.&nbsp;<span class="math inline">\(p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\setminus i}\)</span>. This scheme is equally valid and rejection-free. See also the original paper by <a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829">Jun S. Liu</a>.</p>
+<p>A variant of the Gibbs sampler (Eq. <span class="math inline">\(\ref{eq-gibbs-sampling}\)</span>) is the <a href="https://en.wikipedia.org/wiki/Gibbs_sampling#Collapsed_Gibbs_sampler"><em>collapsed Gibbs sampler</em></a> where some of the conditional distributions <span class="math inline">\(p_i(x_i \mid{} x_{\backslash{} i})\)</span> are replaced by a marginal distribution, e.g.&nbsp;<span class="math inline">\(p_i(x_i) = \int p(x_1, \ldots, x_N) dx_{\backslash{} i}\)</span>. This scheme is equally valid and rejection-free. See also the original paper by <a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.1994.10476829">Jun S. Liu</a>.</p>
 </section>
 <section id="example-sampling-a-bivariate-gaussian-model" class="level4">
 <h4 class="anchored" data-anchor-id="example-sampling-a-bivariate-gaussian-model">Example: Sampling a bivariate Gaussian model</h4>
@@ -4073,8 +4073,8 @@ p(x_1, x_2) = \frac{1}{2\pi\sigma_1\sigma_2\sqrt{1-\rho^2}} \exp\left\{-\frac{1}
 \]</span></p>
 <p>The conditional distributions are given <a href="https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Bivariate_case_2">by</a>:</p>
 <p><span class="math display">\[\begin{align*}
-p(x_1 | x_2) &amp;= \frac{1}{\sqrt{2\pi\sigma_1^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_1^2(1-\rho^2)} \bigl(x_1 - \mu_1 - \frac{\sigma_1}{\sigma_2}\rho (x_2 - \mu_2) \bigr)^2\right\} \\
-p(x_2 | x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_2^2(1-\rho^2)} \bigl(x_2 - \mu_2 - \frac{\sigma_2}{\sigma_1}\rho (x_1 - \mu_1) \bigr)^2\right\}
+p(x_1 \mid{} x_2) &amp;= \frac{1}{\sqrt{2\pi\sigma_1^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_1^2(1-\rho^2)} \bigl(x_1 - \mu_1 - \frac{\sigma_1}{\sigma_2}\rho (x_2 - \mu_2) \bigr)^2\right\} \\
+p(x_2 \mid{} x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{1}{2\sigma_2^2(1-\rho^2)} \bigl(x_2 - \mu_2 - \frac{\sigma_2}{\sigma_1}\rho (x_1 - \mu_1) \bigr)^2\right\}
 \end{align*}\]</span></p>
 <p>and the marginal distributions are <span class="math inline">\(p_i(x_i) = \mathcal N(\mu_i, \sigma_i^2)\)</span>. We use the standard Gibbs sampler and the collapsed Gibbs samplers to generate samples from the joint bivariate Gaussian:</p>
 <div class="cell" data-execution_count="52">
@@ -4270,7 +4270,7 @@ p(x_2 | x_1) &amp;= \frac{1}{\sqrt{2\pi\sigma_2^2(1-\rho^2)}} \exp\left\{-\frac{
 <span id="cb65-35"><a href="#cb65-35" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
 <span id="cb65-36"><a href="#cb65-36" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="lecture_files/figure-html/cell-55-output-1.png" width="922" height="922"></p>
+<p><img src="lecture_files/figure-html/cell-55-output-1.png" width="920" height="922"></p>
 </div>
 </div>
 </section>
@@ -4289,8 +4289,8 @@ p(x) = \int_{\mathcal{Y}} p(x, y)\, dy
 <p>Why is this helpful? We can use Gibbs sampling to generate samples from <span class="math inline">\(p(x, y)\)</span>:</p>
 <p><span class="math display">\[\begin{align}\label{eq-gibbs-auxiliary}
 \begin{split}
-x^{(s+1)} &amp;\sim p\bigl(x | y^{(s)}\bigr) \\
-y^{(s+1)} &amp;\sim p\bigl(y | x^{(s+1)}\bigr) \\
+x^{(s+1)} &amp;\sim p\bigl(x \mid{} y^{(s)}\bigr) \\
+y^{(s+1)} &amp;\sim p\bigl(y \mid{} x^{(s+1)}\bigr) \\
 \end{split}
 \end{align}\]</span></p>
 <p>where the marginal distributions might be easier to simulate than <span class="math inline">\(p(x)\)</span>.</p>
@@ -4298,7 +4298,7 @@ y^{(s+1)} &amp;\sim p\bigl(y | x^{(s+1)}\bigr) \\
 <h4 class="anchored" data-anchor-id="example-student-t-distribution">Example: Student-t distribution</h4>
 <p>The <a href="https://en.wikipedia.org/wiki/Student%27s_t-distribution">Student-t distribution</a> is defined as</p>
 <p><span class="math display">\[
-p(x | \nu) = \frac{1}{Z(\nu)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}
+p(x \mid{} \nu) = \frac{1}{Z(\nu)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}
 \]</span></p>
 <p>with a normalization constant <span class="math inline">\(Z(\nu)\)</span> that depends on the degrees of freedom <span class="math inline">\(\nu &gt; 0\)</span>.</p>
 <p>This integral can be written as a <a href="https://www.jstor.org/stable/2984774?seq=1#metadata_info_tab_contents">scale-mixture of normals</a>:</p>
@@ -4310,10 +4310,10 @@ p(x | \nu) = \frac{1}{Z(\nu)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}
     &amp;= \frac{1}{\sqrt{2\pi\beta}} \frac{\Gamma(\alpha+1/2)}{\Gamma(\alpha)} \left(1 + x^2/2\beta\right)^{-(\frac{2\alpha+1}{2})}
 \end{aligned}
 \]</span></p>
-<p>So <span class="math inline">\(f(x; \alpha, \beta)\)</span> is identical to <span class="math inline">\(p(x|\nu)\)</span> for <span class="math inline">\(\alpha=\nu/2\)</span> and <span class="math inline">\(\beta=\nu/2\)</span>.</p>
+<p>So <span class="math inline">\(f(x; \alpha, \beta)\)</span> is identical to <span class="math inline">\(p(x\mid{}\nu)\)</span> for <span class="math inline">\(\alpha=\nu/2\)</span> and <span class="math inline">\(\beta=\nu/2\)</span>.</p>
 <p>The joint distribution is</p>
 <p><span class="math display">\[
-p(x, s) = p(x | s) p(s) = \mathcal{N}(x; 0, s^{-1/2})\, \mathcal{G}(s; \nu/2, \nu/2)
+p(x, s) = p(x \mid{} s) p(s) = \mathcal{N}(x; 0, s^{-1/2})\, \mathcal{G}(s; \nu/2, \nu/2)
 \]</span></p>
 <p>The conditional distributions are <span class="math inline">\(\mathcal{N}(x; 0, s^{-1/2})\)</span> and <span class="math inline">\(\mathcal{G}(s; (\nu+1)/2, (\nu+x^2)/2)\)</span>.</p>
 <div class="cell" data-execution_count="55">
@@ -4378,7 +4378,7 @@ M[Q](y, x) = Q(y, x) \, \min\left\{1, \frac{Q(x, y)}{Q(y, x)} \frac{p(y)}{p(x)} 
 <li><p><strong>Metropolis-within-Gibbs:</strong> Multiple proposal kernels <span class="math inline">\(P_i\)</span> that have the same stationary distribution <span class="math inline">\(p\)</span> can be combined to produce a new kernel <span class="math inline">\(P=\prod_i P_i\)</span> with the same stationary distribution. A special case is to use proposal chains <span class="math inline">\(Q_i\)</span> that only update a group of variables <span class="math inline">\(x_i\)</span> and leave the other variables <span class="math inline">\(x_{\setminus i}\)</span> untouched: <span class="math display">\[
 Q_i(y, x) = \delta(y_{\setminus i} - x_{\setminus i})\, q_i(y_i, x_i; x_{\setminus i})
 \]</span> The Metropolis map of <span class="math inline">\(Q_i\)</span> simulates a Markov chain in the subspace <span class="math inline">\(\mathcal X_i\)</span> with proposal kernel <span class="math inline">\(q_i\)</span>.</p></li>
-<li><p><strong>Gibbs sampling:</strong> A special case is <span class="math inline">\(q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i|x_{\setminus i})\)</span> (the proposal is the conditional distribution <span class="math inline">\(p_i\)</span> of the <span class="math inline">\(i\)</span>-th group of variables), which results in proposals that are always accepted.</p></li>
+<li><p><strong>Gibbs sampling:</strong> A special case is <span class="math inline">\(q_i(y_i, x_i; x_{\setminus i}) = p_i(y_i\mid{}x_{\setminus i})\)</span> (the proposal is the conditional distribution <span class="math inline">\(p_i\)</span> of the <span class="math inline">\(i\)</span>-th group of variables), which results in proposals that are always accepted.</p></li>
 </ul>
 </section>
 <section id="auxiliary-variable-methods" class="level2">
@@ -4394,8 +4394,8 @@ p(x) = \int_{\mathcal{Y}} p(x, y)\, dy\, .
 <p>Why is this helpful? We can use Gibbs sampling to generate samples from <span class="math inline">\(p(x, y)\)</span>:</p>
 <p><span class="math display">\[\begin{align}\label{eq-gibbs-auxiliary2}
 \begin{split}
-x^{(s+1)} &amp;\sim p\bigl(x | y^{(s)}\bigr) \\
-y^{(s+1)} &amp;\sim p\bigl(y | x^{(s+1)}\bigr) \\
+x^{(s+1)} &amp;\sim p\bigl(x \mid{} y^{(s)}\bigr) \\
+y^{(s+1)} &amp;\sim p\bigl(y \mid{} x^{(s+1)}\bigr) \\
 \end{split}
 \end{align}\]</span></p>
 <p>where the marginal distributions might be easier to simulate than <span class="math inline">\(p(x)\)</span>.</p>
@@ -4503,7 +4503,7 @@ p(x, b) \propto \prod_{i\sim j} [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 \end{align*}\]</span></p>
 <p>The conditional distribution of a single bond variable <span class="math inline">\(b_{ij}\)</span> is</p>
 <p><span class="math display">\[
-p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
+p(b_{ij} \mid{} x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 \]</span></p>
 <p>These can be updated by simply generating Bernoulli variables for aligned spins, the other bond variables are set to zero.</p>
 <p>The conditional distribution of the spins is sampled by assigning all spin variables that belong to the same <a href="https://en.wikipedia.org/wiki/Component_(graph_theory)">connected component</a> of the bond network to a single, randomly selected value <span class="math inline">\(\pm 1\)</span>.</p>
@@ -4634,7 +4634,7 @@ p(b_{ij} | x) \propto [p\delta(x_i, x_j)]^{b_{ij}} (1-p)^{1-b_{ij}}
 <span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].imshow(x_SW.reshape(L, L))</span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_1997/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
+<pre><code>/tmp/ipykernel_1998/3345378395.py:1: MatplotlibDeprecationWarning: Support for setting an rcParam that expects a str value to a non-str value is deprecated since 3.5 and support will be removed two minor releases later.
   plt.rc('image', interpolation=None, cmap='gray')</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -4861,30 +4861,26 @@ v(t+\epsilon) &amp;= v(t+\epsilon/2) - (\epsilon/2) \nabla_x E(x(t+\epsilon))
 <p>where <span class="math inline">\(\epsilon\)</span> is the time step. The initial positions and momenta <span class="math inline">\(x(0)\)</span> and <span class="math inline">\(v(0)\)</span> are the previous state <span class="math inline">\(x^{(s)}\)</span> and a sample from the standard Gaussian <span class="math inline">\(v^{(s)} \sim \mathcal N(0, I)\)</span>.</p>
 <p>The leapfrog equations can be rearranged to avoid unnecessary gradient evaluations:</p>
 <ol type="1">
-<li>From <span class="math inline">\(x(0), v(0)\)</span> compute <span class="math inline">\(v(\epsilon/2)\)</span>:</li>
-</ol>
+<li><p>From <span class="math inline">\(x(0), v(0)\)</span> compute <span class="math inline">\(v(\epsilon/2)\)</span>:</p>
 <p><span class="math display">\[
 v(\epsilon/2) = v(0) - (\epsilon/2) \nabla_x E(x(0))
-\]</span></p>
-<ol start="2" type="1">
-<li>Loop over <span class="math inline">\(T-1\)</span> integration steps:</li>
-</ol>
-<p><span class="math display">\[\begin{align}
-\begin{split}
+\]</span></p></li>
+<li><p>Loop over <span class="math inline">\(T-1\)</span> integration steps:</p>
+<p><span class="math display">\[
+\begin{aligned}
 x(t+\epsilon) &amp;= x(t) + \epsilon v(t+\epsilon/2) \\
 v(t+3\epsilon/2) &amp;= v(t+\epsilon/2) - \epsilon \nabla_x E(x(t+\epsilon)) \\
-\end{split}
-\end{align}\]</span></p>
-<ol start="3" type="1">
-<li>Last full-step in <span class="math inline">\(x\)</span> and half-step in <span class="math inline">\(v\)</span>:</li>
-</ol>
-<p><span class="math display">\[\begin{align}
-\begin{split}
+\end{aligned}
+\]</span></p></li>
+<li><p>Last full-step in <span class="math inline">\(x\)</span> and half-step in <span class="math inline">\(v\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
 x(T) &amp;= x(T-\epsilon) + \epsilon v(T-\epsilon/2)\\
 v(T) &amp;= v(T-\epsilon/2) - (\epsilon/2) \nabla_x E(x(T)) \\
-\end{split}
-\end{align}\]</span></p>
-<p>Resulting in <span class="math inline">\(T+1\)</span> gradient evaluations, whereas the original scheme requires two gradient evaluations per time step.</p>
+\end{aligned}
+\]</span></p>
+<p>Resulting in <span class="math inline">\(T+1\)</span> gradient evaluations, whereas the original scheme requires two gradient evaluations per time step.</p></li>
+</ol>
 <p>The following demonstration illustrates leapfrog integration for the harmonic oscillator:</p>
 <div class="cell" data-execution_count="65">
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> leapfrog(x0, v0, eps, gradient, n_steps):</span>
@@ -5059,7 +5055,16 @@ modified Euler: det(trafo) = 1.000
 <p>which holds since Hamiltonian dynamics and the leapfrog integrator preserve volume (otherwise we would have to take into account the proposal probabilities for the forward and backward dynamics).</p>
 <section id="algorithm-hamiltonian-monte-carlo" class="level3">
 <h3 class="anchored" data-anchor-id="algorithm-hamiltonian-monte-carlo">Algorithm: Hamiltonian Monte Carlo</h3>
-<p>Generate an initial state <span class="math inline">\(x^{(0)} \sim p^{(0)}(x)\)</span> using some initial distribution. For <span class="math inline">\(s=0, 1, 2, \ldots\)</span> cycle over the following iterations</p>
+<p>Generate an initial state <span class="math inline">\(x^{(0)} \sim p^{(0)}(x)\)</span> using some initial distribution. For <span class="math inline">\(s=0, 1, 2, \ldots\)</span> cycle over the following iterations:</p>
+<ol type="1">
+<li><p>Generate new momenta <span class="math inline">\(v^{(s)} \sim \mathcal N(0, I)\)</span></p></li>
+<li><p>Integrate Hamilton’s equations of motion using the leapfrog algorithm resulting in a proposal state <span class="math inline">\((x', v')\)</span></p></li>
+<li><p>Accept <span class="math inline">\((x', -v')\)</span> with probability</p>
+<p><span class="math display">\[
+\min\left\{1, \exp\bigl(H(x^{(s)}, v^{(s)})-H(x',-v')\bigr) \right\}
+\]</span></p>
+<p>as new state <span class="math inline">\((x^{(s+1)}, -v^{(s+1)})\)</span></p></li>
+</ol>
 <p>We have to negate the momenta at the end of the trajectory to make the proposal symmetric. Since Hamiltonian dynamics is reversible, flipping the sign of the momenta guarantees that if we reach <span class="math inline">\((x', v')\)</span> starting from <span class="math inline">\((x, v)\)</span> with Hamiltonian dynamics, then we will go back to <span class="math inline">\((x, v)\)</span> using a dynamics that starts from <span class="math inline">\((x', -v')\)</span>.</p>
 <div class="cell" data-execution_count="67">
 <div class="sourceCode cell-code" id="cb82"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> store(args, storage<span class="op">=</span><span class="va">None</span>):</span>
@@ -5308,7 +5313,7 @@ modified Euler: det(trafo) = 1.000
 <span id="cb86-47"><a href="#cb86-47" aria-hidden="true" tabindex="-1"></a>    ax.plot(x, py, color<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">3</span>)</span>
 <span id="cb86-48"><a href="#cb86-48" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>acceptance_rate: 89.50% (HMC), 63.20% (Metropolis)</code></pre>
+<pre><code>acceptance_rate: 91.00% (HMC), 63.26% (Metropolis)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <p><img src="lecture_files/figure-html/cell-72-output-2.png" width="837" height="550"></p>
@@ -5380,10 +5385,10 @@ modified Euler: det(trafo) = 1.000
 <span id="cb89-49"><a href="#cb89-49" aria-hidden="true" tabindex="-1"></a>samples_metro <span class="op">=</span> np.array(<span class="bu">list</span>(metro))[::n_leapfrog]</span>
 <span id="cb89-50"><a href="#cb89-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(metro.acceptance_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.875</code></pre>
+<pre><code>0.871</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.25005666666666665</code></pre>
+<pre><code>0.2502566666666667</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="74">
