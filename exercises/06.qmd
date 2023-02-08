@@ -117,7 +117,7 @@ Let's start with the first:
 
 $$
 \begin{aligned}
-p(\lambda_1 \mid x_{1:N}, \lambda_2, n) &\propto \sum_{i=1}^n (x_i \log(\lambda_1) - \lambda_1) \\
+\log p(\lambda_1 \mid x_{1:N}, \lambda_2, n) &\propto \sum_{i=1}^n (x_i \log(\lambda_1) - \lambda_1) \\
 &+ (a - 1) \log(\lambda_1) - b \lambda_1 \\
 &= (a + \sum_{i=1}^n x_i - 1) \log(\lambda_1) - (b + n) \lambda_1
 \end{aligned}
@@ -136,7 +136,7 @@ $$
 The conditional posterior for $n$ unfortunately does not correspond to a standard distribution:
 
 $$
-p(n \mid x_{1:N}, \lambda_1, \lambda_2) \propto 
+\log p(n \mid x_{1:N}, \lambda_1, \lambda_2) \propto 
 \left(\sum_{i=1}^n x_i\right) \log(\lambda_1) - n \lambda_1
 + \left(\sum_{i=n+1}^N x_i\right) \log(\lambda_2) - (N - n) \lambda_2
 $$
