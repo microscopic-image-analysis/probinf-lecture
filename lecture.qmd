@@ -21,4 +21,4 @@ toc-depth: 1
 
 {{< include lectures/08-HMC-2.qmd >}}
 
-{{< include lectures/09-Diagnostics.qmd >}}
+{{< include lectures/09-Practical-Issues.qmd >}}

@@ -1,0 +1,545 @@
+---
+editor:
+    render-on-save: true
+---
+
+# Lecture 9: Practical issues and diagnostics
+
+![Challenges in MCMC](images/Murray_Thesis_Fig2-1.png "Challenges")
+
+Figure from [Iain Murray: Advances in Markov chain Monte Carlo methods](http://homepages.inf.ed.ac.uk/imurray2/pub/07thesis/murray_thesis_2007.pdf)
+
+## Challenges in MCMC
+
+* __Local exploration__: MCMC samplers typically employ a proposal kernel that changes the current state only locally. The magnitude of changes in the variables is controlled by the *step size* or a similar algorithmic parameter. The step size is limited by the need to maintain a reasonable acceptance rate. The time it takes for a diffusive random walk to explore a distance scales with
+$$
+(\text{distance} / \text{step size})^2  
+$$
+
+* __Convergence__: Typically, the chain starts from a highly improbable state, far away from any mode (local peak in the probability density function). To find a nearby mode, takes some time, again scaling unfavorably with dimension. But even if a mode has been found, it is not guaranteed that the Markov chain will find other modes in a reasonable amount of simulation time. These other modes could be more important in the sense that they carry more probability mass; so missing out on these modes can result in highly biased approximations. 
+
+* __Mixing__: To find all relevant modes is one of the greatest challenges when sampling high-dimensional probabilistic models with multiple peaks (which is the rule rather than the exception). There are many reasons for having to deal with multi-modal distributions. A common reason are symmetries such as invariance under permutation of labels resulting in the [label-switching problem](https://link.springer.com/chapter/10.1007/978-3-662-01131-7_26) in Gaussian mixture modeling. None of the methods that we discussed so far are particularly suited to explore multi-modal probability distributions. A common approach is to use *tempering* to flatten the probability such that the Markov chain can explore sample space more freely, and simulate a chain of tempered distributions, either sequentially (e.g. in [*Annealed importance sampling* (AIS)](https://link.springer.com/article/10.1023/A:1008923215028)) or in parallel (e.g. in [*Parallel tempering*](https://en.wikipedia.org/wiki/Parallel_tempering)). Unfortunately, there is not enough time to discuss these important methods. 
+
+* __Balancing density and volume__: Even if all relevant modes are found eventually, our algorithms might not visit them in due proportion. A probability peak might be very pronounced, but only carry a small amount of probability mass. If "jumps" between modes happen infrequently, the fraction of samples per mode give a bad estimate of the actual propoartion of probability mass under those modes.
+
+## Example: Bimodal distribution
+
+Let's illustrate some of these problems on a simple probability distribution that has two modes.
+Multimodality offers one of the largest challenges for MCMC, which allows us to demonstrate some typical problems on a relatively simple example.
+We discretize the distribution so we can easily analyze the Markov chains by the eigenvalues of their transition matrices.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import logsumexp
+
+def make_target(centers, widths, weights, n_states):
+    """
+    Return a discrete probability distribution (a probability vector)
+    defined on a discretization with `n_states` bins of the interval [-7, 10].
+    The probability distribution is bimodal with gaussian peaks at `centers` and
+    standard deviations `widths`.
+    The peaks is weighed according to `weights`
+    """
+    x = np.linspace(-7., 10., n_states)
+    dist = np.subtract.outer(x, centers)
+    log_weights = np.log(weights)
+    log_weights -= logsumexp(log_weights)
+    logp = (
+        - 0.5 * dist**2 / widths**2
+        - 0.5 * np.log(2 * np.pi * widths**2)
+        + log_weights
+    )
+    logp = logsumexp(logp, axis=1)
+    logp -= logsumexp(logp)
+    return np.exp(logp)
+
+
+def make_proposal(n_neighbors, n_states):
+    """
+    Return a n_states x n_states transition matrix that puts equal
+    probability on the transition to the state's `n_neighbors' next
+    neighbors and zero probability to all other states.
+    """
+    Q = np.sum([np.eye(n_states, k=k) for k 
+                in range(-n_neighbors, n_neighbors+1)], 0)
+    return Q / Q.sum(1)
+
+
+def metropolis_hastings_discrete(
+    X, p, Q, init_state, n_samples, seed=None
+):
+    """
+    Metropolis-Hastings for discrete target `p` with proposal matrix `Q`
+    """
+    if seed is not None:
+        np.random.seed(seed) 
+    n_accepted = 0
+    x = init_state
+    samples = [x]
+
+    # standard Metropolis-Hastings loop
+    while len(samples) < n_samples:
+        y = np.random.choice(X, p=Q[:,x])
+        r = Q[x,y] * p[y] / (Q[y, x] * p[x])
+        if r > np.random.random():
+            x = y
+            n_accepted += 1
+        samples.append(x)
+
+    return np.array(samples), n_accepted / n_samples
+```
+
+## Mixing
+
+For the following, we set the two peaks in our example to have equal mass (i.e. the integral over the density around both peaks is the same), but choose one to be slim and tall, and the other relatively broad and shallow.
+
+We will see that with the particular proposal distribution and stepsize we chose,
+the samples are *not* a very good representation of the target distribution, since the proportion of samples under each peak is quite far from the proportion of actual probability mass under the peaks:
+
+```{python}
+from ipywidgets import interact, Dropdown
+
+# setting bimodal toy system
+centers = np.array([-4.0, 4.0])
+widths = np.array([0.2, 2.0])
+weights = np.array([0.5, 0.5])
+
+n = 100            # number of states
+X = np.arange(n)   # sample space
+p = make_target(centers, widths, weights, n)
+
+# use local proposal chain
+stepsize = 5
+n_samples = 1e4
+
+# random walk with uniform proposal and reflective boundary
+Q = make_proposal(stepsize, n)
+
+@interact(
+    seed=Dropdown(
+        options=[41, 1234, 43],
+        value=41,
+        description="Seed: "
+    )
+)
+def plot_samples(seed):
+    """
+    Run the sampler with given RNG-seed and plot the samples as well as
+    the target distribution.
+    """
+    samples, acceptance_rate = metropolis_hastings_discrete(
+        X, p, Q, X[-1], n_samples, seed
+    )
+    print(f"acceptance rate: {acceptance_rate:.1%}")
+    print(f"{np.mean(samples<25):.1%} of all samples are in left mode")
+
+    # plot results
+    plt.rc('font', size=14)
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.plot(X, p, color='r', lw=2, alpha=0.7)
+    ax.set_title(f"Probability distribution with two peaks of equal mass\n"
+             f"but {np.mean(samples<25):.1%} of all samples are in left peak")
+    ax.hist(samples, bins=40, density=True, color='k', alpha=0.2);
+```
+
+Assessing whether our chain has visited each peak in due proportion is in general a very hard problem, because the true proportions are not known (and estimating the proportions is equivalent to the original problem we're trying to solve).
+
+What we can say though is this:
+If multimodality is present, and our chain visits at least two different modes (otherwise we might not even know that more than one mode exists), then if the number of jumps between those peaks is low, the proportion of samples under each peak is very likely a bad estimate of the true proportion.
+This is one of the reasons why visual inspection of the samples is important. (We will elaborate on this below.)
+
+## Convergence
+
+### Convergence rates for Markov chains
+
+The speed of convergence of a Markov chain $P$ with stationary distribution $\pi$ depends on how quickly contributions to the distance
+
+$$
+\left|p^{(S)} - \pi\right|
+$$ {#eq-distance}
+
+die out as $S\to\infty$. Distance (@eq-distance) is dominated by the second largest eigenvalue $\lambda_2$ of $P$. Since the Markov chain is assumed to be irreducible and aperiodic, we have strictly $|\lambda_2| < 1$. If $u_2, u_3, \ldots$ are the eigenvectors of $P$ with eigenvalues $1 > |\lambda_2| \ge |\lambda_3| \ge \ldots$, then we can write the initial distribution as
+$$
+p^{(0)} = \pi + a_2 u_2 + a_3 u_3 + \ldots
+$$
+After $S$ transitions, the initial $p^{(0)}$ will be propagated to 
+$$
+p^{(S)} = \pi + a_2 \lambda_2^S u_2 + a_3 \lambda_3^S u_3 + \ldots
+$$
+and therefore
+$$
+\left|p^{(S)} - \pi\right| \sim |\lambda_2|^S
+$$
+
+```{python}
+def metropolis_map(Q, p):
+    """
+    Construct Metropolis kernel from proposal kernel and target distribution
+    """
+    # M = np.clip(Q, 0., (Q * p).T / p)
+    M = np.min([Q, (Q * p).T / p], axis=0)
+    i = np.arange(len(M))
+    M[i,i] = 0.
+    M[i,i] = 1 - M.sum(0)
+
+    return M
+
+def second_eigval(M):
+    """
+    Return the second largest (by absolute value) eigenvalue of square matrix `M`
+    """
+    return np.sort(np.abs(np.linalg.eigvals(M)))[::-1][1]    
+
+def propagate(M, p0, n):
+    """
+    Apply Markov-transition `M` to initial distribution `p0` (vector) `n` times and return
+    the resulting distribution (vector)
+    """
+    P = [p0.copy()]
+    for _ in range(n):
+        P.append(M @ P[-1])
+    return np.array(P)
+```
+
+```{python}
+stepsizes = (5, 10, 15, 20, 50)
+distances = []
+rates = []
+
+p0 = np.eye(n)[-1]
+for stepsize in stepsizes:
+    Q = make_proposal(stepsize, n)
+    M = metropolis_map(Q, p)
+    P = propagate(M, p0, 10000)
+    d = np.fabs(P - p).sum(1)
+    distances.append(d)
+    rates.append(-np.log(second_eigval(M)))
+```
+
+```{python}
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+fig, ax = plt.subplots(figsize=(9,5))
+for i in range(len(stepsizes)):
+    ax.plot(distances[i], alpha=0.3, lw=5, 
+            label='step size={0}'.format(stepsizes[i]))
+t = np.arange(10000)
+for i in range(len(stepsizes)):
+    label = r'$\exp\{-\lambda_2 s\}$' if i == 0 else None
+    ax.plot(np.exp(-rates[i]*t), ls='--', alpha=0.9, 
+            color=colors[i], label=label)
+ax.set_xlabel(r'iteration $s$')
+ax.set_ylabel(r'$|\pi - p^{(s)}|$')
+ax.legend()
+ax.set_ylim(0., 1.);
+    
+```
+
+### Achieving fast convergence rates: Parameter tuning
+
+In our simple discrete example we can analyze the eigenvalues of the Markov transition matrix to assess the convergence behaviour and set our algorithmic parameters in a way that minimizes the magnitude of the second largest eigenvalue.
+In real-world applications with high dimensional sample spaces and continous variables we are usually not so lucky.
+We need a heuristic that offers us some guidance.
+
+In our example we've seen that the convergence rate depends on the step size. This is generally the case. Another thing that changes with stepsize is the acceptance rate. For a vanishingly small stepsize, the acceptance rate is close to one but the chain does practially not "move" at all and exploration of the typical set will be very slow (corresponding to a large second eigenvalue).
+On the other hand, if we set the step size to a very large value, the proposal distribution will mostly suggest points outside the typical set, which will get rejected most of the time, so again the chain does not "move" very much and stays at the same point most of the time with some occasional large jumps in between.
+
+This suggests that one can *tune* algorithmic parameters of MCMC methods (such as stepsize) by aiming for an acceptance rate that lies somewhat in between those extremes.
+[Gelman et al, Chapter 12.3](http://www.stat.columbia.edu/~gelman/book/) quote desired acceptance rates between 0.44 and 0.23, depending on dimension.
+These are rules of thumb, motivated using the assumtion of a (single, multivariate) normal distribution.
+
+Let's investigate the stepsize/acceptance-rate behaviour for our discrete toy example, where we have the luxury of knowing the second largest eigenvalue:
+
+```{python}
+stepsizes = range(1, 101, 5)
+rates = []
+acc = []
+
+for stepsize in stepsizes:
+    Q = make_proposal(stepsize, n)
+    M = metropolis_map(Q, p)
+    rates.append(-np.log(second_eigval(M)))
+    _, acceptance_rate = metropolis_hastings_discrete(
+        X, p, Q, X[-1], 50_000
+    )
+    acc.append(acceptance_rate)
+    
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.scatter(stepsizes, rates, s=200, color='k', alpha=0.7)
+ax.set_ylabel(r'-$\log|\lambda_2|$')
+ax.set_xlabel('stepsize');
+ax2 = ax.twinx()
+ax2.scatter(stepsizes, acc, s=200, color="red", alpha=0.7)
+ax2.set_ylabel("acceptance rate", color="red")
+ax2.set_ylim(0, 1)
+ax2.tick_params(axis='y', color='red', labelcolor='red')
+```
+
+### Warmup phase ("Burn-in")
+
+As we've seen, the Markov chain does not start from the stationary distribution, so 
+$$
+\mathbb E_{p^{(s)}}[f] \not= \mathbb E_p[f]\, , 
+$$
+and the difference can be substantial for small $s$, thereby inducing significant bias to the Monte Carlo estimator:
+
+$$
+\frac{1}{S} \sum_{s=1}^S f\bigl(x^{(s)}\bigr).
+$$
+
+To minimize the bias from this initial phase in which the chain has not yet achieved convergence, it is common practice to discard the first samples $x^{(0)}, \ldots, x^{(B)}$.
+This phase is often called *warm-up* or *burn-in*. It is assumed that the samples $x^{(B+1)}$ will approximately follow the target distribution $p$. The Monte Carlo approximation then becomes:
+$$
+\frac{1}{S-B} \sum_{s=B+1}^S f\bigl(x^{(s)}\bigr)\, .
+$$ {#eq-burnin}
+
+The question that arises in practice is of course how to select $B$, or in other words how to assess after how many steps the chain has reached approximate converge.
+
+### Monitoring convergence
+
+Determining whether or when our simulation has reached approximate convergence is unfortunately not very easy in most cases.
+The converse however is usually relatively straigtforward: Cases in which chains have not reached convergence are often easy to spot.
+Several concepts are of help:
+
+#### Trace plots
+
+The first is to inspect the samples of each random variable individually.
+One of the most useful tools is to plot the sequence of samples for each of the simulated variables *as an actual sequence*, with the iteration number $s$ on the x-axis and the sample $x^{(s)}$ on the y-axis. Such a plot is commonly called a [**trace plot**](https://python.arviz.org/en/stable/api/generated/arviz.plot_trace.html). This kind of plot can reveal several problems if they're present, e.g. non-stationarity (i.e. if the chain has not yet converged) or infrequent jumps between multiple modes. We will see an example below.
+
+#### Simulation of multiple chains
+
+Another useful strategy is to run *multiple* independent simulations either in parallel or in sequence, and to start each of the simulations at very different initial points.
+This can reveal problems in the simulation that would be impossible to discover with a single simulation run only.
+An example of this is illustrated in the left plot of figure @fig-traceplot-convergence, which shows two independent simulations that were started at different points in the sample space. Each sequence individually looks stationary, and if only one simulation would have been run, one might have concluded that the samples give a good representation of the desired target distribution. Observing that the second simulation also looks stationary but covers a different subset of the sample space, reveals that the target distribution has at least two modes and our simulations underexplore the sample space. We need to adapt the simulation parameters (e.g. increase stepsize)!
+
+```{python}
+#| label: fig-traceplot-convergence
+#| fig-cap: Examples of two challenges in determining approximate convergence. The left plot show two independent simulation runs which individually look like they might have converged. Only the fact that two independent simluations were run reveals that either chain is stuck in a differen mode of the target distribution. The right plot shows again two independent simulation runs. This time both chains cover the sample space equally, but neither of the chains has reached (approximate) convergence. Figure reproduced loosely from [Gelman et al. Chapter 11.4](http://www.stat.columbia.edu/~gelman/book/)
+
+n_chains = 2
+
+# two peaks of small equal width
+# relatively large stepsize
+# chains both start within typical set
+p1 = make_target(np.array([-3.0, 5.0]), np.array([1.0, 1.0]), weights, n)
+initial_states = [X[20], X[70]]
+Q = make_proposal(10, n)
+
+samples1 = [
+    metropolis_hastings_discrete(
+        X, p1, Q, initial_states[i], 2_000, seed=3 + i
+    )[0]
+    for i in range(n_chains)
+]
+
+# two peaks of very large equal width
+# very small stepsize
+# chains both start outside typical set
+p2 = make_target(np.array([-3.0, 5.0]), np.array([10.0, 10.0]), weights, n)
+initial_states = [X[0], X[-1]]
+Q = make_proposal(1, n)
+
+samples2 = [
+    metropolis_hastings_discrete(
+        X, p2, Q, initial_states[0], 2_000, seed=40
+    )[0],
+    metropolis_hastings_discrete(
+        X, p2, Q, initial_states[1], 2_000, seed=2
+    )[0],
+]
+
+fig, axs = plt.subplots(1, 2, figsize=(9, 3))
+axs[0].plot(samples1[0], label="Chain 1", alpha=0.7)
+axs[0].plot(samples1[1], label="Chain 2", alpha=0.7)
+axs[0].set_xlabel("iteration $s$")
+axs[0].set_ylabel("state")
+axs[1].plot(samples2[0], label="Chain 1", alpha=0.7)
+axs[1].plot(samples2[1], label="Chain 2", alpha=0.7)
+axs[1].set_xlabel("iteration $s$")
+plt.show()  # to make quarto show the caption
+```
+
+#### Convergence metrics
+
+Third some statistics have been designed to help assessing whether the samples from multiple independent simulation runs mix well. The most widely used such statistic is the "potential scale reduction" $\hat{R}$, sometimes also called Gelman-Rubin statistic, or simply r-hat.
+The basic idea behind that statistic can again be motivated from @fig-traceplot-convergence: Looking at the left plot we see that the variance of the samples within each individual sequence is much lower than the variance between different sequences.
+Before the between-sequence and in-sequence variances are compared, the sequences are split in half and thus the number of sequences is doubled.
+This can again be motivated using figure @fig-traceplot-convergence. Without splitting the sequences in half, the between-sequence variance would approximately be equal to the within-sequence variance on the right plot in figure @fig-traceplot-convergence.
+
+Assume that after splitting we have $K$ sequences each with a number of $S$ 
+samples.
+We refer to a single sample in sequence $k$ at iteration $s$ as $x^{(s)}_k$.
+$\hat{R}$ is then calculated in the following way:
+First $B$ and $W$, the between- and within-sequence variances are computed:
+$$
+\begin{aligned}
+B &= \frac{S}{K - 1} \sum_{k=1}^K \left(\bar{x}_k - \bar{x}\right)^2, \quad \text{where} \quad \bar{x}_k = \frac{1}{S} \sum_{s=1}^S x^{(s)}_k, \quad \bar{x} = \frac{1}{K} \sum_{k=1}^K \bar{x}_k \\
+W &= \frac{1}{K} \sum_{k=1}^K \sigma_k^2, \quad \text{where} \quad \sigma_k^2 = \frac{1}{S - 1} \sum_{s=1}^S(x^{(s)}_k - \bar{x}_k)^2
+\end{aligned}
+$$
+
+From these the potential scale reduction $\hat{R}$ can be calculated:
+$$
+\hat{R} = \sqrt{\frac{\frac{(S - 1)}{S} W + \frac{1}{S} B}{W}}
+$$
+
+This quantity is larger than 1 but we want it to be close.
+Gelman et al quote $1.1$ as an upper threshold. Nowadays usually tighter thresholds are desired.
+
+Let us re-visit the two examples of figure @fig-traceplot-convergence, but let us also add a third example that demonstrates what "good" simulation runs look like. We also calculate $\hat{R}$ for all three examples.
+The result is shown in figure @fig-traceplot-convergence-repeated
+
+```{python}
+def r_hat(chains):
+    """
+    Calculate Gelman-Rubin potential scale reduction statistic.
+    """
+    # double the number of chains by splitting each chain in half
+    chains = np.concatenate([np.split(c, 2) for c in chains])
+    # now have K chains, each with S samples:
+    K, S = chains.shape 
+    # Between-chain variance:
+    B = S * np.var(np.mean(chains, axis=1))
+    # Within-chain variance:
+    W = np.mean(np.var(chains, axis=1))
+
+    var_plus = ((S - 1) * W + B) / S
+    return np.sqrt(var_plus / W)
+```
+
+```{python}
+#| label: fig-traceplot-convergence-repeated
+#| fig-cap: Repetition of figure @fig-traceplot-convergence, with an additional figure on the right showing simulations of the same system as in the left plot, but with a much larger stepsize that leads to a much better exploration of the typical set. All three plots show the r-hat metric in the title.
+
+initial_states = [X[20], X[70]]
+Q = make_proposal(60, n)
+
+samples3 = [
+    metropolis_hastings_discrete(
+        X, p1, Q, initial_states[0], 2_000, seed=0
+    )[0],
+    metropolis_hastings_discrete(
+        X, p1, Q, initial_states[1], 2_000, seed=1
+    )[0],
+]
+
+fig, axs = plt.subplots(1, 3, figsize=(9, 3), sharey=True, sharex=True)
+axs[0].plot(samples1[0], label="Chain 1", alpha=0.7)
+axs[0].plot(samples1[1], label="Chain 2", alpha=0.7)
+axs[0].set_xlabel("iteration $s$")
+axs[0].set_ylabel("state")
+axs[0].set_title(r"$\hat{R}$: " + f"{r_hat(samples1):.3f}")
+axs[1].plot(samples2[0], label="Chain 1", alpha=0.7)
+axs[1].plot(samples2[1], label="Chain 2", alpha=0.7)
+axs[1].set_xlabel("iteration $s$")
+axs[1].set_title(r"$\hat{R}$: " + f"{r_hat(samples2):.3f}")
+axs[2].plot(samples3[0], label="Chain 1", alpha=0.7)
+axs[2].plot(samples3[1], label="Chain 2", alpha=0.7)
+axs[2].set_xlabel("iteration $s$")
+axs[2].set_title(r"$\hat{R}$: " + f"{r_hat(samples3):.3f}")
+plt.show()
+```
+
+## Dependent samples
+
+When taking the step from standard Monte Carlo sampling to Markov-Chain Monte Carlo, we deliberately gave up the property that the samples are drawn independently.
+This dependence between successive samples means that the variance of the MCMC estimator is higher than that of standard MC estimator based on the same number of draws.
+
+It can be shown that the asymptotic variance of the MCMC estimator converges against
+$$
+\text{var}\left[\frac{1}{S}\sum_s f\bigl(x^{(s)}\bigr) \right] \xrightarrow[S\to\infty]{} \frac{1}{S} \text{var}_p[f] (1 + 2 \sum_{t \ge 1} \rho_t)  
+$$ {#eq-variance}
+where $\rho_t$ is the *autocorrelation* of the sequence of samples at lag $t$
+$$
+\rho_t = \text{corr}[f(x^{(s)}), f(x^{(s + t)})] \, .
+$$ {#eq-correlation}
+The higher the autocorrelation, the larger the variance of the MCMC estimator.
+For uncorrelated samples $\rho_t=0$ and we are back to the standard variance of Monte Carlo estimators: $\text{var}[f]/S$.
+
+### Effective sample size
+
+Another way to look at this is that correlations decrease the *effective sample size* (ESS).
+
+A way of defining an effective sample size $S_\text{eff}$ is as the number $S_\text{eff}$ of hypothetical *independent* standard-MC samples required to achieve the same variance as we achieve with the $S$ correlated samples from our MCMC estimator:
+$$
+S_{\text{eff}} = \frac{S}{1 + 2 \sum_{t \ge 1} \rho_t} = \frac{S}{\text{IACT}}
+$$ {#eq-ess}
+where $\text{IACT} = 1 + 2 \sum_{t \ge 1} \rho_t$ is the *integrated auto-correlation time*. 
+
+```{python}
+# autocorrelation analysis of bimodal target
+
+def autocorrelation(x, n=None):
+    """
+    auto-correlation of a times series
+
+    Parameters
+    ----------
+
+    x: array containing time series
+    n: Optional integer specifying maximal lag for which to compute the auto-correlation
+       If `n` is None, the maximal lag is defined as the first lag for which the sum of
+       two successive lagged autocorrelations is negative.
+    """
+    x = x - x.mean()
+    rhos = []
+    max_lag = len(x) if n is None else n
+    l1 = 0.0
+    l2 = 0.0
+    for i in range(max_lag):
+        autocov_i = np.mean(x[i:] * x[:len(x) - i])
+        if (n is None) and (i > 1) and (l1 + l2 < 0):
+            break
+        rhos.append(autocov_i)
+        l2 = l1
+        l1 = autocov_i
+    if n is None:
+        rhos = rhos[:-1]
+    return np.array(rhos) / np.var(x)
+```
+
+```{python}
+np.random.seed(41) 
+stepsizes = (5, 10, 15, 20, 60)
+n_samples = 20_000
+ac = []
+n_effs = []
+for stepsize in stepsizes:
+    Q = make_proposal(stepsize, len(p))
+
+    S, acceptance_rate = metropolis_hastings_discrete(
+        X, p, Q, X[-1], n_samples
+    )
+    ac.append(autocorrelation(S*1., 10000))
+    n_effs.append(
+        round(
+            n_samples / (1 + 2 * np.sum(autocorrelation(S * 1.)))
+        )
+    )
+    print(f"stepsize={stepsize}: acceptance-rate={acceptance_rate:.1%}, ESS={n_effs[-1]}")
+
+fig, ax = plt.subplots(figsize=(9,5))
+for i in range(len(stepsizes)):
+    ax.plot(ac[i], alpha=0.3, lw=5, 
+            label=f"stepsize={stepsizes[i]}, $S_{{eff}}$={n_effs[i]:d}")
+ax.axhline(0, ls='--', color='k', alpha=0.7)
+ax.set_xlim(0, 4000)
+ax.set_xlabel(r'lag $t$')
+ax.set_ylabel(r'autocorrelation $\rho_t$')
+ax.legend()
+```
+
+
+### Practical summary (from Vihola's lecture notes)
+
+When using MCMC, always do the following checks:
+
+1. Plot MCMC traces of the variables and key functions of the variables. They should look stationary after burn-in.
+
+2. Make multiple MCMC runs from different initial states and check that the marginal distributions (or the estimators) look similar. This test reveals if your chain is "almost reducible".
+
+3. Plot sample autocorrelations of the variables and functions.
+
+4. Calculate the effective sample size and check that it is reasonably large. 
+
+5. Calculate $\hat{R}$ and check that it is close to 1 (< 1.1)
