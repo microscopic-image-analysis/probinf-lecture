@@ -19,4 +19,6 @@ toc-depth: 1
 
 {{< include lectures/07-Hamiltonian-Monte-Carlo.qmd >}}
 
-{{< include lectures/08-HMC-Practical-Issues.qmd >}}
+{{< include lectures/08-HMC-2.qmd >}}
+
+{{< include lectures/09-Practical-Issues.qmd >}}
