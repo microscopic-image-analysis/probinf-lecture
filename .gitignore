@@ -1,6 +1,7 @@
 .ipynb_checkpoints
-./env
+.env
 .venv
+env
 
 # quarto output
 lecture_files
