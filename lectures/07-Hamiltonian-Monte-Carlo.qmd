@@ -281,7 +281,7 @@ fig.tight_layout()
 ```
 
 ```{python}
-plt.rc('image', interpolation=None, cmap='gray')
+plt.rc('image', interpolation='none', cmap='gray')
 kw = dict(xticks=[], yticks=[])
 fig, ax = plt.subplots(1, 2, figsize=(10, 5), subplot_kw=kw)
 ax[0].set_title('Metropolis')
