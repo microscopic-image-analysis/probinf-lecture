@@ -482,6 +482,7 @@ a straight line segment through the origin with slope $p(x_1)/p(x_2)$.
 The following figure shows $\mathcal{R}(p)$ for $p(x_1) = 0.4$, $p(x_2) = 1-p(x_1) = 0.6$.
 
 ```{python}
+#| echo: false
 # 2D visualization
 
 def make_plot(p0=0.4, limits=(-0.05, 1.05), ax=None):
@@ -536,6 +537,7 @@ $$
 Examples for the Metropolis map are shown in the following figure:
 
 ```{python}
+#| echo: false
 def M(p0, alpha, beta):
     alpha_new = min(alpha, (1-p0) * beta / p0) 
     beta_new = min(beta, p0 * alpha / (1-p0))
@@ -574,6 +576,7 @@ $$
 where $\alpha, \alpha'$ etc. are the off-diagonal entries of the transition matrices $P, P'$.  
 
 ```{python}
+#| echo: false
 def distance(p, P, Q):
     M = 1 - np.eye(len(p))
     return np.sum(np.fabs(P-Q)*M*p)
