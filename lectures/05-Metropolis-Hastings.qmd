@@ -532,7 +532,7 @@ $$
 \begin{pmatrix}
 \alpha \\ \beta 
 \end{pmatrix} \to
-\min\bigl\{\alpha\, p(x_1), \beta\, (1-p(x_2)) \bigr\}
+\min\bigl\{\alpha\, p(x_1), \beta\, p(x_2) \bigr\}
 \begin{pmatrix}
 1 / p(x_1) \\ 1 / p(x_2)
 \end{pmatrix}
