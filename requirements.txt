@@ -444,9 +444,9 @@ jupyter-lsp==2.2.1 ; python_version >= "3.10" and python_version < "3.12" \
 jupyter-server-terminals==0.5.1 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:16d3be9cf48be6a1f943f3a6c93c033be259cf4779184c66421709cf63dccfea \
     --hash=sha256:5e63e947ddd97bb2832db5ef837a258d9ccd4192cd608c1270850ad947ae5dd7
-jupyter-server==2.12.3 ; python_version >= "3.10" and python_version < "3.12" \
-    --hash=sha256:6f85310ea5e6068568a521f079fba99d8d17e4884dd1d602ab0f43b3115204a8 \
-    --hash=sha256:a1d2d51e497b1a6256c48b6940b0dd49b2553981baf1690077c37792f1fa23a1
+jupyter-server==2.12.5 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:0edb626c94baa22809be1323f9770cf1c00a952b17097592e40d03e6a3951689 \
+    --hash=sha256:184a0f82809a8522777cfb6b760ab6f4b1bb398664c5860a27cec696cb884923
 jupyter==1.0.0 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:3e1f86076bbb7c8c207829390305a2b1fe836d471ed54be66a3b8c41e7f46cc7 \
     --hash=sha256:5b290f93b98ffbc21c0c7e749f054b3267782166d72fa5e3ed1ed4eaf34a2b78 \
@@ -460,9 +460,9 @@ jupyterlab-server==2.25.2 ; python_version >= "3.10" and python_version < "3.12"
 jupyterlab-widgets==3.0.9 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:3cf5bdf5b897bf3bccf1c11873aa4afd776d7430200f765e0686bd352487b58d \
     --hash=sha256:6005a4e974c7beee84060fdfba341a3218495046de8ae3ec64888e5fe19fdb4c
-jupyterlab==4.0.10 ; python_version >= "3.10" and python_version < "3.12" \
-    --hash=sha256:46177eb8ede70dc73be922ac99f8ef943bdc2dfbc6a31b353c4bde848a35dee1 \
-    --hash=sha256:fe010ad9e37017488b468632ef2ead255fc7c671c5b64d9ca13e1f7b7e665c37
+jupyterlab==4.0.12 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:53f132480e5f6564f4e20d1b5ed4e8b7945952a2decd5bdfa43760b1b536c99d \
+    --hash=sha256:965d92efa82a538ed70ccb3968d9aabba788840da882e13d7b061780cdedc3b7
 kiwisolver==1.4.5 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:00bd361b903dc4bbf4eb165f24d1acbee754fce22ded24c3d56eec268658a5cf \
     --hash=sha256:040c1aebeda72197ef477a906782b5ab0d387642e93bda547336b8957c61022e \
@@ -679,9 +679,9 @@ nest-asyncio==1.5.8 ; python_version >= "3.10" and python_version < "3.12" \
 notebook-shim==0.2.3 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:a83496a43341c1674b093bfcebf0fe8e74cbe7eda5fd2bbc56f8e39e1486c0c7 \
     --hash=sha256:f69388ac283ae008cd506dda10d0288b09a017d822d5e8c7129a152cbd3ce7e9
-notebook==7.0.6 ; python_version >= "3.10" and python_version < "3.12" \
-    --hash=sha256:0fe8f67102fea3744fedf652e4c15339390902ca70c5a31c4f547fa23da697cc \
-    --hash=sha256:ec6113b06529019f7f287819af06c97a2baf7a95ac21a8f6e32192898e9f9a58
+notebook==7.0.7 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:289b606d7e173f75a18beb1406ef411b43f97f7a9c55ba03efa3622905a62346 \
+    --hash=sha256:3bcff00c17b3ac142ef5f436d50637d936b274cfa0b41f6ac0175363de9b4e09
 numpy==1.26.3 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:02f98011ba4ab17f46f80f7f8f1c291ee7d855fcef0a5a98db80767a468c85cd \
     --hash=sha256:0b7e807d6888da0db6e7e75838444d62495e2b588b99e90dd80c3459594e857b \
