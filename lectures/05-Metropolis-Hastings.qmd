@@ -11,27 +11,6 @@
 
 * Markov chains are defined by stochastic matrices; they have at least one stationary distribution
 
-```{python}
-import numpy as np
-import matplotlib.pylab as plt
-
-plt.rc('font', size=20)
-
-# transition matrix as defined in last lecture
-def transition_matrix(alpha, beta):
-    return np.array([[1-alpha, beta], 
-                     [alpha, 1-beta]])
-
-# sampling method as defined in last lecture
-def sample_chain(S, alpha=0.5, beta=0.5, x0=0):
-    X = [x0]
-    P = transition_matrix(alpha, beta)
-    while len(X) < S:
-        p = P[:,X[-1]]
-        X.append(np.random.multinomial(1, p).argmax())
-    return np.array(X)
-```
-
 * Reducible and periodic chains will not converge to a unique stationary distribution 
 
 So only if the Markov is both *irreducible* and *aperiodic*, then we have a unique stationary distribution. This is detailed in the following theorems.
@@ -58,31 +37,71 @@ $$
 
 That is, if $P$ is irreducible and aperiodic, then matrix powers of $P$ converge to a rank-1 matrix. 
 
-The fundamental theorem for Markov chains follows from the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) for non-negative matrices and the irreducibility of $P$. 
+#### Convergence of two-state example
 
-Why does theorem (@eq-fundamental) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from $x$ to $y$ according to $P(y, x)$. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution. 
-
-But there is still something missing in order to use the simulation of a Markov chain for probabilistic inference. In our setting, we are given a probabilistic model $p$ (our target distribution) rather than a transition matrix $P$. So we are still facing the challenge of designing a suitable Markov chain that has the desired target as its stationary distribution. This problem has been solved in a very ingenious fashion by Metropolis et al., as we will see soon. 
+To demonstrate this with a simple example, we revisit the two-state model from last lecture.
 
 ```{python}
+# Here we demonstrate that matrix power of the transition matrix
+# converges to a rank-1 matrix on the example of our two-state model
 
-# matrix power converges to rank-1 matrix
+import numpy as np
+import matplotlib.pylab as plt
+
+plt.rc('font', size=20)
+
+# transition matrix as defined in last lecture
+def transition_matrix(alpha, beta):
+    """
+    return the transition matrix of the two-state model
+    given the model parameters `alpha` and `beta`
+    """
+    return np.array([[1-alpha, beta], 
+                     [alpha, 1-beta]])
+
+# sampling method as defined in last lecture
+def sample_chain(S, alpha=0.5, beta=0.5, x0=0):
+    """
+    Sample `S` values from the two-state Markov Chain
+    given the model parameters `alpha` and `beta`, and
+    and initial state `x0` ∈ {0, 1}
+    """
+    X = [x0]
+    P = transition_matrix(alpha, beta)
+    while len(X) < S:
+        p = P[:,X[-1]]  # transition probabilites given last state
+        x = np.random.choice([0, 1], p=p)  # sample new state ∈ {0, 1}
+        X.append(x)
+    return np.array(X)
+
 def compute_pi(alpha, beta):
+    """
+    compute the stationary distribution of the two-state model
+    given the model parameters `alpha` and `beta`
+    """
     return np.array([beta, alpha]) / (alpha + beta)
 
-S = 50
-chains = [(0.1, 0.1), (0.1, 0.), (1e-2, 0.), (0.9, 0.9), (0.99, 0.99), (0.1, 0.7)]
+S = 50  # number of steps
+# list of model parameters ((alpha, beta) pairs):
+params = [
+    (0.10, 0.10),
+    (0.10, 0.00),  # reducible (can't reach x1 from x2)
+    (0.01, 0.00),  # reducible
+    (0.90, 0.90),
+    (0.99, 0.99),  # close to periodic
+    (0.10, 0.70),
+]
 
 kw = dict(ylim=[-0.1, 2.1], ylabel=r'$|P^s-\pi\mathbb{1}^T|$', xlabel='$s$')
 fig, ax = plt.subplots(2, 3, figsize=(12, 6), sharex='all', sharey='all', subplot_kw=kw)
 ax = list(ax.flat)
 
-for i, (alpha, beta) in enumerate(chains):
+for i, (alpha, beta) in enumerate(params):
 
     P = transition_matrix(alpha, beta)
-    pi = np.array([beta, alpha]) / (alpha + beta)
-    P_inf = np.multiply.outer(pi, np.ones(2))
-    P_s = P.copy()
+    pi = compute_pi(alpha, beta)  # expected stationary distribution
+    P_inf = np.multiply.outer(pi, np.ones(2))  # expected P_s for s -> ∞, a rank-1 matrix
+    P_s = P.copy()  # initialize P_s with P_1
 
     d = []
     while len(d)  < S:
@@ -96,8 +115,16 @@ fig.tight_layout()
 ```
 
 ```{python}
-# convergence in distribution
+# Here we demonstrate that we eventually produce samples from the
+# stationary distribution *independent* of which initial state we
+# start from.
+
 def estimate_pi0(X):
+    """
+    Given a list of samples `X` from the two-state Markov chain,
+    return a **running** list of estimates for probability of state
+    x1 (0) under the stationary distribution.
+    """
     return 1-np.add.accumulate(X) / np.add.accumulate(np.ones(len(X)))
 
 S = 1000
@@ -106,7 +133,7 @@ kw = dict(ylim=[-0.1, 1.1], ylabel=r'$p^{(s)}(x=x_1)$', xlabel='$s$')
 fig, ax = plt.subplots(2, 3, figsize=(12, 6), sharex='all', sharey='all', subplot_kw=kw)
 ax = list(ax.flat)
 
-for i, (alpha, beta) in enumerate(chains):
+for i, (alpha, beta) in enumerate(params):
     X = sample_chain(S, alpha, beta, x0=0)
     pi = compute_pi(alpha, beta)
     pi_est = estimate_pi0(X)
@@ -116,6 +143,13 @@ for i, (alpha, beta) in enumerate(chains):
     ax[i].axhline(pi[0], ls='--', color='r', alpha=0.8)
 fig.tight_layout()
 ```
+
+The fundamental theorem for Markov chains follows from the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) for non-negative matrices and the irreducibility of $P$. 
+
+Why does theorem (@eq-fundamental) have implications for sampling? As we saw in the previous lectures, it might be difficult to sample a probabilistic model directly. Sometimes variable transformations allow us to sample a model directly, but this is only rarely the case for complex models. When resorting to rejection or importance sampling, it is generally difficult to find a good proposal distribution. On the other hand, simulation of a Markov chain is simple to implement (see algorithm above): we just have to move from $x$ to $y$ according to $P(y, x)$. No matter where we start in sample space, the states that we produce by simulating a Markov chain will eventually follow the stationary distribution. 
+
+But there is still something missing in order to use the simulation of a Markov chain for probabilistic inference. In our setting, we are given a probabilistic model $p$ (our target distribution) rather than a transition matrix $P$. So we are still facing the challenge of designing a suitable Markov chain that has the desired target as its stationary distribution. This problem has been solved in a very ingenious fashion by Metropolis et al., as we will see soon. 
+
 
 ### Strong law of large numbers (LLN) for Markov chains
 
