@@ -383,7 +383,7 @@ X = np.arange(m)
 p = X + 1.
 p *= 2 / m / (m+1)
 
-# uniform proposal
+# uniform proposal (accepts current state as argument, but does not use it)
 Q = lambda x=None: np.random.choice(X)
 
 x = Q()
@@ -394,7 +394,7 @@ while len(samples) < 1e5:
     # proposal step
     y = Q(x)
     
-    # acceptance probability
+    # acceptance ratio
     A = p[y] / p[x]
     
     # accept / reject?
@@ -408,8 +408,12 @@ counts = counts / float(counts.sum())
 
 fig, ax = plt.subplots(1, 2, figsize=(10, 4))
 ax[0].bar(bins, counts, color='k', alpha=0.2)
+ax[0].set_xlabel("x")
+ax[0].set_ylabel("p(x)")
 ax[0].step(np.append(-1,X) + 0.5, np.append(0,p), color='r')
 ax[1].plot(samples[-500:], color='k', alpha=0.75)
+ax[1].set_xlabel("sample")
+ax[1].set_ylabel("x")
 fig.tight_layout()
 ```
 
@@ -457,7 +461,7 @@ The acceptance ratio $R(y, x)$ (Eq. @eq-acceptance-ratio) assesses how unbalance
 
 To better understand how the mapping from some irreducible proposal chain $Q$ to a $p$-reversible Metropolis chain $P$ works, let me try to explain a very nice paper by [Billera & Diaconis: A Geometric Interpretation of the Metropolis-Hastings Algorithm](https://projecteuclid.org/euclid.ss/1015346318). This paper sets out to provide a global view on why the MH algorithm in some sense provides the optimal way of turning some arbitrary Markov chain $Q$ into a Markov chain with the desired stationary distribution. 
 
-First let us think of the space of all possible Markov chains indexed by states from the finite sample space $\mathcal X$. This space is formed by left stochastic square matrices of size $|\mathcal X|$ and will be called $\mathcal S(\mathcal X)$. $\mathcal S(\mathcal X)$ is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of $\mathcal S(\mathcal X)$ is $|\mathcal X|(|\mathcal X| -1 )$: there are $|X|^2$ non-negative entries in total from which we need to subtract $|X|$ diagonal entries that are fixed by column stochasticity (Eq. @eq-leftstochastic).
+First let us think of the space of all possible Markov chains indexed by states from the finite sample space $\mathcal X$. This space is formed by left stochastic square matrices of size $|\mathcal X|$ and will be called $\mathcal S(\mathcal X)$. $\mathcal S(\mathcal X)$ is convex, because the convex combination of two Markov matrices is again a stochastic matrix. The dimension of $\mathcal S(\mathcal X)$ is $|\mathcal X|(|\mathcal X| -1 )$: there are $|\mathcal X|^2$ non-negative entries in total from which we need to subtract $|\mathcal X|$ diagonal entries that are fixed by column stochasticity (Eq. @eq-leftstochastic).
 
 For a fixed target distribution $p$, the subset $\mathcal R(p)$ of all Markov matrices that are $p$-reversible 
 $$
