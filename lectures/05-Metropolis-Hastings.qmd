@@ -566,18 +566,18 @@ In the above figure, $Q$ is either shifted to the left along the $\alpha$ axis, 
 A suitable metric on $\mathcal S(\mathcal{X})$ is
 
 $$
-d(P, P') = \sum_{x\in\mathcal{X}} \sum_{y\not= x} p(x)\, \left|P(y, x) - P'(y, x)\right|
+d(Q, Q') = \sum_{x\in\mathcal{X}} \sum_{y\not= x} p(x)\, \left|Q(y, x) - Q'(y, x)\right|
 $$ {#eq-metric}
 
-which is only zero, if $P'=P$. The following figure shows "circles" around some $Q\in\mathcal S(\mathcal X)$ which are of course not actual circles because $d(P,P')$ is a weighted L1 norm, so $d$-circles are diamonds.  
+which is only zero, if $Q'=Q$. The following figure shows "circles" around some $Q\in\mathcal S(\mathcal X)$ which are of course not actual circles because $d(Q,Q')$ is a weighted L1 norm, so $d$-circles are diamonds.  
 
 For the 2-state system, we have
 
 $$
-d(P, P') = p(x_1)\, |\alpha - \alpha'| + p(x_2)\, |\beta - \beta'|
+d(Q, Q') = p(x_1)\, |\alpha - \alpha'| + p(x_2)\, |\beta - \beta'|
 $$
 
-where $\alpha, \alpha'$ etc. are the off-diagonal entries of the transition matrices $P, P'$.  
+where $\alpha, \alpha'$ etc. are the off-diagonal entries of the transition matrices $Q, Q'$.  
 
 ```{python}
 #| echo: false
