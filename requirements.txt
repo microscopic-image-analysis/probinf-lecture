@@ -438,9 +438,9 @@ jupyter-core==5.7.1 ; python_version >= "3.10" and python_version < "3.12" \
 jupyter-events==0.9.0 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:81ad2e4bc710881ec274d31c6c50669d71bbaa5dd9d01e600b56faa85700d399 \
     --hash=sha256:d853b3c10273ff9bc8bb8b30076d65e2c9685579db736873de6c2232dde148bf
-jupyter-lsp==2.2.1 ; python_version >= "3.10" and python_version < "3.12" \
-    --hash=sha256:17a689910c5e4ae5e7d334b02f31d08ffbe98108f6f658fb05e4304b4345368b \
-    --hash=sha256:b17fab6d70fe83c8896b0cff59237640038247c196056b43684a0902b6a9e0fb
+jupyter-lsp==2.2.2 ; python_version >= "3.10" and python_version < "3.12" \
+    --hash=sha256:256d24620542ae4bba04a50fc1f6ffe208093a07d8e697fea0a8d1b8ca1b7e5b \
+    --hash=sha256:3b95229e4168355a8c91928057c1621ac3510ba98b2a925e82ebd77f078b1aa5
 jupyter-server-terminals==0.5.1 ; python_version >= "3.10" and python_version < "3.12" \
     --hash=sha256:16d3be9cf48be6a1f943f3a6c93c033be259cf4779184c66421709cf63dccfea \
     --hash=sha256:5e63e947ddd97bb2832db5ef837a258d9ccd4192cd608c1270850ad947ae5dd7
